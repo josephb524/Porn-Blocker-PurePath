@@ -5,41 +5,68 @@ import UniformTypeIdentifiers
 class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
     
     func beginRequest(with context: NSExtensionContext) {
-        let attachment = NSExtensionItem()
-        var itemProvider: NSItemProvider? = nil
+        let rules = loadBlockingRules()
         
-        print("ContentBlockerRequestHandler: Starting request")
+        let item = NSExtensionItem()
+        item.attachments = [NSItemProvider(item: rules as NSSecureCoding, typeIdentifier: UTType.json.identifier)]
         
-        // Try to read from the documents directory (shared with main app)
-        if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-            let rulesURL = documentsPath.appendingPathComponent("blockerList.json")
-            print("ContentBlockerRequestHandler: Trying to load rules from: \(rulesURL.path)")
-            
-            if let rulesData = try? NSData(contentsOf: rulesURL) {
-                print("ContentBlockerRequestHandler: Successfully loaded rules from documents directory")
-                itemProvider = NSItemProvider(item: rulesData, typeIdentifier: UTType.json.identifier)
-            } else {
-                print("ContentBlockerRequestHandler: Failed to load rules from documents directory")
+        context.completeRequest(returningItems: [item], completionHandler: nil)
+    }
+    
+    private func loadBlockingRules() -> Data {
+        // Try to load from shared container first
+        if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.jose.pimentel.PornBlocker") {
+            let rulesURL = containerURL.appendingPathComponent("blockerList.json")
+            if let rulesData = try? Data(contentsOf: rulesURL) {
+                print("Extension: Loaded rules from shared container")
+                return rulesData
             }
         }
         
-        // Fallback to default JSON in bundle
-        if itemProvider == nil,
-           let defaultRulesURL = Bundle.main.url(forResource: "blockerList", withExtension: "json"),
-           let defaultRulesData = try? NSData(contentsOf: defaultRulesURL) {
-            print("ContentBlockerRequestHandler: Using default rules from bundle")
-            itemProvider = NSItemProvider(item: defaultRulesData, typeIdentifier: UTType.json.identifier)
+        // Try to load from extension bundle
+        if let bundleURL = Bundle.main.url(forResource: "blockerList", withExtension: "json") {
+            do {
+                let rawString = try String(contentsOf: bundleURL, encoding: .utf8)
+                let cleanedString = rawString
+                    .components(separatedBy: .newlines)
+                    .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("//") }
+                    .joined(separator: "\n")
+                
+                if let cleanedData = cleanedString.data(using: .utf8) {
+                    print("Extension: Loaded rules from extension bundle")
+                    return cleanedData
+                }
+            } catch {
+                print("Extension: Error loading from bundle: \(error)")
+            }
         }
         
-        // If a valid itemProvider was found, attach and complete the request
-        if let provider = itemProvider {
-            print("ContentBlockerRequestHandler: Completing request with rules")
-            attachment.attachments = [provider]
-            context.completeRequest(returningItems: [attachment], completionHandler: nil)
-        } else {
-            print("ContentBlockerRequestHandler: No rules found, completing with empty response")
-            // In case of failure, complete with no items (still required to prevent hanging)
-            context.completeRequest(returningItems: nil, completionHandler: nil)
-        }
+        // Comprehensive fallback rules including youjizz and brazzers
+        print("Extension: Using comprehensive fallback rules")
+        let fallbackRules = """
+        [
+            { "trigger": { "url-filter": ".*youjizz.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*brazzers.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*pornhub.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*xvideos.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*xnxx.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*xhamster.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*redtube.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*youporn.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*tube8.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*spankbang.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*beeg.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*tnaflix.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*empflix.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*drtuber.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*gotporn.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*4tube.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*vporn.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*porn.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*xxx.*" }, "action": { "type": "block" } },
+            { "trigger": { "url-filter": ".*sex.*" }, "action": { "type": "block" } }
+        ]
+        """
+        return fallbackRules.data(using: .utf8) ?? Data()
     }
 } 

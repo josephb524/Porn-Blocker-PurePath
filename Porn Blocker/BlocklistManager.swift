@@ -28,6 +28,7 @@ class BlocklistManager: ObservableObject {
     private let userDefaults = UserDefaults.standard
     private let stevenBlackHostsURL = "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn/hosts"
     private let updateInterval: TimeInterval = 24 * 60 * 60 // 24 hours
+    private let appGroupIdentifier = "group.com.jose.pimentel.PornBlocker" // Shared container for blocker rules
     
     // Local storage paths
     private var documentsDirectory: URL {
@@ -199,17 +200,11 @@ class BlocklistManager: ObservableObject {
             saveCachedAPIBlocklist()
             saveLocalData()
             
-            if SubscriptionManager.shared.isSubscribed {
-                updateContentBlocker()
-                // Force reload the content blocker extension
-                Task {
-                    let success = await enableContentBlocker()
-                    print("Content blocker reloaded after API update: \(success)")
-                }
-            }
+            // Note: API domains are now only used for UI display, not for blocking rules
+            // Content blocker uses static rules from bundle instead
             
             isLoading = false
-            print("Successfully updated blocklist with \(domains.count) domains")
+            print("Successfully updated blocklist with \(domains.count) domains (for UI display only)")
             
         } catch {
             print("Error fetching blocklist: \(error)")
@@ -333,17 +328,29 @@ class BlocklistManager: ObservableObject {
         
         var rules: [ContentBlockerRule] = []
         
-        // Combine API blocklist and custom blocklist (limit to prevent Safari from rejecting)
-        // Use more domains from the API but still keep it reasonable for Safari
-        let allDomains = Set(apiBlocklist.prefix(30000) + customBlocklist)
+        // 1️⃣ First, load static rules from bundle (highest priority)
+        if let bundleRules = loadBundleRules() {
+            rules.append(contentsOf: bundleRules)
+            print("Added \(bundleRules.count) static rules from bundle")
+        } else {
+            // Fallback to essential static rules if bundle loading fails
+            let essentialRules = createEssentialStaticRules()
+            rules.append(contentsOf: essentialRules)
+            print("Added \(essentialRules.count) essential static rules as fallback")
+        }
         
-        // Add domain-based rules (excluding whitelisted sites)
-        // Use more specific patterns to avoid blocking search results
-        for domain in allDomains {
-            if !whitelist.contains(domain) && !domain.isEmpty {
-                // Create rule for exact domain blocking (avoid blocking search results)
-                let escapedDomain = domain.replacingOccurrences(of: ".", with: "\\.")
-                let urlFilter = "^https?://([^/]*\\.)?\\b\(escapedDomain)\\b"
+        // Limit total rules to stay well under Safari's limits (keep under 15,000)
+        let maxKeywordRules = 200
+        
+        // 2️⃣ Only use custom blocklist (no API domains to avoid massive file size)
+        let customDomains = Set(customBlocklist)
+        
+        // Add custom domain-based rules (excluding whitelisted sites)
+        for domain in customDomains {
+            if !whitelist.contains(domain) && !domain.isEmpty && isValidDomain(domain) {
+                // Create simpler, more reliable domain blocking pattern
+                let escapedDomain = escapeRegexCharacters(domain)
+                let urlFilter = ".*\(escapedDomain).*"
                 rules.append(ContentBlockerRule(
                     trigger: ContentBlockerTrigger(urlFilter: urlFilter),
                     action: ContentBlockerAction(type: "block")
@@ -351,43 +358,118 @@ class BlocklistManager: ObservableObject {
             }
         }
         
-        // Add predefined keyword-based rules with better patterns
-        print("Adding \(predefinedKeywords.count) predefined keyword rules")
-        for keyword in predefinedKeywords {
-            if !keyword.isEmpty {
-                // Use domain-based blocking only to avoid blocking search results
-                let escapedKeyword = keyword.replacingOccurrences(of: ".", with: "\\.")
-                
-                // Block if keyword appears in domain name
-                let domainFilter = "^https?://([^/]*\\.)?[^/]*\(escapedKeyword)[^/]*\\."
+        // 3️⃣ Add predefined keyword-based rules with better patterns (limit to most important)
+        let importantKeywords = Array(predefinedKeywords.prefix(maxKeywordRules))
+        print("Adding \(importantKeywords.count) predefined keyword rules")
+        for keyword in importantKeywords {
+            if !keyword.isEmpty && isValidKeyword(keyword) {
+                let escapedKeyword = escapeRegexCharacters(keyword)
+                let urlFilter = ".*\(escapedKeyword).*"
                 rules.append(ContentBlockerRule(
-                    trigger: ContentBlockerTrigger(urlFilter: domainFilter),
+                    trigger: ContentBlockerTrigger(urlFilter: urlFilter),
                     action: ContentBlockerAction(type: "block")
                 ))
             }
         }
         
-        // Add custom keyword-based rules
-        print("Adding \(keywordBlocklist.count) custom keyword rules")
-        for keyword in keywordBlocklist {
-            if !keyword.isEmpty {
-                let escapedKeyword = keyword.replacingOccurrences(of: ".", with: "\\.")
-                
-                // Block if keyword appears in domain name
-                let domainFilter = "^https?://([^/]*\\.)?[^/]*\(escapedKeyword)[^/]*\\."
+        // 4️⃣ Add custom keyword-based rules (limit to reasonable number)
+        let limitedCustomKeywords = Array(keywordBlocklist.prefix(50))
+        print("Adding \(limitedCustomKeywords.count) custom keyword rules")
+        for keyword in limitedCustomKeywords {
+            if !keyword.isEmpty && isValidKeyword(keyword) {
+                let escapedKeyword = escapeRegexCharacters(keyword)
+                let urlFilter = ".*\(escapedKeyword).*"
                 rules.append(ContentBlockerRule(
-                    trigger: ContentBlockerTrigger(urlFilter: domainFilter),
+                    trigger: ContentBlockerTrigger(urlFilter: urlFilter),
                     action: ContentBlockerAction(type: "block")
                 ))
             }
         }
         
         print("Generated \(rules.count) content blocker rules:")
-        print("- Domain rules: \(allDomains.count)")
-        print("- Predefined keyword rules: \(predefinedKeywords.count)")
-        print("- Custom keyword rules: \(keywordBlocklist.count)")
-        print("- API domains available: \(apiBlocklist.count)")
+        print("- Static rules from bundle: \(loadBundleRules()?.count ?? 0)")
+        print("- Custom domain rules: \(customDomains.count)")
+        print("- Predefined keyword rules: \(importantKeywords.count)")
+        print("- Custom keyword rules: \(limitedCustomKeywords.count)")
+        print("- API domains available (UI only): \(apiBlocklist.count)")
         return rules
+    }
+    
+    // Helper function to load static rules from bundle
+    private func loadBundleRules() -> [ContentBlockerRule]? {
+        guard let resourceURL = Bundle.main.url(forResource: "blockerList", withExtension: "json") else {
+            print("Could not find blockerList.json in main bundle")
+            return nil
+        }
+        
+        do {
+            // Read file as text so we can strip line comments (// ...)
+            let rawString = try String(contentsOf: resourceURL, encoding: .utf8)
+            let cleanedString = rawString
+                .components(separatedBy: .newlines)
+                .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("//") }
+                .joined(separator: "\n")
+            
+            guard let cleanedData = cleanedString.data(using: .utf8) else {
+                print("Failed converting cleaned JSON string to Data")
+                return nil
+            }
+            
+            let bundleRules = try JSONDecoder().decode([ContentBlockerRule].self, from: cleanedData)
+            print("Successfully loaded \(bundleRules.count) static rules from bundle")
+            return bundleRules
+        } catch {
+            print("Error loading bundle rules: \(error)")
+            return nil
+        }
+    }
+    
+    // Helper function to create essential static rules manually
+    private func createEssentialStaticRules() -> [ContentBlockerRule] {
+        let essentialSites = [
+            "brazzers", "youjizz", "pornhub", "xvideos", "xnxx", "xhamster", "redtube", "youporn",
+            "tube8", "spankbang", "beeg", "rule34", "motherless", "efukt", "sex.com", "cam4",
+            "livejasmin", "bongacams", "chaturbate", "onlyfans", "fansly", "stripchat", "camsoda",
+            "adultfriendfinder", "ashley.madison", "imagefap", "gelbooru", "nhentai", "hanime",
+            "hentai", "porn", "xxx", "sex", "adult", "nude"
+        ]
+        
+        var rules: [ContentBlockerRule] = []
+        for site in essentialSites {
+            rules.append(ContentBlockerRule(
+                trigger: ContentBlockerTrigger(urlFilter: ".*\(site).*"),
+                action: ContentBlockerAction(type: "block")
+            ))
+        }
+        
+        print("Created \(rules.count) essential static rules manually")
+        return rules
+    }
+    
+    // Helper function to validate domains
+    private func isValidDomain(_ domain: String) -> Bool {
+        // Basic domain validation
+        let domainPattern = "^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\\.[a-zA-Z]{2,}$"
+        let regex = try? NSRegularExpression(pattern: domainPattern)
+        let range = NSRange(location: 0, length: domain.utf16.count)
+        return regex?.firstMatch(in: domain, options: [], range: range) != nil
+    }
+    
+    // Helper function to validate keywords
+    private func isValidKeyword(_ keyword: String) -> Bool {
+        // Ensure keyword doesn't contain problematic characters
+        let invalidChars = CharacterSet(charactersIn: "[]{}()+*?^$|\\")
+        return keyword.rangeOfCharacter(from: invalidChars) == nil && keyword.count > 1
+    }
+    
+    // Helper function to properly escape regex characters
+    private func escapeRegexCharacters(_ string: String) -> String {
+        let charactersToEscape = ["\\", ".", "*", "+", "?", "^", "$", "(", ")", "[", "]", "{", "}", "|"]
+        var escaped = string
+        for char in charactersToEscape {
+            escaped = escaped.replacingOccurrences(of: char, with: "\\\(char)")
+        }
+        return escaped
     }
     
     func updateContentBlocker() {
@@ -396,19 +478,94 @@ class BlocklistManager: ObservableObject {
         
         let rules = generateContentBlockerRules()
         saveContentBlockerRules(rules)
+        
+        // Reload the content blocker
+        Task {
+            let success = await enableContentBlocker()
+            print("Content blocker reloaded after rules update: \(success)")
+        }
     }
     
     private func saveContentBlockerRules(_ rules: [ContentBlockerRule]) {
         do {
-            let data = try JSONEncoder().encode(rules)
-            if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let rulesURL = documentsPath.appendingPathComponent("blockerList.json")
-                try data.write(to: rulesURL)
-                print("Content blocker rules saved to: \(rulesURL)")
-                print("Saved \(rules.count) rules including \(apiBlocklist.count) API domains")
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let data = try encoder.encode(rules)
+            
+            // Validate JSON before saving
+            if let jsonString = String(data: data, encoding: .utf8) {
+                // Try to parse it back to ensure it's valid JSON
+                _ = try JSONSerialization.jsonObject(with: data, options: [])
+                
+                // Save to shared container first (for Safari extension)
+                if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
+                    let sharedRulesURL = containerURL.appendingPathComponent("blockerList.json")
+                    try data.write(to: sharedRulesURL)
+                    print("Content blocker rules saved to shared container: \(sharedRulesURL)")
+                }
+                
+                // Also save to documents directory (fallback)
+                if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                    let rulesURL = documentsPath.appendingPathComponent("blockerList.json")
+                    try data.write(to: rulesURL)
+                    print("Content blocker rules also saved to documents: \(rulesURL)")
+                }
+                
+                print("Saved \(rules.count) rules (JSON size: \(data.count) bytes)")
             }
         } catch {
             print("Error saving content blocker rules: \(error)")
+            // If there's an error, try to save a minimal fallback ruleset
+            saveFallbackRules()
+        }
+    }
+    
+    private func saveFallbackRules() {
+        print("Saving fallback rules due to JSON error...")
+        // Create a minimal set of rules that should always work
+        let fallbackRules = [
+            ContentBlockerRule(
+                trigger: ContentBlockerTrigger(urlFilter: ".*pornhub.*"),
+                action: ContentBlockerAction(type: "block")
+            ),
+            ContentBlockerRule(
+                trigger: ContentBlockerTrigger(urlFilter: ".*xvideos.*"),
+                action: ContentBlockerAction(type: "block")
+            ),
+            ContentBlockerRule(
+                trigger: ContentBlockerTrigger(urlFilter: ".*xnxx.*"),
+                action: ContentBlockerAction(type: "block")
+            ),
+            ContentBlockerRule(
+                trigger: ContentBlockerTrigger(urlFilter: ".*porn.*"),
+                action: ContentBlockerAction(type: "block")
+            ),
+            ContentBlockerRule(
+                trigger: ContentBlockerTrigger(urlFilter: ".*xxx.*"),
+                action: ContentBlockerAction(type: "block")
+            )
+        ]
+        
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let data = try encoder.encode(fallbackRules)
+            
+            // Save to shared container
+            if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
+                let sharedRulesURL = containerURL.appendingPathComponent("blockerList.json")
+                try data.write(to: sharedRulesURL)
+                print("Fallback rules saved to shared container")
+            }
+            
+            // Also save to documents directory
+            if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                let rulesURL = documentsPath.appendingPathComponent("blockerList.json")
+                try data.write(to: rulesURL)
+                print("Fallback rules saved to documents directory")
+            }
+        } catch {
+            print("Error saving fallback rules: \(error)")
         }
     }
     

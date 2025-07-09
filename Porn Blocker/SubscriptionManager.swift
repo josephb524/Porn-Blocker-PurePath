@@ -6,7 +6,7 @@ import SwiftUI
 final class SubscriptionManager: ObservableObject {
     static let shared = SubscriptionManager()
     
-    @Published private(set) var isSubscribed = false
+    @Published private(set) var isSubscribed = true
     @Published private(set) var expiryDate: Date? = nil
     
     private let productID = "com.yourcompany.pornblocker.yearly" // Replace with your real product ID
