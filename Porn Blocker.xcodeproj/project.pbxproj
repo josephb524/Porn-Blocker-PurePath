@@ -7,12 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BB43782D2E17608200534EED /* ContentBlockerRequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB43782C2E17608200534EED /* ContentBlockerRequestHandler.swift */; };
-		BB43784C2E1760FB00534EED /* PornBlockerBlocker.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BB4378342E1760FB00534EED /* PornBlockerBlocker.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB4378582E18AE9B00534EED /* BlocklistManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378562E18AE9B00534EED /* BlocklistManager.swift */; };
 		BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378572E18AE9B00534EED /* SubscriptionManager.swift */; };
 		BB43785B2E18B5AD00534EED /* keywordsList.json in Resources */ = {isa = PBXBuildFile; fileRef = BB43785A2E18B57E00534EED /* keywordsList.json */; };
-		BB4378A82E1DF62400534EED /* blockerList.json in Resources */ = {isa = PBXBuildFile; fileRef = BB4378A72E1DF62400534EED /* blockerList.json */; };
+		BB4378BA2E1F53C000534EED /* ContentBlocker.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BB4378B12E1F53C000534EED /* ContentBlocker.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BBC567EC2A2EA0460017E798 /* Porn_BlockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */; };
 		BBC567EE2A2EA0460017E798 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567ED2A2EA0460017E798 /* ContentView.swift */; };
 		BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBC567EF2A2EA0470017E798 /* Assets.xcassets */; };
@@ -20,12 +18,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		BB43784A2E1760FB00534EED /* PBXContainerItemProxy */ = {
+		BB4378B82E1F53C000534EED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BBC567E02A2EA0460017E798 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = BB4378332E1760FB00534EED;
-			remoteInfo = PornBlockerBlocker;
+			remoteGlobalIDString = BB4378B02E1F53C000534EED;
+			remoteInfo = ContentBlocker;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -36,7 +34,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				BB43784C2E1760FB00534EED /* PornBlockerBlocker.appex in Embed Foundation Extensions */,
+				BB4378BA2E1F53C000534EED /* ContentBlocker.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -44,12 +42,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		BB43782C2E17608200534EED /* ContentBlockerRequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBlockerRequestHandler.swift; sourceTree = "<group>"; };
-		BB4378342E1760FB00534EED /* PornBlockerBlocker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PornBlockerBlocker.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB4378562E18AE9B00534EED /* BlocklistManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistManager.swift; sourceTree = "<group>"; };
 		BB4378572E18AE9B00534EED /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		BB43785A2E18B57E00534EED /* keywordsList.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = keywordsList.json; sourceTree = "<group>"; };
-		BB4378A72E1DF62400534EED /* blockerList.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = blockerList.json; sourceTree = "<group>"; };
+		BB4378B12E1F53C000534EED /* ContentBlocker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ContentBlocker.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBC567E82A2EA0460017E798 /* Porn Blocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Porn Blocker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Porn_BlockerApp.swift; sourceTree = "<group>"; };
 		BBC567ED2A2EA0460017E798 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -58,21 +54,21 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		BB43784D2E1760FB00534EED /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		BB4378BB2E1F53C000534EED /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = BB4378332E1760FB00534EED /* PornBlockerBlocker */;
+			target = BB4378B02E1F53C000534EED /* ContentBlocker */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		BB4378352E1760FB00534EED /* PornBlockerBlocker */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (BB43784D2E1760FB00534EED /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (Resources/_locales, Resources/images, ); path = PornBlockerBlocker; sourceTree = "<group>"; };
+		BB4378B22E1F53C000534EED /* ContentBlocker */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (BB4378BB2E1F53C000534EED /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ContentBlocker; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		BB4378312E1760FB00534EED /* Frameworks */ = {
+		BB4378AE2E1F53C000534EED /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -93,7 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				BBC567EA2A2EA0460017E798 /* Porn Blocker */,
-				BB4378352E1760FB00534EED /* PornBlockerBlocker */,
+				BB4378B22E1F53C000534EED /* ContentBlocker */,
 				BBC567E92A2EA0460017E798 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -102,7 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				BBC567E82A2EA0460017E798 /* Porn Blocker.app */,
-				BB4378342E1760FB00534EED /* PornBlockerBlocker.appex */,
+				BB4378B12E1F53C000534EED /* ContentBlocker.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -110,11 +106,9 @@
 		BBC567EA2A2EA0460017E798 /* Porn Blocker */ = {
 			isa = PBXGroup;
 			children = (
-				BB4378A72E1DF62400534EED /* blockerList.json */,
 				BB43785A2E18B57E00534EED /* keywordsList.json */,
 				BB4378562E18AE9B00534EED /* BlocklistManager.swift */,
 				BB4378572E18AE9B00534EED /* SubscriptionManager.swift */,
-				BB43782C2E17608200534EED /* ContentBlockerRequestHandler.swift */,
 				BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */,
 				BBC567ED2A2EA0460017E798 /* ContentView.swift */,
 				BBC567EF2A2EA0470017E798 /* Assets.xcassets */,
@@ -134,26 +128,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		BB4378332E1760FB00534EED /* PornBlockerBlocker */ = {
+		BB4378B02E1F53C000534EED /* ContentBlocker */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BB43784E2E1760FB00534EED /* Build configuration list for PBXNativeTarget "PornBlockerBlocker" */;
+			buildConfigurationList = BB4378BC2E1F53C000534EED /* Build configuration list for PBXNativeTarget "ContentBlocker" */;
 			buildPhases = (
-				BB4378302E1760FB00534EED /* Sources */,
-				BB4378312E1760FB00534EED /* Frameworks */,
-				BB4378322E1760FB00534EED /* Resources */,
+				BB4378AD2E1F53C000534EED /* Sources */,
+				BB4378AE2E1F53C000534EED /* Frameworks */,
+				BB4378AF2E1F53C000534EED /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				BB4378352E1760FB00534EED /* PornBlockerBlocker */,
+				BB4378B22E1F53C000534EED /* ContentBlocker */,
 			);
-			name = PornBlockerBlocker;
+			name = ContentBlocker;
 			packageProductDependencies = (
 			);
-			productName = PornBlockerBlocker;
-			productReference = BB4378342E1760FB00534EED /* PornBlockerBlocker.appex */;
+			productName = ContentBlocker;
+			productReference = BB4378B12E1F53C000534EED /* ContentBlocker.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		BBC567E72A2EA0460017E798 /* Porn Blocker */ = {
@@ -168,7 +162,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				BB43784B2E1760FB00534EED /* PBXTargetDependency */,
+				BB4378B92E1F53C000534EED /* PBXTargetDependency */,
 			);
 			name = "Porn Blocker";
 			productName = "Porn Blocker";
@@ -185,7 +179,7 @@
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					BB4378332E1760FB00534EED = {
+					BB4378B02E1F53C000534EED = {
 						CreatedOnToolsVersion = 16.4;
 					};
 					BBC567E72A2EA0460017E798 = {
@@ -207,13 +201,13 @@
 			projectRoot = "";
 			targets = (
 				BBC567E72A2EA0460017E798 /* Porn Blocker */,
-				BB4378332E1760FB00534EED /* PornBlockerBlocker */,
+				BB4378B02E1F53C000534EED /* ContentBlocker */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		BB4378322E1760FB00534EED /* Resources */ = {
+		BB4378AF2E1F53C000534EED /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -226,7 +220,6 @@
 			files = (
 				BB43785B2E18B5AD00534EED /* keywordsList.json in Resources */,
 				BBC567F32A2EA0470017E798 /* Preview Assets.xcassets in Resources */,
-				BB4378A82E1DF62400534EED /* blockerList.json in Resources */,
 				BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -234,7 +227,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		BB4378302E1760FB00534EED /* Sources */ = {
+		BB4378AD2E1F53C000534EED /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -246,7 +239,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				BBC567EE2A2EA0460017E798 /* ContentView.swift in Sources */,
-				BB43782D2E17608200534EED /* ContentBlockerRequestHandler.swift in Sources */,
 				BBC567EC2A2EA0460017E798 /* Porn_BlockerApp.swift in Sources */,
 				BB4378582E18AE9B00534EED /* BlocklistManager.swift in Sources */,
 				BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */,
@@ -256,27 +248,27 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		BB43784B2E1760FB00534EED /* PBXTargetDependency */ = {
+		BB4378B92E1F53C000534EED /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = BB4378332E1760FB00534EED /* PornBlockerBlocker */;
-			targetProxy = BB43784A2E1760FB00534EED /* PBXContainerItemProxy */;
+			target = BB4378B02E1F53C000534EED /* ContentBlocker */;
+			targetProxy = BB4378B82E1F53C000534EED /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		BB43784F2E1760FB00534EED /* Debug */ = {
+		BB4378BD2E1F53C000534EED /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CODE_SIGN_ENTITLEMENTS = PornBlockerBlocker/PornBlockerBlocker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 57R4ZFVKDM;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PornBlockerBlocker/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = PornBlockerBlocker;
+				INFOPLIST_FILE = ContentBlocker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ContentBlocker;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -286,11 +278,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"-framework",
-					SafariServices,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.jose.pimentel.Porn-Blocker.PornBlockerBlocker";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jose.pimentel.Porn-Blocker.ContentBlocker";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -300,19 +288,19 @@
 			};
 			name = Debug;
 		};
-		BB4378502E1760FB00534EED /* Release */ = {
+		BB4378BE2E1F53C000534EED /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CODE_SIGN_ENTITLEMENTS = PornBlockerBlocker/PornBlockerBlocker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 57R4ZFVKDM;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PornBlockerBlocker/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = PornBlockerBlocker;
+				INFOPLIST_FILE = ContentBlocker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ContentBlocker;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -322,11 +310,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"-framework",
-					SafariServices,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.jose.pimentel.Porn-Blocker.PornBlockerBlocker";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jose.pimentel.Porn-Blocker.ContentBlocker";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -510,11 +494,11 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		BB43784E2E1760FB00534EED /* Build configuration list for PBXNativeTarget "PornBlockerBlocker" */ = {
+		BB4378BC2E1F53C000534EED /* Build configuration list for PBXNativeTarget "ContentBlocker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				BB43784F2E1760FB00534EED /* Debug */,
-				BB4378502E1760FB00534EED /* Release */,
+				BB4378BD2E1F53C000534EED /* Debug */,
+				BB4378BE2E1F53C000534EED /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -41,7 +41,7 @@ struct DashboardView: View {
     @AppStorage("lockProtection") private var lockProtection = false
     @State private var showPaywall = false
     @State private var showExtensionInstructions = false
-    @State private var contentBlockerEnabled = false
+    @State private var contentBlockerEnabled = true
     
     var body: some View {
         NavigationView {
