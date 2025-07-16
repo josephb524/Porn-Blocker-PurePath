@@ -11,6 +11,23 @@
 		BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378572E18AE9B00534EED /* SubscriptionManager.swift */; };
 		BB43785B2E18B5AD00534EED /* keywordsList.json in Resources */ = {isa = PBXBuildFile; fileRef = BB43785A2E18B57E00534EED /* keywordsList.json */; };
 		BB4378BA2E1F53C000534EED /* ContentBlocker.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BB4378B12E1F53C000534EED /* ContentBlocker.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BB4378D02E2742A800534EED /* PaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C72E2742A800534EED /* PaywallScreen.swift */; };
+		BB4378D12E2742A800534EED /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C22E2742A800534EED /* FAQView.swift */; };
+		BB4378D22E2742A800534EED /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C12E2742A800534EED /* DashboardView.swift */; };
+		BB4378D32E2742A800534EED /* SubmitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CD2E2742A800534EED /* SubmitView.swift */; };
+		BB4378D42E2742A800534EED /* BlockerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */; };
+		BB4378D52E2742A800534EED /* SafariExtensionInstructionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C92E2742A800534EED /* SafariExtensionInstructionsView.swift */; };
+		BB4378D62E2742A800534EED /* TermsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CE2E2742A800534EED /* TermsView.swift */; };
+		BB4378D72E2742A800534EED /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C82E2742A800534EED /* PrivacyPolicyView.swift */; };
+		BB4378D82E2742A800534EED /* WebsiteEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CF2E2742A800534EED /* WebsiteEditorView.swift */; };
+		BB4378D92E2742A800534EED /* ContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C02E2742A800534EED /* ContactView.swift */; };
+		BB4378DA2E2742A800534EED /* FeatureRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C32E2742A800534EED /* FeatureRow.swift */; };
+		BB4378DB2E2742A800534EED /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C62E2742A800534EED /* MainTabView.swift */; };
+		BB4378DC2E2742A800534EED /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CA2E2742A800534EED /* SettingsRow.swift */; };
+		BB4378DD2E2742A800534EED /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CB2E2742A800534EED /* SettingsView.swift */; };
+		BB4378DE2E2742A800534EED /* StatisticCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CC2E2742A800534EED /* StatisticCard.swift */; };
+		BB4378DF2E2742A800534EED /* InstructionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C42E2742A800534EED /* InstructionStep.swift */; };
+		BB4378E02E2742A800534EED /* KeywordEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C52E2742A800534EED /* KeywordEditorView.swift */; };
 		BBC567EC2A2EA0460017E798 /* Porn_BlockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */; };
 		BBC567EE2A2EA0460017E798 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567ED2A2EA0460017E798 /* ContentView.swift */; };
 		BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBC567EF2A2EA0470017E798 /* Assets.xcassets */; };
@@ -46,6 +63,23 @@
 		BB4378572E18AE9B00534EED /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		BB43785A2E18B57E00534EED /* keywordsList.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = keywordsList.json; sourceTree = "<group>"; };
 		BB4378B12E1F53C000534EED /* ContentBlocker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ContentBlocker.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockerSettingsView.swift; sourceTree = "<group>"; };
+		BB4378C02E2742A800534EED /* ContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactView.swift; sourceTree = "<group>"; };
+		BB4378C12E2742A800534EED /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		BB4378C22E2742A800534EED /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
+		BB4378C32E2742A800534EED /* FeatureRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureRow.swift; sourceTree = "<group>"; };
+		BB4378C42E2742A800534EED /* InstructionStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstructionStep.swift; sourceTree = "<group>"; };
+		BB4378C52E2742A800534EED /* KeywordEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordEditorView.swift; sourceTree = "<group>"; };
+		BB4378C62E2742A800534EED /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		BB4378C72E2742A800534EED /* PaywallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallScreen.swift; sourceTree = "<group>"; };
+		BB4378C82E2742A800534EED /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
+		BB4378C92E2742A800534EED /* SafariExtensionInstructionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariExtensionInstructionsView.swift; sourceTree = "<group>"; };
+		BB4378CA2E2742A800534EED /* SettingsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
+		BB4378CB2E2742A800534EED /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		BB4378CC2E2742A800534EED /* StatisticCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticCard.swift; sourceTree = "<group>"; };
+		BB4378CD2E2742A800534EED /* SubmitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitView.swift; sourceTree = "<group>"; };
+		BB4378CE2E2742A800534EED /* TermsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermsView.swift; sourceTree = "<group>"; };
+		BB4378CF2E2742A800534EED /* WebsiteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteEditorView.swift; sourceTree = "<group>"; };
 		BBC567E82A2EA0460017E798 /* Porn Blocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Porn Blocker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Porn_BlockerApp.swift; sourceTree = "<group>"; };
 		BBC567ED2A2EA0460017E798 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -111,6 +145,23 @@
 				BB4378572E18AE9B00534EED /* SubscriptionManager.swift */,
 				BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */,
 				BBC567ED2A2EA0460017E798 /* ContentView.swift */,
+				BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */,
+				BB4378C02E2742A800534EED /* ContactView.swift */,
+				BB4378C12E2742A800534EED /* DashboardView.swift */,
+				BB4378C22E2742A800534EED /* FAQView.swift */,
+				BB4378C32E2742A800534EED /* FeatureRow.swift */,
+				BB4378C42E2742A800534EED /* InstructionStep.swift */,
+				BB4378C52E2742A800534EED /* KeywordEditorView.swift */,
+				BB4378C62E2742A800534EED /* MainTabView.swift */,
+				BB4378C72E2742A800534EED /* PaywallScreen.swift */,
+				BB4378C82E2742A800534EED /* PrivacyPolicyView.swift */,
+				BB4378C92E2742A800534EED /* SafariExtensionInstructionsView.swift */,
+				BB4378CA2E2742A800534EED /* SettingsRow.swift */,
+				BB4378CB2E2742A800534EED /* SettingsView.swift */,
+				BB4378CC2E2742A800534EED /* StatisticCard.swift */,
+				BB4378CD2E2742A800534EED /* SubmitView.swift */,
+				BB4378CE2E2742A800534EED /* TermsView.swift */,
+				BB4378CF2E2742A800534EED /* WebsiteEditorView.swift */,
 				BBC567EF2A2EA0470017E798 /* Assets.xcassets */,
 				BBC567F12A2EA0470017E798 /* Preview Content */,
 			);
@@ -240,6 +291,23 @@
 			files = (
 				BBC567EE2A2EA0460017E798 /* ContentView.swift in Sources */,
 				BBC567EC2A2EA0460017E798 /* Porn_BlockerApp.swift in Sources */,
+				BB4378D02E2742A800534EED /* PaywallScreen.swift in Sources */,
+				BB4378D12E2742A800534EED /* FAQView.swift in Sources */,
+				BB4378D22E2742A800534EED /* DashboardView.swift in Sources */,
+				BB4378D32E2742A800534EED /* SubmitView.swift in Sources */,
+				BB4378D42E2742A800534EED /* BlockerSettingsView.swift in Sources */,
+				BB4378D52E2742A800534EED /* SafariExtensionInstructionsView.swift in Sources */,
+				BB4378D62E2742A800534EED /* TermsView.swift in Sources */,
+				BB4378D72E2742A800534EED /* PrivacyPolicyView.swift in Sources */,
+				BB4378D82E2742A800534EED /* WebsiteEditorView.swift in Sources */,
+				BB4378D92E2742A800534EED /* ContactView.swift in Sources */,
+				BB4378DA2E2742A800534EED /* FeatureRow.swift in Sources */,
+				BB4378DB2E2742A800534EED /* MainTabView.swift in Sources */,
+				BB4378DC2E2742A800534EED /* SettingsRow.swift in Sources */,
+				BB4378DD2E2742A800534EED /* SettingsView.swift in Sources */,
+				BB4378DE2E2742A800534EED /* StatisticCard.swift in Sources */,
+				BB4378DF2E2742A800534EED /* InstructionStep.swift in Sources */,
+				BB4378E02E2742A800534EED /* KeywordEditorView.swift in Sources */,
 				BB4378582E18AE9B00534EED /* BlocklistManager.swift in Sources */,
 				BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */,
 			);
