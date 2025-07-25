@@ -7,12 +7,13 @@ struct DashboardView: View {
     @State private var showPaywall = false
     @State private var showExtensionInstructions = false
     @State private var contentBlockerEnabled = true
+    @State private var statusCheckTimer: Timer?
     
     var body: some View {
         NavigationView {
             VStack(spacing: 24) {
                 // Protection Status
-                if !blocklistManager.isEnabled {
+                if !subManager.isSubscribed {
                     VStack(spacing: 16) {
                         Image(systemName: "exclamationmark.circle.fill")
                             .font(.system(size: 50))
@@ -45,6 +46,20 @@ struct DashboardView: View {
                         .buttonStyle(.borderedProminent)
                     }
                     .padding(.vertical, 30)
+                } else {
+                    VStack(spacing: 16) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(.green)
+                        
+                        Text("Browser protection activated")
+                            .font(.title2)
+                            .bold()
+                        
+                        Text("Your device is now protected from inappropriate content")
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 30)
                 }
                 
                 // Statistics
@@ -75,55 +90,107 @@ struct DashboardView: View {
                 }
                 
                 Button(action: {
-                    if subManager.isSubscribed {
-                        if !lockProtection || !blocklistManager.isEnabled {
-                            blocklistManager.isEnabled.toggle()
+                    //if !subManager.isSubscribed {
+                            //BUT I THINK THIS SHOULD BE IN THE SHOWPAYWALL VIEW
+                            //THIS IS TO ENABLE THE CONTENT BLOCKER ONCE THE USER PAYS
+                            //blocklistManager.isEnabled.toggle()
                             
                             // Enable content blocker when protection is activated
-                            if blocklistManager.isEnabled {
-                                Task {
-                                    let success = await blocklistManager.enableContentBlocker()
-                                    if success {
-                                        contentBlockerEnabled = true
-                                    } else {
-                                        showExtensionInstructions = true
-                                    }
-                                }
-                            }
-                        }
-                    } else {
+//                            if blocklistManager.isEnabled {
+//                                Task {
+//                                    let success = await blocklistManager.enableContentBlocker()
+//                                    if success {
+//                                        contentBlockerEnabled = true
+//                                    } else {
+//                                        showExtensionInstructions = true
+//                                    }
+//                                }
+//                            }
+                        
+                    //} else {
                         showPaywall = true
-                    }
+                    //}
                 }) {
-                    Text(blocklistManager.isEnabled ? "DEACTIVATE PROTECTION" : "ACTIVATE PROTECTION")
+                    Text(
+                        subManager.isSubscribed
+                        ? (contentBlockerEnabled
+                           ? "PROTECTION ACTIVATED"
+                           : "SAFARI EXTENSION REQUIRED")
+                        : "ACTIVATE PROTECTION"
+                    )
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(blocklistManager.isEnabled && lockProtection ? Color.gray.opacity(0.5) : 
-(blocklistManager.isEnabled ? Color.gray : Color.red))
+                        .background(subManager.isSubscribed && !contentBlockerEnabled ? Color.yellow :
+                                        (subManager.isSubscribed ? Color.green : Color.red))
                         .cornerRadius(10)
                 }
-                .disabled(blocklistManager.isEnabled && lockProtection)
+                .disabled(subManager.isSubscribed)
                 .padding(.top, 30)
                 
-                if blocklistManager.isEnabled && lockProtection {
-                    Text("Protection is locked and cannot be disabled")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+//                if blocklistManager.isEnabled && lockProtection {
+//                    Text("Protection is locked and cannot be disabled")
+//                        .font(.caption)
+//                        .foregroundColor(.secondary)
+//                }
                 
                 Spacer()
             }
             .padding()
             .navigationTitle("Protection Status")
-            .task {
-                // Check content blocker status on appear
-                contentBlockerEnabled = await blocklistManager.checkContentBlockerStatus()
+            .onAppear {
+                startStatusMonitoring()
+            }
+            .onDisappear {
+                stopStatusMonitoring()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                // Check status when app becomes active (user might have changed settings)
+                Task {
+                    await checkContentBlockerStatus()
+                }
             }
             .sheet(isPresented: $showExtensionInstructions) {
                 SafariExtensionInstructionsView()
             }
         }
     }
+    
+    // MARK: - Status Monitoring
+    
+    private func startStatusMonitoring() {
+        // Initial check
+        Task {
+            await checkContentBlockerStatus()
+        }
+        
+        // Set up timer to check every 5 seconds
+        statusCheckTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+            Task {
+                await checkContentBlockerStatus()
+            }
+        }
+    }
+    
+    private func stopStatusMonitoring() {
+        statusCheckTimer?.invalidate()
+        statusCheckTimer = nil
+    }
+    
+    private func checkContentBlockerStatus() async {
+        let isEnabled = await blocklistManager.checkContentBlockerStatus()
+        await MainActor.run {
+            if contentBlockerEnabled != isEnabled {
+                print("Content blocker status changed: \(isEnabled)")
+                contentBlockerEnabled = isEnabled
+            }
+        }
+    }
 } 
+
+#Preview {
+    DashboardView()
+        .environmentObject(BlocklistManager.shared)
+        .environmentObject(SubscriptionManager.shared)
+}

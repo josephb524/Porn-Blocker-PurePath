@@ -1865,7 +1865,7 @@
   },
   {
     "trigger": {
-      "url-filter": ".*adult content.*"
+      "url-filter": ".*adult//content.*"
     },
     "action": {
       "type": "block"
@@ -2098,6 +2098,14 @@
   {
     "trigger": {
       "url-filter": ".*fetlife.*"
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": ".*distintas.net.*"
     },
     "action": {
       "type": "block"

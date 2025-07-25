@@ -742,7 +742,7 @@ class BlocklistManager: ObservableObject {
     func checkContentBlockerStatus() async -> Bool {
         return await withCheckedContinuation { continuation in
             #if os(iOS)
-            let extensionIdentifier = "com.jose.pimentel.Porn-Blocker.PornBlockerBlocker"
+            let extensionIdentifier = "com.jose.pimentel.Porn-Blocker.ContentBlocker"
             
             SFContentBlockerManager.getStateOfContentBlocker(withIdentifier: extensionIdentifier) { state, error in
                 if let error = error {
