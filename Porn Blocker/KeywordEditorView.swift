@@ -9,7 +9,9 @@ import SwiftUI
 
 struct KeywordEditorView: View {
     @StateObject private var blocklistManager = BlocklistManager.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var newKeyword = ""
+    @State private var showingSubscriptionAlert = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -19,10 +21,7 @@ struct KeywordEditorView: View {
                     TextField("Enter keyword", text: $newKeyword)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     Button("Add") {
-                        if !newKeyword.isEmpty {
-                            blocklistManager.addToKeywordBlocklist(newKeyword)
-                            newKeyword = ""
-                        }
+                        addKeyword()
                     }
                 }
                 .padding()
@@ -34,6 +33,13 @@ struct KeywordEditorView: View {
                     }
                     .onDelete(perform: deleteKeywords)
                 }
+                
+                if !subscriptionManager.isSubscribed {
+                    Text("Custom keywords require a subscription")
+                        .foregroundColor(.secondary)
+                        .font(.footnote)
+                        .padding()
+                }
             }
             .navigationTitle("Custom Keywords")
             .navigationBarTitleDisplayMode(.inline)
@@ -43,6 +49,27 @@ struct KeywordEditorView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("Subscription Required", isPresented: $showingSubscriptionAlert) {
+                Button("OK") { }
+            } message: {
+                Text("A subscription is required to add custom keywords.")
+            }
+        }
+    }
+    
+    private func addKeyword() {
+        if !newKeyword.isEmpty {
+            if subscriptionManager.isSubscribed {
+                let originalCount = blocklistManager.keywordBlocklist.count
+                blocklistManager.addToKeywordBlocklist(newKeyword)
+                
+                // Only clear the text field if the keyword was actually added
+                if blocklistManager.keywordBlocklist.count > originalCount {
+                    newKeyword = ""
+                }
+            } else {
+                showingSubscriptionAlert = true
             }
         }
     }

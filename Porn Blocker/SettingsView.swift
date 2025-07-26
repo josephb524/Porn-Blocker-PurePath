@@ -3,23 +3,21 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var blocklistManager = BlocklistManager.shared
     @StateObject private var subManager = SubscriptionManager.shared
-    @AppStorage("lockProtection") private var lockProtection = false
+    @AppStorage("darkMode") private var darkMode = true
     @State private var showSubmitSheet = false
     
     var body: some View {
         NavigationView {
             List {
-                if subManager.isSubscribed {
-                    Section(header: Text("Protection Settings")) {
-                        Toggle("Lock Protection When Active", isOn: $lockProtection)
-                        
-                        if lockProtection {
-                            Text("When enabled, protection cannot be turned off until subscription expires")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
+                
+                Section(header: Text("Appearance Settings")) {
+                    Toggle("Dark Mode", isOn: $darkMode)
+                    
+                    Text("Toggle between light and dark appearance")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
+                
                 
                 Section {
                     NavigationLink(destination: BlockerSettingsView()) {

@@ -80,6 +80,7 @@
 		BB4378CD2E2742A800534EED /* SubmitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitView.swift; sourceTree = "<group>"; };
 		BB4378CE2E2742A800534EED /* TermsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermsView.swift; sourceTree = "<group>"; };
 		BB4378CF2E2742A800534EED /* WebsiteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteEditorView.swift; sourceTree = "<group>"; };
+		BB43791D2E34701900534EED /* Porn BlockerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Porn BlockerDebug.entitlements"; sourceTree = "<group>"; };
 		BBC567E82A2EA0460017E798 /* Porn Blocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Porn Blocker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Porn_BlockerApp.swift; sourceTree = "<group>"; };
 		BBC567ED2A2EA0460017E798 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -140,6 +141,7 @@
 		BBC567EA2A2EA0460017E798 /* Porn Blocker */ = {
 			isa = PBXGroup;
 			children = (
+				BB43791D2E34701900534EED /* Porn BlockerDebug.entitlements */,
 				BB43785A2E18B57E00534EED /* keywordsList.json */,
 				BB4378562E18AE9B00534EED /* BlocklistManager.swift */,
 				BB4378572E18AE9B00534EED /* SubscriptionManager.swift */,
