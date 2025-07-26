@@ -13,7 +13,7 @@ struct BlockerSettingsView: View {
                     Text("Custom Keywords")
                         .font(.title2)
                         .bold()
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     Spacer()
                     Button("Edit") {
                         showKeywordEditor = true
@@ -26,14 +26,15 @@ struct BlockerSettingsView: View {
                 
                 HStack {
                     Text("Total: \(blocklistManager.keywordBlocklist.count)")
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     Spacer()
                     Toggle("", isOn: .constant(true))
                 }
                 .padding(.horizontal)
                 
                 Text("You can specify a keyword and the domains including this keyword will be blocked")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.primary)
+                    .font(.body)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
@@ -45,7 +46,7 @@ struct BlockerSettingsView: View {
                     Text("Custom Websites")
                         .font(.title2)
                         .bold()
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     Spacer()
                     Button("Edit") {
                         showWebsiteEditor = true
@@ -58,14 +59,15 @@ struct BlockerSettingsView: View {
                 
                 HStack {
                     Text("Total: \(blocklistManager.customBlocklist.count)")
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     Spacer()
                     Toggle("", isOn: .constant(true))
                 }
                 .padding(.horizontal)
                 
                 Text("You can create your own url list for blocking")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.primary)
+                    .font(.body)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
@@ -85,3 +87,7 @@ struct BlockerSettingsView: View {
         }
     }
 } 
+
+#Preview {
+    BlockerSettingsView()
+}

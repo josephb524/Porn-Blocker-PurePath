@@ -30,6 +30,7 @@ struct KeywordEditorView: View {
                 List {
                     ForEach(blocklistManager.keywordBlocklist, id: \.self) { keyword in
                         Text(keyword)
+                            .foregroundColor(.primary)
                     }
                     .onDelete(perform: deleteKeywords)
                 }
@@ -53,3 +54,7 @@ struct KeywordEditorView: View {
         }
     }
 } 
+
+#Preview {
+    KeywordEditorView()
+}
