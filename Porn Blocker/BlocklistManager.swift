@@ -39,11 +39,19 @@ class BlocklistManager: ObservableObject {
         documentsDirectory.appendingPathComponent("apiBlocklist.json")
     }
     
+    // Shared container URL for subscription status
+    private var sharedContainerURL: URL? {
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)
+    }
+    
     init() {
         self.isEnabled = userDefaults.bool(forKey: "isEnabled")
         loadPredefinedKeywords()
         loadLocalData()
         loadCachedAPIBlocklist()
+        
+        // Save initial subscription status to shared storage
+        saveSubscriptionStatusToSharedStorage()
         
         // Only download if we need to update
         if shouldDownloadAPIBlocklist() {
@@ -139,6 +147,37 @@ class BlocklistManager: ObservableObject {
         } catch {
             print("Failed to save API blocklist to cache: \(error)")
         }
+    }
+    
+    // MARK: - Subscription Status Management
+    
+    func saveSubscriptionStatusToSharedStorage() {
+        guard let containerURL = sharedContainerURL else {
+            print("Failed to access shared container for subscription status")
+            return
+        }
+        
+        let subscriptionStatusURL = containerURL.appendingPathComponent("subscriptionStatus.json")
+        let subscriptionData: [String: Any] = [
+            "isSubscribed": SubscriptionManager.shared.isSubscribed,
+            "lastUpdated": Date().timeIntervalSince1970
+        ]
+        
+        do {
+            let data = try JSONSerialization.data(withJSONObject: subscriptionData, options: [])
+            try data.write(to: subscriptionStatusURL)
+            print("Saved subscription status to shared storage: \(SubscriptionManager.shared.isSubscribed)")
+            print("Subscription status file path: \(subscriptionStatusURL.path)")
+            print("File exists after save: \(FileManager.default.fileExists(atPath: subscriptionStatusURL.path))")
+        } catch {
+            print("Error saving subscription status to \(subscriptionStatusURL.path): \(error)")
+        }
+    }
+    
+    // Call this method whenever subscription status changes
+    func updateSubscriptionStatus() {
+        saveSubscriptionStatusToSharedStorage()
+        updateContentBlocker()
     }
     
     // MARK: - API Integration
@@ -473,8 +512,18 @@ class BlocklistManager: ObservableObject {
     }
     
     func updateContentBlocker() {
+        // Always update subscription status in shared storage
+        saveSubscriptionStatusToSharedStorage()
+        
         // Only update if user is subscribed
-        guard SubscriptionManager.shared.isSubscribed else { return }
+        guard SubscriptionManager.shared.isSubscribed else { 
+            // Still reload the content blocker to apply empty rules if not subscribed
+            Task {
+                let success = await enableContentBlocker()
+                print("Content blocker reloaded with empty rules (not subscribed): \(success)")
+            }
+            return 
+        }
         
         let rules = generateContentBlockerRules()
         saveContentBlockerRules(rules)
@@ -717,19 +766,19 @@ class BlocklistManager: ObservableObject {
     // MARK: - Content Blocker Integration
     
     func enableContentBlocker() async -> Bool {
-        guard SubscriptionManager.shared.isSubscribed else { return false }
-        
+        // Always reload the content blocker to pick up subscription status changes
         return await withCheckedContinuation { continuation in
             #if os(iOS)
             // Use the correct bundle identifier for your content blocker extension
-            let extensionIdentifier = "com.jose.pimentel.Porn-Blocker.PornBlockerBlocker"
+            let extensionIdentifier = "com.jose.pimentel.Porn-Blocker.ContentBlocker"
             
             SFContentBlockerManager.reloadContentBlocker(withIdentifier: extensionIdentifier) { error in
                 if let error = error {
-                    print("Error enabling content blocker: \(error)")
+                    print("Error reloading content blocker: \(error)")
                     continuation.resume(returning: false)
                 } else {
-                    print("Content blocker enabled successfully")
+                    let statusMessage = SubscriptionManager.shared.isSubscribed ? "with blocking rules" : "with empty rules (not subscribed)"
+                    print("Content blocker reloaded successfully \(statusMessage)")
                     continuation.resume(returning: true)
                 }
             }

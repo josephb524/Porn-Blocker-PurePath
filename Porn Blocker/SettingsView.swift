@@ -66,6 +66,17 @@ struct SettingsView: View {
                         }
                     }
                 }
+                
+                // Subscription status display
+                Section(header: Text("Blocking Status")) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Subscription Status: \(subManager.isSubscribed ? "Active" : "Inactive")")
+                            .foregroundColor(subManager.isSubscribed ? .green : .red)
+                        Text("Website blocking is \(subManager.isSubscribed ? "enabled" : "disabled")")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
             .navigationTitle("Settings")
             .sheet(isPresented: $showSubmitSheet) {

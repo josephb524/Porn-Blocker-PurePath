@@ -6,7 +6,14 @@ import SwiftUI
 final class SubscriptionManager: ObservableObject {
     static let shared = SubscriptionManager()
     
-    @Published private(set) var isSubscribed = true
+    @Published private(set) var isSubscribed = false {
+        didSet {
+            // Notify BlocklistManager when subscription status changes
+            if oldValue != isSubscribed {
+                BlocklistManager.shared.updateSubscriptionStatus()
+            }
+        }
+    }
     //@AppStorage("isUserSubscribed") private(set) var isSubscribed = false
     @Published private(set) var expiryDate: Date? = nil
     
