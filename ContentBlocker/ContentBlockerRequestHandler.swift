@@ -48,15 +48,38 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
         
         if isSubscribed {
             // User is subscribed, provide blocking rules
-            guard let url = Bundle.main.url(forResource: "blockerList", withExtension: "json"),
-                  let attachment = NSItemProvider(contentsOf: url) else {
-                context.cancelRequest(withError: NSError(domain: "ContentBlocker", code: 1, userInfo: nil))
-                return
+            if let dynamicRulesURL = getDynamicRulesURL(),
+               FileManager.default.fileExists(atPath: dynamicRulesURL.path) {
+                // Try to use dynamic rules (includes core static rules + custom keywords and websites)
+                do {
+                    let dynamicRulesData = try Data(contentsOf: dynamicRulesURL)
+                    let parsedRules = try JSONSerialization.jsonObject(with: dynamicRulesData, options: [])
+                    
+                    // Validate that we have valid rules
+                    if let rulesArray = parsedRules as? [[String: Any]], !rulesArray.isEmpty {
+                        guard let attachment = NSItemProvider(contentsOf: dynamicRulesURL) else {
+                            print("ContentBlocker: Failed to create attachment from dynamic rules")
+                            fallbackToStaticRules(context: context)
+                            return
+                        }
+                        
+                        let item = NSExtensionItem()
+                        item.attachments = [attachment]
+                        print("ContentBlocker: ✅ Using dynamic rules (\(rulesArray.count) rules) with CORE static rules + custom content")
+                        context.completeRequest(returningItems: [item], completionHandler: nil)
+                    } else {
+                        print("ContentBlocker: Dynamic rules are empty or invalid, falling back to static rules")
+                        fallbackToStaticRules(context: context)
+                    }
+                } catch {
+                    print("ContentBlocker: Error parsing dynamic rules: \(error). Falling back to static rules")
+                    fallbackToStaticRules(context: context)
+                }
+            } else {
+                // Fallback to static rules from bundle
+                print("ContentBlocker: Dynamic rules not found, using CORE static bundle rules")
+                fallbackToStaticRules(context: context)
             }
-            
-            let item = NSExtensionItem()
-            item.attachments = [attachment]
-            context.completeRequest(returningItems: [item], completionHandler: nil)
         } else {
             // User is not subscribed, provide empty rules (no blocking)
             let emptyRules: [[String: Any]] = []
@@ -67,6 +90,7 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
                 
                 let item = NSExtensionItem()
                 item.attachments = [attachment]
+                print("ContentBlocker: User not subscribed, providing empty rules")
                 context.completeRequest(returningItems: [item], completionHandler: nil)
             } catch {
                 context.cancelRequest(withError: NSError(domain: "ContentBlocker", code: 2, userInfo: nil))
@@ -93,6 +117,53 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
             print("ContentBlocker: Error reading subscription status from \(subscriptionStatusURL.path): \(error)")
             print("ContentBlocker: File exists: \(FileManager.default.fileExists(atPath: subscriptionStatusURL.path))")
             return false // Default to not subscribed if we can't read the status
+        }
+    }
+    
+    private func getDynamicRulesURL() -> URL? {
+        guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else {
+            print("ContentBlocker: Failed to access shared container for dynamic rules")
+            return nil
+        }
+        return containerURL.appendingPathComponent("blockerList.json")
+    }
+    
+    private func fallbackToStaticRules(context: NSExtensionContext) {
+        guard let staticRulesURL = Bundle.main.url(forResource: "blockerList", withExtension: "json") else {
+            print("ContentBlocker: ❌ CRITICAL ERROR: Cannot find blockerList.json in ContentBlocker bundle!")
+            context.cancelRequest(withError: NSError(domain: "ContentBlocker", code: 1, userInfo: [
+                NSLocalizedDescriptionKey: "Core blocking rules not found in bundle"
+            ]))
+            return
+        }
+        
+        // Validate that the static rules file is readable and contains data
+        do {
+            let staticRulesData = try Data(contentsOf: staticRulesURL)
+            let parsedRules = try JSONSerialization.jsonObject(with: staticRulesData, options: [])
+            
+            if let rulesArray = parsedRules as? [[String: Any]], !rulesArray.isEmpty {
+                guard let attachment = NSItemProvider(contentsOf: staticRulesURL) else {
+                    print("ContentBlocker: Failed to create attachment from static rules")
+                    context.cancelRequest(withError: NSError(domain: "ContentBlocker", code: 2, userInfo: nil))
+                    return
+                }
+                
+                let item = NSExtensionItem()
+                item.attachments = [attachment]
+                print("ContentBlocker: ✅ Using CORE static rules from bundle (\(rulesArray.count) rules) - ALL CORE WEBSITES WILL BE BLOCKED")
+                context.completeRequest(returningItems: [item], completionHandler: nil)
+            } else {
+                print("ContentBlocker: ❌ Static rules file is empty or invalid!")
+                context.cancelRequest(withError: NSError(domain: "ContentBlocker", code: 3, userInfo: [
+                    NSLocalizedDescriptionKey: "Static rules file is empty or corrupted"
+                ]))
+            }
+        } catch {
+            print("ContentBlocker: ❌ Error reading static rules: \(error)")
+            context.cancelRequest(withError: NSError(domain: "ContentBlocker", code: 4, userInfo: [
+                NSLocalizedDescriptionKey: "Failed to read core blocking rules: \(error.localizedDescription)"
+            ]))
         }
     }
 }

@@ -75,6 +75,19 @@ struct SettingsView: View {
                         Text("Website blocking is \(subManager.isSubscribed ? "enabled" : "disabled")")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                        
+                        if subManager.isSubscribed {
+                            let coreRulesInfo = blocklistManager.verifyCoreBlockingRules()
+                            if coreRulesInfo.isLoaded {
+                                Text("✅ Core blocking rules: \(coreRulesInfo.count) rules loaded")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                            } else {
+                                Text("❌ Core blocking rules: Failed to load")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                        }
                     }
                 }
             }

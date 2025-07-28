@@ -12,6 +12,7 @@ struct KeywordEditorView: View {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var newKeyword = ""
     @State private var showingSubscriptionAlert = false
+    @State private var showingSuccessMessage = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -20,11 +21,23 @@ struct KeywordEditorView: View {
                 HStack {
                     TextField("Enter keyword", text: $newKeyword)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .onSubmit {
+                            addKeyword()
+                        }
                     Button("Add") {
                         addKeyword()
                     }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(newKeyword.isEmpty || !subscriptionManager.isSubscribed)
                 }
                 .padding()
+                
+                if showingSuccessMessage {
+                    Text("Keyword added successfully!")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                        .transition(.opacity)
+                }
                 
                 List {
                     ForEach(blocklistManager.keywordBlocklist, id: \.self) { keyword in
@@ -66,7 +79,20 @@ struct KeywordEditorView: View {
                 
                 // Only clear the text field if the keyword was actually added
                 if blocklistManager.keywordBlocklist.count > originalCount {
+                    print("Successfully added keyword: '\(newKeyword)' to blocklist")
                     newKeyword = ""
+                    
+                    // Show success message briefly
+                    withAnimation {
+                        showingSuccessMessage = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation {
+                            showingSuccessMessage = false
+                        }
+                    }
+                } else {
+                    print("Keyword '\(newKeyword)' was not added (may already exist)")
                 }
             } else {
                 showingSubscriptionAlert = true
@@ -77,6 +103,7 @@ struct KeywordEditorView: View {
     private func deleteKeywords(offsets: IndexSet) {
         for index in offsets {
             let keyword = blocklistManager.keywordBlocklist[index]
+            print("Removing keyword: '\(keyword)' from blocklist")
             blocklistManager.removeFromKeywordBlocklist(keyword)
         }
     }

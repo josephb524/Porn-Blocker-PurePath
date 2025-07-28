@@ -180,6 +180,21 @@ class BlocklistManager: ObservableObject {
         updateContentBlocker()
     }
     
+    // Public method to verify core blocking rules are properly loaded
+    func verifyCoreBlockingRules() -> (isLoaded: Bool, count: Int, sampleRules: [String]) {
+        guard let bundleRules = loadBundleRules() else {
+            print("❌ CRITICAL: Core blocking rules could not be loaded from bundle!")
+            return (false, 0, [])
+        }
+        
+        let sampleRules = bundleRules.prefix(5).map { $0.trigger.urlFilter }
+        print("✅ VERIFIED: Core blocking rules loaded successfully")
+        print("   📊 Total core rules: \(bundleRules.count)")
+        print("   📝 Sample rules: \(sampleRules)")
+        
+        return (true, bundleRules.count, Array(sampleRules))
+    }
+    
     // MARK: - API Integration
     
     func checkAndUpdateBlocklist() {
@@ -300,6 +315,7 @@ class BlocklistManager: ObservableObject {
         if !customBlocklist.contains(cleanURL) {
             customBlocklist.append(cleanURL)
             saveLocalData()
+            print("Added custom website: '\(cleanURL)'. Total custom websites: \(customBlocklist.count)")
             updateContentBlocker()
         }
     }
@@ -308,7 +324,11 @@ class BlocklistManager: ObservableObject {
         // Only allow if user is subscribed
         guard SubscriptionManager.shared.isSubscribed else { return }
         
+        let originalCount = customBlocklist.count
         customBlocklist.removeAll { $0 == url }
+        if customBlocklist.count < originalCount {
+            print("Removed custom website: '\(url)'. Total custom websites: \(customBlocklist.count)")
+        }
         saveLocalData()
         updateContentBlocker()
     }
@@ -323,6 +343,7 @@ class BlocklistManager: ObservableObject {
         if !keywordBlocklist.contains(cleanKeyword) {
             keywordBlocklist.append(cleanKeyword)
             saveLocalData()
+            print("Added custom keyword: '\(cleanKeyword)'. Total custom keywords: \(keywordBlocklist.count)")
             updateContentBlocker()
         }
     }
@@ -331,7 +352,11 @@ class BlocklistManager: ObservableObject {
         // Only allow if user is subscribed
         guard SubscriptionManager.shared.isSubscribed else { return }
         
+        let originalCount = keywordBlocklist.count
         keywordBlocklist.removeAll { $0 == keyword }
+        if keywordBlocklist.count < originalCount {
+            print("Removed custom keyword: '\(keyword)'. Total custom keywords: \(keywordBlocklist.count)")
+        }
         saveLocalData()
         updateContentBlocker()
     }
@@ -367,15 +392,18 @@ class BlocklistManager: ObservableObject {
         
         var rules: [ContentBlockerRule] = []
         
-        // 1️⃣ First, load static rules from bundle (highest priority)
+        // 1️⃣ ALWAYS include static rules from bundle (HIGHEST PRIORITY - NEVER SKIP)
         if let bundleRules = loadBundleRules() {
             rules.append(contentsOf: bundleRules)
-            print("Added \(bundleRules.count) static rules from bundle")
+            print("✅ CORE BLOCKING: Added \(bundleRules.count) static rules from ContentBlocker bundle")
         } else {
-            // Fallback to essential static rules if bundle loading fails
+            // This should never happen, but if it does, use essential fallback rules
             let essentialRules = createEssentialStaticRules()
             rules.append(contentsOf: essentialRules)
-            print("Added \(essentialRules.count) essential static rules as fallback")
+            print("⚠️ FALLBACK: Bundle rules failed to load, using \(essentialRules.count) essential static rules")
+            
+            // Log this as a serious issue
+            print("ERROR: Could not load core blockerList.json from ContentBlocker bundle!")
         }
         
         // Limit total rules to stay well under Safari's limits (keep under 15,000)
@@ -425,12 +453,21 @@ class BlocklistManager: ObservableObject {
             }
         }
         
-        print("Generated \(rules.count) content blocker rules:")
-        print("- Static rules from bundle: \(loadBundleRules()?.count ?? 0)")
-        print("- Custom domain rules: \(customDomains.count)")
-        print("- Predefined keyword rules: \(importantKeywords.count)")
-        print("- Custom keyword rules: \(limitedCustomKeywords.count)")
-        print("- API domains available (UI only): \(apiBlocklist.count)")
+        let bundleRulesCount = loadBundleRules()?.count ?? 0
+        print("📊 Generated \(rules.count) content blocker rules:")
+        print("   ✅ CORE static rules from bundle: \(bundleRulesCount) (ALWAYS INCLUDED)")
+        print("   🏠 Custom domain rules: \(customDomains.count)")
+        print("   📝 Predefined keyword rules: \(importantKeywords.count)")
+        print("   ⭐ Custom keyword rules: \(limitedCustomKeywords.count)")
+        print("   📊 API domains available (UI only): \(apiBlocklist.count)")
+        
+        // CRITICAL: Verify that core static rules are included
+        if bundleRulesCount == 0 {
+            print("⚠️ WARNING: No core static rules found! This should never happen!")
+        } else {
+            print("✅ CONFIRMED: Core blocking rules (\(bundleRulesCount) rules) are included in blocking system")
+        }
+        
         return rules
     }
     
@@ -550,7 +587,11 @@ class BlocklistManager: ObservableObject {
                 if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
                     let sharedRulesURL = containerURL.appendingPathComponent("blockerList.json")
                     try data.write(to: sharedRulesURL)
-                    print("Content blocker rules saved to shared container: \(sharedRulesURL)")
+                    print("✅ Content blocker rules saved to shared container: \(sharedRulesURL)")
+                    
+                    // Verify the file was written correctly
+                    let fileSize = try Data(contentsOf: sharedRulesURL).count
+                    print("✅ Shared rules file size: \(fileSize) bytes - ContentBlocker extension can now access these rules")
                 }
                 
                 // Also save to documents directory (fallback)
