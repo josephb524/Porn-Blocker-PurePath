@@ -92,6 +92,10 @@ struct DashboardView: View {
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.systemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color(.separator), lineWidth: 0.5)
+                )
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
         )
     }
@@ -152,6 +156,10 @@ struct DashboardView: View {
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.systemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(.separator), lineWidth: 0.5)
+                )
                 .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 2)
         )
     }
@@ -205,8 +213,8 @@ struct DashboardView: View {
                 )
             }
             .disabled(subManager.isSubscribed)
-            .scaleEffect(subManager.isSubscribed && contentBlockerEnabled ? 0.98 : 1.0)
-            .opacity(subManager.isSubscribed && contentBlockerEnabled ? 0.8 : 1.0)
+//            .scaleEffect(subManager.isSubscribed && contentBlockerEnabled ? 0.98 : 1.0)
+//            .opacity(subManager.isSubscribed && contentBlockerEnabled ? 0.8 : 1.0)
         }
     }
     
@@ -401,6 +409,10 @@ struct EnhancedStatisticCard: View {
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.systemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(.separator), lineWidth: 0.5)
+                )
                 .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 2)
         )
     }
