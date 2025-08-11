@@ -44,9 +44,9 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
 
     func beginRequest(with context: NSExtensionContext) {
         // Check subscription status from shared storage
-        let isSubscribed = checkSubscriptionStatus()
+        let (isSubscribed, isExpired) = checkSubscriptionStatus()
         
-        if isSubscribed {
+        if isSubscribed && !isExpired {
             // User is subscribed, provide blocking rules
             if let dynamicRulesURL = getDynamicRulesURL(),
                FileManager.default.fileExists(atPath: dynamicRulesURL.path) {
@@ -81,16 +81,21 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
                 fallbackToStaticRules(context: context)
             }
         } else {
-            // User is not subscribed, provide empty rules (no blocking)
-            let emptyRules: [[String: Any]] = []
-            
+            // User is not subscribed or expired: provide a minimal no-op ruleset to avoid empty extension error
+            let noopRules: [[String: Any]] = [[
+                "trigger": ["url-filter": ".*"],
+                "action": ["type": "ignore-previous-rules"]
+            ]]
             do {
-                let emptyRulesData = try JSONSerialization.data(withJSONObject: emptyRules, options: [])
-                let attachment = NSItemProvider(item: emptyRulesData as NSSecureCoding, typeIdentifier: "public.json")
-                
+                let data = try JSONSerialization.data(withJSONObject: noopRules, options: [])
+                let attachment = NSItemProvider(item: data as NSSecureCoding, typeIdentifier: "public.json")
                 let item = NSExtensionItem()
                 item.attachments = [attachment]
-                print("ContentBlocker: User not subscribed, providing empty rules")
+                if isExpired {
+                    print("ContentBlocker: Subscription expired, providing no-op rules")
+                } else {
+                    print("ContentBlocker: User not subscribed, providing no-op rules")
+                }
                 context.completeRequest(returningItems: [item], completionHandler: nil)
             } catch {
                 context.cancelRequest(withError: NSError(domain: "ContentBlocker", code: 2, userInfo: nil))
@@ -98,10 +103,10 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
         }
     }
     
-    private func checkSubscriptionStatus() -> Bool {
+    private func checkSubscriptionStatus() -> (Bool, Bool) {
         guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else {
             print("ContentBlocker: Failed to access shared container")
-            return false // Default to not subscribed if we can't check
+            return (false, true) // treat as expired/not subscribed
         }
         
         let subscriptionStatusURL = containerURL.appendingPathComponent("subscriptionStatus.json")
@@ -110,13 +115,21 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
             let data = try Data(contentsOf: subscriptionStatusURL)
             let subscriptionData = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
             let isSubscribed = subscriptionData?["isSubscribed"] as? Bool ?? false
+            let expiryTimestamp = subscriptionData?["expiryDate"] as? Double
             let lastUpdated = subscriptionData?["lastUpdated"] as? Double ?? 0
-            print("ContentBlocker: Subscription status: \(isSubscribed), last updated: \(Date(timeIntervalSince1970: lastUpdated))")
-            return isSubscribed
+            let now = Date().timeIntervalSince1970
+            let isExpired: Bool
+            if let expiryTimestamp = expiryTimestamp {
+                isExpired = now >= expiryTimestamp
+            } else {
+                isExpired = !isSubscribed
+            }
+            print("ContentBlocker: Subscription status: subscribed=\(isSubscribed) expired=\(isExpired), last updated: \(Date(timeIntervalSince1970: lastUpdated)))")
+            return (isSubscribed, isExpired)
         } catch {
             print("ContentBlocker: Error reading subscription status from \(subscriptionStatusURL.path): \(error)")
             print("ContentBlocker: File exists: \(FileManager.default.fileExists(atPath: subscriptionStatusURL.path))")
-            return false // Default to not subscribed if we can't read the status
+            return (false, true) // treat as expired/not subscribed
         }
     }
     

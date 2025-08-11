@@ -213,8 +213,6 @@ struct DashboardView: View {
                 )
             }
             .disabled(subManager.isSubscribed)
-//            .scaleEffect(subManager.isSubscribed && contentBlockerEnabled ? 0.98 : 1.0)
-//            .opacity(subManager.isSubscribed && contentBlockerEnabled ? 0.8 : 1.0)
         }
     }
     

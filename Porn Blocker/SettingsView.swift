@@ -56,38 +56,27 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Subscription Active")
                                 .foregroundColor(.green)
+                                .fontWeight(.medium)
                             if let expiryDate = subManager.expiryDate {
-                                Text("Renews: \(expiryDate.formatted())")
+                                Text("Renews: \(expiryDate.formatted(date: .abbreviated, time: .omitted))")
                                     .font(.caption)
+                                    .foregroundColor(.secondary)
                             } else {
-                                Text("Renewal date unknown")
+                                Text("Lifetime subscription")
                                     .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
+                            Text("Price: \(subManager.subscriptionPrice) per \(subManager.subscriptionPeriod)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
-                    }
-                }
-                
-                // Subscription status display
-                Section(header: Text("Blocking Status")) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Subscription Status: \(subManager.isSubscribed ? "Active" : "Inactive")")
-                            .foregroundColor(subManager.isSubscribed ? .green : .red)
-                        Text("Website blocking is \(subManager.isSubscribed ? "enabled" : "disabled")")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                         
-                        if subManager.isSubscribed {
-                            let coreRulesInfo = blocklistManager.verifyCoreBlockingRules()
-                            if coreRulesInfo.isLoaded {
-                                Text("✅ Core blocking rules: \(coreRulesInfo.count) rules loaded")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
-                            } else {
-                                Text("❌ Core blocking rules: Failed to load")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
+                        Button("Restore Purchases") {
+                            Task {
+                                await subManager.restore()
                             }
                         }
+                        .disabled(subManager.isLoading)
                     }
                 }
             }

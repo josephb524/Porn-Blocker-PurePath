@@ -11,7 +11,6 @@ struct WebsiteEditorView: View {
     @StateObject private var blocklistManager = BlocklistManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var newWebsite = ""
-    @State private var showingSubscriptionAlert = false
     @State private var showingSuccessMessage = false
     @Environment(\.dismiss) private var dismiss
     
@@ -28,7 +27,7 @@ struct WebsiteEditorView: View {
                         addWebsite()
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(newWebsite.isEmpty || !subscriptionManager.isSubscribed)
+                    .disabled(newWebsite.isEmpty)
                 }
                 .padding()
                 
@@ -47,7 +46,7 @@ struct WebsiteEditorView: View {
                 }
                 
                 if !subscriptionManager.isSubscribed {
-                    Text("Custom websites require a subscription")
+                    Text("Custom websites will be blocked only with an active subscription")
                         .foregroundColor(.secondary)
                         .font(.footnote)
                         .padding()
@@ -62,39 +61,19 @@ struct WebsiteEditorView: View {
                     }
                 }
             }
-            .alert("Subscription Required", isPresented: $showingSubscriptionAlert) {
-                Button("OK") { }
-            } message: {
-                Text("A subscription is required to add custom websites.")
-            }
         }
     }
     
     private func addWebsite() {
-        if !newWebsite.isEmpty {
-            if subscriptionManager.isSubscribed {
-                let originalCount = blocklistManager.customBlocklist.count
-                blocklistManager.addToCustomBlocklist(newWebsite)
-                
-                // Only clear the text field if the website was actually added
-                if blocklistManager.customBlocklist.count > originalCount {
-                    print("Successfully added website: '\(newWebsite)' to blocklist")
-                    newWebsite = ""
-                    
-                    // Show success message briefly
-                    withAnimation {
-                        showingSuccessMessage = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation {
-                            showingSuccessMessage = false
-                        }
-                    }
-                } else {
-                    print("Website '\(newWebsite)' was not added (may already exist)")
-                }
-            } else {
-                showingSubscriptionAlert = true
+        guard !newWebsite.isEmpty else { return }
+        let originalCount = blocklistManager.customBlocklist.count
+        blocklistManager.addToCustomBlocklist(newWebsite)
+        
+        if blocklistManager.customBlocklist.count > originalCount {
+            newWebsite = ""
+            withAnimation { showingSuccessMessage = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                withAnimation { showingSuccessMessage = false }
             }
         }
     }
@@ -102,7 +81,6 @@ struct WebsiteEditorView: View {
     private func deleteWebsites(offsets: IndexSet) {
         for index in offsets {
             let website = blocklistManager.customBlocklist[index]
-            print("Removing website: '\(website)' from blocklist")
             blocklistManager.removeFromCustomBlocklist(website)
         }
     }

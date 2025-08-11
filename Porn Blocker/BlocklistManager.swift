@@ -53,6 +53,10 @@ class BlocklistManager: ObservableObject {
         // Save initial subscription status to shared storage
         saveSubscriptionStatusToSharedStorage()
         
+        // Ensure Safari Content Blocker is reloaded on launch to reflect current subscription state
+        // This guarantees empty rules are applied if the user is not subscribed, avoiding stale cached rules
+        updateContentBlocker()
+        
         // Only download if we need to update
         if shouldDownloadAPIBlocklist() {
             print("Need to download/update API blocklist")
@@ -158,15 +162,17 @@ class BlocklistManager: ObservableObject {
         }
         
         let subscriptionStatusURL = containerURL.appendingPathComponent("subscriptionStatus.json")
+        let expiryTimestamp = SubscriptionManager.shared.expiryDate?.timeIntervalSince1970
         let subscriptionData: [String: Any] = [
             "isSubscribed": SubscriptionManager.shared.isSubscribed,
+            "expiryDate": expiryTimestamp as Any,
             "lastUpdated": Date().timeIntervalSince1970
         ]
         
         do {
             let data = try JSONSerialization.data(withJSONObject: subscriptionData, options: [])
             try data.write(to: subscriptionStatusURL)
-            print("Saved subscription status to shared storage: \(SubscriptionManager.shared.isSubscribed)")
+            print("Saved subscription status to shared storage: \(SubscriptionManager.shared.isSubscribed) | expiry=\(String(describing: expiryTimestamp))")
             print("Subscription status file path: \(subscriptionStatusURL.path)")
             print("File exists after save: \(FileManager.default.fileExists(atPath: subscriptionStatusURL.path))")
         } catch {
@@ -308,9 +314,6 @@ class BlocklistManager: ObservableObject {
     // MARK: - Custom Blocklist Management
     
     func addToCustomBlocklist(_ url: String) {
-        // Only allow if user is subscribed
-        guard SubscriptionManager.shared.isSubscribed else { return }
-        
         let cleanURL = cleanURL(url)
         if !customBlocklist.contains(cleanURL) {
             customBlocklist.append(cleanURL)
@@ -321,9 +324,6 @@ class BlocklistManager: ObservableObject {
     }
     
     func removeFromCustomBlocklist(_ url: String) {
-        // Only allow if user is subscribed
-        guard SubscriptionManager.shared.isSubscribed else { return }
-        
         let originalCount = customBlocklist.count
         customBlocklist.removeAll { $0 == url }
         if customBlocklist.count < originalCount {
@@ -336,9 +336,6 @@ class BlocklistManager: ObservableObject {
     // MARK: - Keyword Blocklist Management
     
     func addToKeywordBlocklist(_ keyword: String) {
-        // Only allow if user is subscribed
-        guard SubscriptionManager.shared.isSubscribed else { return }
-        
         let cleanKeyword = keyword.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         if !keywordBlocklist.contains(cleanKeyword) {
             keywordBlocklist.append(cleanKeyword)
@@ -349,9 +346,6 @@ class BlocklistManager: ObservableObject {
     }
     
     func removeFromKeywordBlocklist(_ keyword: String) {
-        // Only allow if user is subscribed
-        guard SubscriptionManager.shared.isSubscribed else { return }
-        
         let originalCount = keywordBlocklist.count
         keywordBlocklist.removeAll { $0 == keyword }
         if keywordBlocklist.count < originalCount {
@@ -552,24 +546,39 @@ class BlocklistManager: ObservableObject {
         // Always update subscription status in shared storage
         saveSubscriptionStatusToSharedStorage()
         
-        // Only update if user is subscribed
-        guard SubscriptionManager.shared.isSubscribed else { 
-            // Still reload the content blocker to apply empty rules if not subscribed
+        // Check if user is subscribed
+        if SubscriptionManager.shared.isSubscribed {
+            // User is subscribed - generate and save blocking rules
+            let rules = generateContentBlockerRules()
+            saveContentBlockerRules(rules)
+            
+            // Reload the content blocker
             Task {
                 let success = await enableContentBlocker()
-                print("Content blocker reloaded with empty rules (not subscribed): \(success)")
+                print("✅ Content blocker reloaded with \(rules.count) blocking rules (subscribed): \(success)")
             }
-            return 
+        } else {
+            // User is NOT subscribed - save NO-OP rules to disable blocking without compilation error
+            let noopRules = generateNoopContentBlockerRules()
+            saveContentBlockerRules(noopRules)
+            
+            // Reload the content blocker with no-op rules
+            Task {
+                let success = await enableContentBlocker()
+                print("🚫 Content blocker reloaded with no-op rules (not subscribed): \(success)")
+            }
         }
-        
-        let rules = generateContentBlockerRules()
-        saveContentBlockerRules(rules)
-        
-        // Reload the content blocker
-        Task {
-            let success = await enableContentBlocker()
-            print("Content blocker reloaded after rules update: \(success)")
-        }
+    }
+    
+    private func generateNoopContentBlockerRules() -> [ContentBlockerRule] {
+        // A single rule that effectively does nothing but ensures the ruleset is non-empty
+        // Using 'ignore-previous-rules' with a wide trigger resets rule evaluation and blocks nothing
+        return [
+            ContentBlockerRule(
+                trigger: ContentBlockerTrigger(urlFilter: ".*"),
+                action: ContentBlockerAction(type: "ignore-previous-rules")
+            )
+        ]
     }
     
     private func saveContentBlockerRules(_ rules: [ContentBlockerRule]) {
@@ -612,7 +621,33 @@ class BlocklistManager: ObservableObject {
     
     private func saveFallbackRules() {
         print("Saving fallback rules due to JSON error...")
-        // Create a minimal set of rules that should always work
+        
+        // If not subscribed, save no-op rules instead of any blocking
+        if !SubscriptionManager.shared.isSubscribed {
+            do {
+                let empty: [ContentBlockerRule] = generateNoopContentBlockerRules()
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = .prettyPrinted
+                let data = try encoder.encode(empty)
+                
+                if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
+                    let sharedRulesURL = containerURL.appendingPathComponent("blockerList.json")
+                    try data.write(to: sharedRulesURL)
+                    print("Fallback: not subscribed, saved no-op rules to shared container")
+                }
+                
+                if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                    let rulesURL = documentsPath.appendingPathComponent("blockerList.json")
+                    try data.write(to: rulesURL)
+                    print("Fallback: not subscribed, saved no-op rules to documents directory")
+                }
+            } catch {
+                print("Error saving no-op fallback rules: \(error)")
+            }
+            return
+        }
+        
+        // Create a minimal set of rules that should always work (only when subscribed)
         let fallbackRules = [
             ContentBlockerRule(
                 trigger: ContentBlockerTrigger(urlFilter: ".*pornhub.*"),

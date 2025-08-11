@@ -11,7 +11,6 @@ struct KeywordEditorView: View {
     @StateObject private var blocklistManager = BlocklistManager.shared
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @State private var newKeyword = ""
-    @State private var showingSubscriptionAlert = false
     @State private var showingSuccessMessage = false
     @Environment(\.dismiss) private var dismiss
     
@@ -28,7 +27,7 @@ struct KeywordEditorView: View {
                         addKeyword()
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(newKeyword.isEmpty || !subscriptionManager.isSubscribed)
+                    .disabled(newKeyword.isEmpty)
                 }
                 .padding()
                 
@@ -48,7 +47,7 @@ struct KeywordEditorView: View {
                 }
                 
                 if !subscriptionManager.isSubscribed {
-                    Text("Custom keywords require a subscription")
+                    Text("Custom keywords will be blocked only with an active subscription")
                         .foregroundColor(.secondary)
                         .font(.footnote)
                         .padding()
@@ -63,39 +62,19 @@ struct KeywordEditorView: View {
                     }
                 }
             }
-            .alert("Subscription Required", isPresented: $showingSubscriptionAlert) {
-                Button("OK") { }
-            } message: {
-                Text("A subscription is required to add custom keywords.")
-            }
         }
     }
     
     private func addKeyword() {
-        if !newKeyword.isEmpty {
-            if subscriptionManager.isSubscribed {
-                let originalCount = blocklistManager.keywordBlocklist.count
-                blocklistManager.addToKeywordBlocklist(newKeyword)
-                
-                // Only clear the text field if the keyword was actually added
-                if blocklistManager.keywordBlocklist.count > originalCount {
-                    print("Successfully added keyword: '\(newKeyword)' to blocklist")
-                    newKeyword = ""
-                    
-                    // Show success message briefly
-                    withAnimation {
-                        showingSuccessMessage = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation {
-                            showingSuccessMessage = false
-                        }
-                    }
-                } else {
-                    print("Keyword '\(newKeyword)' was not added (may already exist)")
-                }
-            } else {
-                showingSubscriptionAlert = true
+        guard !newKeyword.isEmpty else { return }
+        let originalCount = blocklistManager.keywordBlocklist.count
+        blocklistManager.addToKeywordBlocklist(newKeyword)
+        
+        if blocklistManager.keywordBlocklist.count > originalCount {
+            newKeyword = ""
+            withAnimation { showingSuccessMessage = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                withAnimation { showingSuccessMessage = false }
             }
         }
     }
@@ -103,7 +82,6 @@ struct KeywordEditorView: View {
     private func deleteKeywords(offsets: IndexSet) {
         for index in offsets {
             let keyword = blocklistManager.keywordBlocklist[index]
-            print("Removing keyword: '\(keyword)' from blocklist")
             blocklistManager.removeFromKeywordBlocklist(keyword)
         }
     }
