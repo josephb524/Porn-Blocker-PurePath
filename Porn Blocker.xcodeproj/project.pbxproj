@@ -33,6 +33,7 @@
 		BBC567EE2A2EA0460017E798 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567ED2A2EA0460017E798 /* ContentView.swift */; };
 		BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBC567EF2A2EA0470017E798 /* Assets.xcassets */; };
 		BBC567F32A2EA0470017E798 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBC567F22A2EA0470017E798 /* Preview Assets.xcassets */; };
+		BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB99A0012E99999900534EED /* RatingRequestManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +63,7 @@
 /* Begin PBXFileReference section */
 		BB4378562E18AE9B00534EED /* BlocklistManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistManager.swift; sourceTree = "<group>"; };
 		BB4378572E18AE9B00534EED /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		BB99A0012E99999900534EED /* RatingRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingRequestManager.swift; sourceTree = "<group>"; };
 		BB43785A2E18B57E00534EED /* keywordsList.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = keywordsList.json; sourceTree = "<group>"; };
 		BB4378B12E1F53C000534EED /* ContentBlocker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ContentBlocker.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockerSettingsView.swift; sourceTree = "<group>"; };
@@ -149,6 +151,7 @@
 				BB43785A2E18B57E00534EED /* keywordsList.json */,
 				BB4378562E18AE9B00534EED /* BlocklistManager.swift */,
 				BB4378572E18AE9B00534EED /* SubscriptionManager.swift */,
+				BB99A0012E99999900534EED /* RatingRequestManager.swift */,
 				BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */,
 				BBC567ED2A2EA0460017E798 /* ContentView.swift */,
 				BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */,
@@ -318,6 +321,7 @@
 				BB4378E02E2742A800534EED /* KeywordEditorView.swift in Sources */,
 				BB4378582E18AE9B00534EED /* BlocklistManager.swift in Sources */,
 				BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */,
+				BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
