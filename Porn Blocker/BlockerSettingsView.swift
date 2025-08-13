@@ -64,13 +64,6 @@ struct BlockerSettingsView: View {
                     Toggle("", isOn: .constant(true))
                 }
                 .padding(.horizontal)
-                
-                Text("You can create your own url list for blocking")
-                    .foregroundColor(.primary)
-                    .font(.body)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
             }
             
             Spacer()

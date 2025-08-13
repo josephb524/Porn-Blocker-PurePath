@@ -1,0 +1,32 @@
+{
+  "source": "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/TermsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Terms of Use",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 23
+        }
+      },
+      {
+        "comment": "",
+        "key": "Terms of Use",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "By using this app, you agree to the following terms...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 18
+        }
+      }
+    ]
+  },
+  "version": 1
+}

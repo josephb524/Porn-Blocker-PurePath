@@ -1,0 +1,56 @@
+{
+  "source": "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/FAQView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "FAQ",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "Frequently Asked Questions",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "How does the app work?",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "The app uses Safari's content blocking feature to block adult content websites.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "Can I customize the blocklist?",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 21
+        }
+      },
+      {
+        "comment": "",
+        "key": "Yes, you can add custom keywords and websites to block, as well as whitelist trusted sites.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 23
+        }
+      }
+    ]
+  },
+  "version": 1
+}

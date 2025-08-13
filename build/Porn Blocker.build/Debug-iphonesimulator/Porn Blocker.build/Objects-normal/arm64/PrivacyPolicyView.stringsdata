@@ -1,0 +1,32 @@
+{
+  "source": "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/PrivacyPolicyView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Privacy Policy",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 23
+        }
+      },
+      {
+        "comment": "",
+        "key": "Privacy Policy",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your privacy is important to us. This app does not collect any personal information...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 18
+        }
+      }
+    ]
+  },
+  "version": 1
+}

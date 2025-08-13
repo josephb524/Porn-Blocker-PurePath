@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'Porn Blocker' in project 'Porn Blocker'
+➜ Explicit dependency on target 'ContentBlocker' in project 'Porn Blocker'
+Target 'ContentBlocker' in project 'Porn Blocker' (no dependencies)

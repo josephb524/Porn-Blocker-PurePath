@@ -1,0 +1,18 @@
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/DashboardView.swift":
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/DashboardView.swiftconstvalues"
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/DashboardView.dia"
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/DashboardView.d"
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/DashboardView.o"
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/DashboardView.swiftdeps"
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/FAQView.swift":
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/FAQView.o"
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/FAQView.swiftdeps"
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/FAQView.dia"
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/FAQView.swiftconstvalues"
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/FAQView.d"
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SubmitView.swift":
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/SubmitView.d"
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/SubmitView.o"
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/SubmitView.swiftconstvalues"
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/SubmitView.dia"
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/x86_64/SubmitView.swiftdeps"

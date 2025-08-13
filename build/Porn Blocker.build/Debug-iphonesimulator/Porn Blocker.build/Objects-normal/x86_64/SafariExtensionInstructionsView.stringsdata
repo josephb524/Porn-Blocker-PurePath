@@ -1,0 +1,56 @@
+{
+  "source": "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SafariExtensionInstructionsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Setup Instructions",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Safari Extension",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 10
+        }
+      },
+      {
+        "comment": "",
+        "key": "To start blocking websites, you need to enable the Porn Blocker extension in Safari:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 14
+        }
+      },
+      {
+        "comment": "",
+        "key": "Once enabled, the extension will automatically block adult content websites and keywords while you browse.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Safari Settings",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 65
+        }
+      }
+    ]
+  },
+  "version": 1
+}

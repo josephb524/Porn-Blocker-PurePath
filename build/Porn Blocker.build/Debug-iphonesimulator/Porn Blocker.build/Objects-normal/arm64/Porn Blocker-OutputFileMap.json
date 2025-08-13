@@ -1,0 +1,238 @@
+{
+  "" : {
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn Blocker-master.dia",
+    "emit-module-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn Blocker-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn Blocker-master-emit-module.dia",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn Blocker-master.swiftdeps"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/BlockerSettingsView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/BlocklistManager.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlocklistManager.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlocklistManager.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlocklistManager.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlocklistManager.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlocklistManager.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlocklistManager.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlocklistManager.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlocklistManager~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/ContactView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContactView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContactView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContactView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContactView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContactView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContactView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContactView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContactView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/ContentView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/DashboardView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/DashboardView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/DashboardView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/DashboardView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/DashboardView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/DashboardView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/DashboardView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/DashboardView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/DashboardView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/FAQView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FAQView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FAQView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FAQView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FAQView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FAQView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FAQView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FAQView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FAQView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/FeatureRow.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FeatureRow.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FeatureRow.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FeatureRow.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FeatureRow.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FeatureRow.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FeatureRow.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FeatureRow.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/FeatureRow~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/InstructionStep.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/InstructionStep.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/InstructionStep.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/InstructionStep.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/InstructionStep.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/InstructionStep.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/InstructionStep.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/InstructionStep.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/InstructionStep~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/KeywordEditorView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/KeywordEditorView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/KeywordEditorView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/KeywordEditorView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/KeywordEditorView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/KeywordEditorView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/KeywordEditorView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/KeywordEditorView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/KeywordEditorView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/MainTabView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/MainTabView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/MainTabView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/MainTabView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/MainTabView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/MainTabView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/MainTabView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/MainTabView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/MainTabView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/PaywallScreen.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/Porn_BlockerApp.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/PrivacyPolicyView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PrivacyPolicyView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PrivacyPolicyView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PrivacyPolicyView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PrivacyPolicyView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PrivacyPolicyView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PrivacyPolicyView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PrivacyPolicyView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PrivacyPolicyView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/RatingRequestManager.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/RatingRequestManager.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/RatingRequestManager.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/RatingRequestManager.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/RatingRequestManager.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/RatingRequestManager.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/RatingRequestManager.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/RatingRequestManager.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/RatingRequestManager~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SafariExtensionInstructionsView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SettingsRow.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsRow.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsRow.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsRow.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsRow.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsRow.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsRow.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsRow.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsRow~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SettingsView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/StatisticCard.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/StatisticCard.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/StatisticCard.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/StatisticCard.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/StatisticCard.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/StatisticCard.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/StatisticCard.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/StatisticCard.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/StatisticCard~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SubmitView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubmitView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubmitView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubmitView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubmitView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubmitView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubmitView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubmitView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubmitView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SubscriptionManager.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubscriptionManager.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubscriptionManager.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubscriptionManager.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubscriptionManager.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubscriptionManager.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubscriptionManager.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubscriptionManager.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SubscriptionManager~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/TermsView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/WebsiteEditorView.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/WebsiteEditorView.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/WebsiteEditorView.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/WebsiteEditorView.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/WebsiteEditorView.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/WebsiteEditorView.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/WebsiteEditorView.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/WebsiteEditorView.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/WebsiteEditorView~partial.swiftmodule"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

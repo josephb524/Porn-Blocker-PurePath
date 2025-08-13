@@ -23,30 +23,30 @@ struct SettingsView: View {
                     NavigationLink(destination: BlockerSettingsView()) {
                         SettingsRow(icon: "gear", title: "Blocker Settings")
                     }
-                    
-                    Button(action: { showSubmitSheet = true }) {
-                        SettingsRow(icon: "magnifyingglass", title: "Submit keyword & website")
-                    }
-                    
-                    NavigationLink(destination: FAQView()) {
-                        SettingsRow(icon: "questionmark.circle", title: "FAQ")
-                    }
-                    
-                    NavigationLink(destination: ContactView()) {
-                        SettingsRow(icon: "phone", title: "Contact us")
-                    }
-                    
-                    Button(action: { shareApp() }) {
-                        SettingsRow(icon: "square.and.arrow.up", title: "Share this app")
-                    }
-                    
-                    NavigationLink(destination: PrivacyPolicyView()) {
-                        SettingsRow(icon: "lock", title: "Privacy policy")
-                    }
-                    
-                    NavigationLink(destination: TermsView()) {
-                        SettingsRow(icon: "doc.text", title: "Terms of use")
-                    }
+                    //DO NOT DELETE THESE NAVIGATION LINKS
+//                    Button(action: { showSubmitSheet = true }) {
+//                        SettingsRow(icon: "magnifyingglass", title: "Submit keyword & website")
+//                    }
+//                    
+//                    NavigationLink(destination: FAQView()) {
+//                        SettingsRow(icon: "questionmark.circle", title: "FAQ")
+//                    }
+//                    
+//                    NavigationLink(destination: ContactView()) {
+//                        SettingsRow(icon: "phone", title: "Contact us")
+//                    }
+//                    
+//                    Button(action: { shareApp() }) {
+//                        SettingsRow(icon: "square.and.arrow.up", title: "Share this app")
+//                    }
+//                    
+//                    NavigationLink(destination: PrivacyPolicyView()) {
+//                        SettingsRow(icon: "lock", title: "Privacy policy")
+//                    }
+//                    
+//                    NavigationLink(destination: TermsView()) {
+//                        SettingsRow(icon: "doc.text", title: "Terms of use")
+//                    }
                 }
                 
                 

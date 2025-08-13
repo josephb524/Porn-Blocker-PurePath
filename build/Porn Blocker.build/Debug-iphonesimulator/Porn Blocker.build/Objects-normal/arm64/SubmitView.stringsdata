@@ -1,0 +1,56 @@
+{
+  "source": "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SubmitView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Submit keywords & websites",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "Submit keywords and website that you want to Blacklist (which you feel are not blocked but should be). We will review these and once approved, you will be able to browse them online without any interference.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Blacklist",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "Submit the keywords and website that you want to whitelist (which you feel is blocked accidentally or unintentionally). We will review these and once approved, you will be able to browse them online without any interference.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Whitelist",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 63
+        }
+      }
+    ]
+  },
+  "version": 1
+}

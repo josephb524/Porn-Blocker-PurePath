@@ -57,8 +57,12 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
       launchAutomaticallySubstyle = "2">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <RemoteRunnable
+         runnableDebuggingMode = "0"
+         BundleIdentifier = "com.jose.pimentel.Porn-Blocker"
+         RemotePath = "/var/containers/Bundle/Application/81DD5388-0727-4597-B5BA-BF2408AE3B97/Porn Blocker.app">
+      </RemoteRunnable>
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BBC567E72A2EA0460017E798"
@@ -66,7 +70,7 @@
             BlueprintName = "Porn Blocker"
             ReferencedContainer = "container:Porn Blocker.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

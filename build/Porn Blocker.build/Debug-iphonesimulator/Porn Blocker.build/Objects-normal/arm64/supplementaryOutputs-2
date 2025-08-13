@@ -1,0 +1,18 @@
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/Porn_BlockerApp.swift":
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.d"
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.swiftconstvalues"
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.o"
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.dia"
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/Porn_BlockerApp.swiftdeps"
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/PaywallScreen.swift":
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.dia"
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.o"
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.swiftconstvalues"
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.d"
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/PaywallScreen.swiftdeps"
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/ContentView.swift":
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.swiftconstvalues"
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.o"
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.swiftdeps"
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.d"
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/ContentView.dia"

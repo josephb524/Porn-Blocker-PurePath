@@ -1,0 +1,18 @@
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/BlockerSettingsView.swift":
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.d"
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.swiftdeps"
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.o"
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.swiftconstvalues"
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/BlockerSettingsView.dia"
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/TermsView.swift":
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.swiftdeps"
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.dia"
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.swiftconstvalues"
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.o"
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/TermsView.d"
+"/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/Porn Blocker/SafariExtensionInstructionsView.swift":
+  object: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.o"
+  diagnostics: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.dia"
+  const-values: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.swiftconstvalues"
+  swift-dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.swiftdeps"
+  dependencies: "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/Porn Blocker.build/Objects-normal/arm64/SafariExtensionInstructionsView.d"
