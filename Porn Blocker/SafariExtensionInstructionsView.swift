@@ -98,13 +98,11 @@ private struct SafariExtensionGuideView: View {
         [
             GuideStep(number: 1, title: "Open Settings", description: "Open the iPhone Settings app.", imageName: "1"),
             GuideStep(number: 2, title: "Go to Apps", description: "Scroll down and tap 'Apps'.", imageName: "2"),
-            GuideStep(number: 3, title: "Select Safari", description: "In Apps, tap 'Safari'.", imageName: "4"),
-            GuideStep(number: 4, title: "Open Extensions", description: "Scroll to the General section and tap 'Extensions'.", imageName: "6"),
-            GuideStep(number: 5, title: "Choose Porn Blocker", description: "Tap 'Porn Blocker' from the list (it may show Off).", imageName: "7"),
-            GuideStep(number: 6, title: "Enable Extension", description: "Toggle 'Allow Extension' to ON.", imageName: "9"),
-//            GuideStep(number: 7, title: "Allow Private Browsing (optional)", description: "Toggle 'Allow in Private Browsing' if you want protection there too.", imageName: "8"),
-//            GuideStep(number: 8, title: "Verify Permissions", description: "Ensure the permission note appears—this is expected for content blockers.", imageName: "9"),
-//            GuideStep(number: 9, title: "All Set", description: "Return to Safari and browse—adult content will now be blocked.", imageName: "")
+            GuideStep(number: 3, title: "Select Safari", description: "In Apps, tap 'Safari'.", imageName: "3"),
+            GuideStep(number: 4, title: "Open Extensions", description: "Scroll to the General section and tap 'Extensions'.", imageName: "4"),
+            GuideStep(number: 5, title: "Choose Porn Blocker", description: "Tap 'Porn Blocker' from the list (it may show Off).", imageName: "5"),
+            GuideStep(number: 6, title: "Enable Extension", description: "Toggle 'Allow Extension' to ON.", imageName: "6"),
+            GuideStep(number: 7, title: "All Set", description: "Return to Safari and browse—adult content will now be blocked.", imageName: "7")
         ]
     }
     
@@ -131,10 +129,10 @@ private struct SafariExtensionGuideView: View {
                                 .scaledToFit()
                                 .frame(maxWidth: .infinity)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                                )
+//                                .overlay(
+//                                    RoundedRectangle(cornerRadius: 12)
+//                                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+//                                )
                         }
                     }
                 }

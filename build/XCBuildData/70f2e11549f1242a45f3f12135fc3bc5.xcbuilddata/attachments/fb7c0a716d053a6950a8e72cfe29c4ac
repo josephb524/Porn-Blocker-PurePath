@@ -1,0 +1,18 @@
+{
+  "" : {
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlocker-master.dia",
+    "emit-module-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlocker-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlocker-master-emit-module.dia",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlocker-master.swiftdeps"
+  },
+  "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/ContentBlocker/ContentBlockerRequestHandler.swift" : {
+    "const-values" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlockerRequestHandler.swiftconstvalues",
+    "dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlockerRequestHandler.d",
+    "diagnostics" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlockerRequestHandler.dia",
+    "index-unit-output-path" : "/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlockerRequestHandler.o",
+    "llvm-bc" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlockerRequestHandler.bc",
+    "object" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlockerRequestHandler.o",
+    "swift-dependencies" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlockerRequestHandler.swiftdeps",
+    "swiftmodule" : "/Users/josepimentel/Documents/Personal Projects/iOS App/Porn Blocker/build/Porn Blocker.build/Debug-iphonesimulator/ContentBlocker.build/Objects-normal/arm64/ContentBlockerRequestHandler~partial.swiftmodule"
+  }
+}
