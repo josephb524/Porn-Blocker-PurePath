@@ -85,6 +85,7 @@ struct SettingsView: View {
                 SubmitView()
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func shareApp() {

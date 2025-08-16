@@ -46,6 +46,7 @@ struct DashboardView: View {
                 SafariExtensionInstructionsView()
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     // MARK: - UI Components
