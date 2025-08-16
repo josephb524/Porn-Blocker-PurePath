@@ -51,34 +51,34 @@ struct SettingsView: View {
                 
                 
                 
-                if subManager.isSubscribed {
-                    Section(header: Text("Subscription")) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Subscription Active")
-                                .foregroundColor(.green)
-                                .fontWeight(.medium)
-                            if let expiryDate = subManager.expiryDate {
-                                Text("Renews: \(expiryDate.formatted(date: .abbreviated, time: .omitted))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            } else {
-                                Text("Lifetime subscription")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Text("Price: \(subManager.subscriptionPrice) per \(subManager.subscriptionPeriod)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Button("Restore Purchases") {
-                            Task {
-                                await subManager.restore()
-                            }
-                        }
-                        .disabled(subManager.isLoading)
-                    }
-                }
+//                if subManager.isSubscribed {
+//                    Section(header: Text("Subscription")) {
+//                        VStack(alignment: .leading, spacing: 4) {
+//                            Text("Subscription Active")
+//                                .foregroundColor(.green)
+//                                .fontWeight(.medium)
+//                            if let expiryDate = subManager.expiryDate {
+//                                Text("Renews: \(expiryDate.formatted(date: .abbreviated, time: .omitted))")
+//                                    .font(.caption)
+//                                    .foregroundColor(.secondary)
+//                            } else {
+//                                Text("Lifetime subscription")
+//                                    .font(.caption)
+//                                    .foregroundColor(.secondary)
+//                            }
+//                            Text("Price: \(subManager.subscriptionPrice) per \(subManager.subscriptionPeriod)")
+//                                .font(.caption)
+//                                .foregroundColor(.secondary)
+//                        }
+//                        
+//                        Button("Restore Purchases") {
+//                            Task {
+//                                await subManager.restore()
+//                            }
+//                        }
+//                        .disabled(subManager.isLoading)
+//                    }
+//                }
             }
             .navigationTitle("Settings")
             .sheet(isPresented: $showSubmitSheet) {

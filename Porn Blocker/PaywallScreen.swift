@@ -91,16 +91,16 @@ struct PaywallScreen: View {
                 .multilineTextAlignment(.center)
                 .padding(.top)
             
-            HStack {
-                Button("Privacy Policy") {
-                    // Navigate to privacy policy
-                }
-                Spacer()
-                Button("Terms of use") {
-                    // Navigate to terms
-                }
-            }
-            .font(.caption)
+//            HStack {
+//                Button("Privacy Policy") {
+//                    // Navigate to privacy policy
+//                }
+//                Spacer()
+//                Button("Terms of use") {
+//                    // Navigate to terms
+//                }
+//            }
+//            .font(.caption)
         }
         .padding()
         .navigationBarTitleDisplayMode(.inline)
