@@ -4,6 +4,8 @@ struct PaywallScreen: View {
     @StateObject private var subManager = SubscriptionManager.shared
     @Binding var isPresented: Bool
     @State private var showingError = false
+    @State private var showPrivacyPolicy = false
+    @State private var showTermsOfUse = false
     
     var body: some View {
         VStack(spacing: 24) {
@@ -91,16 +93,16 @@ struct PaywallScreen: View {
                 .multilineTextAlignment(.center)
                 .padding(.top)
             
-//            HStack {
-//                Button("Privacy Policy") {
-//                    // Navigate to privacy policy
-//                }
-//                Spacer()
-//                Button("Terms of use") {
-//                    // Navigate to terms
-//                }
-//            }
-//            .font(.caption)
+            HStack {
+                Button("Privacy Policy") {
+                    showPrivacyPolicy = true
+                }
+                Spacer()
+                Button("Terms of Use") {
+                    showTermsOfUse = true
+                }
+            }
+            .font(.caption)
         }
         .padding()
         .navigationBarTitleDisplayMode(.inline)
@@ -129,6 +131,12 @@ struct PaywallScreen: View {
             Button("OK") { }
         } message: {
             Text(subManager.errorMessage ?? "An unexpected error occurred. Please try again.")
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            NavigationView { PrivacyPolicyView() }
+        }
+        .sheet(isPresented: $showTermsOfUse) {
+            NavigationView { TermsView() }
         }
         .onAppear {
             // Load products when the view appears if not already loaded
