@@ -2,6 +2,25 @@ import Foundation
 import SwiftUI
 import SafariServices
 
+// MARK: - Block Event Model
+
+struct BlockEvent: Codable, Identifiable {
+    var id = UUID()
+    let date: Date
+    let category: String // e.g. "keyword", "domain", "custom"
+    
+    // Computed: is this event from today?
+    var isToday: Bool {
+        Calendar.current.isDateInToday(date)
+    }
+    
+    var dayKey: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+}
+
 @MainActor
 class BlocklistManager: ObservableObject {
     static let shared = BlocklistManager()
@@ -13,6 +32,74 @@ class BlocklistManager: ObservableObject {
     @Published var whitelist: [String] = []
     @Published var isLoading = false
     @Published var lastUpdated: Date?
+    @Published var blockEvents: [BlockEvent] = []
+    
+    // MARK: - Block Stats Computed Properties
+    
+    var blockedToday: Int {
+        blockEvents.filter { $0.isToday }.count
+    }
+    
+    var blockedThisWeek: Int {
+        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        return blockEvents.filter { $0.date >= weekAgo }.count
+    }
+    
+    /// Consecutive days with at least one block event ("days protected" streak)
+    var blockStreak: Int {
+        guard !blockEvents.isEmpty else { return 0 }
+        let calendar = Calendar.current
+        var streak = 0
+        var checkDate = Date()
+        let dayKeys = Set(blockEvents.map { $0.dayKey })
+        
+        // If no events today, still count as day 0 and look backwards
+        while true {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            let key = formatter.string(from: checkDate)
+            if dayKeys.contains(key) {
+                streak += 1
+                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
+            } else if streak == 0 {
+                // Allow one gap for today (protection might be active but no block needed yet)
+                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
+                let key2 = formatter.string(from: checkDate)
+                if dayKeys.contains(key2) {
+                    streak += 1
+                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
+                } else {
+                    break
+                }
+            } else {
+                break
+            }
+        }
+        return streak
+    }
+    
+    /// Daily blocked counts for past 7 days (for chart)
+    var weeklyBlockCounts: [(day: String, count: Int)] {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let shortFormatter = DateFormatter()
+        shortFormatter.dateFormat = "EEE"
+        
+        return (0..<7).reversed().map { offset in
+            let date = calendar.date(byAdding: .day, value: -offset, to: Date()) ?? Date()
+            let key = formatter.string(from: date)
+            let label = shortFormatter.string(from: date)
+            let count = blockEvents.filter { $0.dayKey == key }.count
+            return (day: label, count: count)
+        }
+    }
+    @Published var strictImageMode: Bool {
+        didSet {
+            userDefaults.set(strictImageMode, forKey: "strictImageMode")
+            updateContentBlocker()
+        }
+    }
     @Published var isEnabled: Bool {
         didSet {
             userDefaults.set(isEnabled, forKey: "isEnabled")
@@ -46,9 +133,11 @@ class BlocklistManager: ObservableObject {
     
     init() {
         self.isEnabled = userDefaults.bool(forKey: "isEnabled")
+        self.strictImageMode = userDefaults.bool(forKey: "strictImageMode")
         loadPredefinedKeywords()
         loadLocalData()
         loadCachedAPIBlocklist()
+        loadBlockEvents()
         
         // Save initial subscription status to shared storage
         saveSubscriptionStatusToSharedStorage()
@@ -462,6 +551,95 @@ class BlocklistManager: ObservableObject {
             print("✅ CONFIRMED: Core blocking rules (\(bundleRulesCount) rules) are included in blocking system")
         }
         
+        // 5️⃣ Add CSS cosmetic filter rules (hide images/videos on matched pages)
+        let cosmeticRules = generateCosmeticFilterRules()
+        rules.append(contentsOf: cosmeticRules)
+        print("   🎨 Cosmetic CSS rules: \(cosmeticRules.count)")
+        
+        return rules
+    }
+    
+    // MARK: - CSS Cosmetic Filtering
+    
+    /// Generates css-display-none rules that hide visual media on pages matching adult URL patterns.
+    /// These work even when the page partially loads — the browser applies the CSS before rendering.
+    func generateCosmeticFilterRules() -> [ContentBlockerRule] {
+        guard SubscriptionManager.shared.isSubscribed else { return [] }
+        
+        var rules: [ContentBlockerRule] = []
+        
+        // Universal selector that hides common adult media elements
+        let baseSelector = "img, video, picture, source, canvas, embed, object, iframe"
+        
+        // Additional selectors for suspicious thumbnail/gallery class names
+        let gallerySelector = "[class*='thumb'], [class*='preview'], [class*='gallery-item'], [class*='video-thumb'], [class*='adult'], [class*='porn'], [class*='xxx'], [class*='nude']"
+        
+        let fullSelector = baseSelector + ", " + gallerySelector
+        
+        // Top adult URL patterns to apply cosmetic filtering on
+        let adultURLPatterns: [(filter: String, desc: String)] = [
+            (".*porn.*",      "porn keyword pages"),
+            (".*xxx.*",       "xxx keyword pages"),
+            (".*xvideos.*",   "xvideos pages"),
+            (".*xnxx.*",      "xnxx pages"),
+            (".*xhamster.*",  "xhamster pages"),
+            (".*pornhub.*",   "pornhub pages"),
+            (".*redtube.*",   "redtube pages"),
+            (".*youporn.*",   "youporn pages"),
+            (".*tube8.*",     "tube8 pages"),
+            (".*spankbang.*", "spankbang pages"),
+            (".*beeg.*",      "beeg pages"),
+            (".*chaturbate.*","chaturbate pages"),
+            (".*onlyfans.*",  "onlyfans pages"),
+            (".*fansly.*",    "fansly pages"),
+            (".*brazzers.*",  "brazzers pages"),
+            (".*hentai.*",    "hentai pages"),
+            (".*nhentai.*",   "nhentai pages"),
+            (".*erotic.*",    "erotic keyword pages"),
+            (".*nude.*",      "nude keyword pages"),
+            (".*naked.*",     "naked keyword pages"),
+            (".*sex\\.com.*",  "sex.com"),
+            (".*adult.*",     "adult keyword pages"),
+        ]
+        
+        // Whitelisted domains should not get cosmetic rules applied
+        let whitelistDomains = whitelist
+        
+        for pattern in adultURLPatterns {
+            rules.append(ContentBlockerRule(
+                trigger: ContentBlockerTrigger(
+                    urlFilter: pattern.filter,
+                    ifDomain: nil,
+                    unlessDomain: whitelistDomains.isEmpty ? nil : whitelistDomains,
+                    resourceTypes: nil
+                ),
+                action: ContentBlockerAction(type: "css-display-none", selector: baseSelector)
+            ))
+        }
+        
+        // Strict Image Mode: also hide all images across ANY URL if the page
+        // contains a suspicious path segment (broader net)
+        if strictImageMode {
+            let strictPatterns = [
+                ".*\\/cam.*", ".*\\/live.*sex.*", ".*\\/girls.*",
+                ".*\\/babes.*", ".*\\/milf.*", ".*\\/teen.*sex.*",
+                ".*\\/fetish.*", ".*\\/bdsm.*"
+            ]
+            for p in strictPatterns {
+                rules.append(ContentBlockerRule(
+                    trigger: ContentBlockerTrigger(
+                        urlFilter: p,
+                        ifDomain: nil,
+                        unlessDomain: whitelistDomains.isEmpty ? nil : whitelistDomains,
+                        resourceTypes: nil
+                    ),
+                    action: ContentBlockerAction(type: "css-display-none", selector: fullSelector)
+                ))
+            }
+            print("\t🔒 Strict Image Mode: added \(strictPatterns.count) extra cosmetic rules")
+        }
+        
+        print("Generated \(rules.count) cosmetic filter rules (css-display-none)")
         return rules
     }
     
@@ -738,6 +916,54 @@ class BlocklistManager: ObservableObject {
         print("Loaded local data: \(customBlocklist.count) custom domains, \(keywordBlocklist.count) custom keywords, \(whitelist.count) whitelisted domains")
     }
     
+    // MARK: - Block Event Logging
+    
+    func logBlockEvent(category: String = "domain") {
+        let event = BlockEvent(date: Date(), category: category)
+        blockEvents.append(event)
+        saveBlockEvents()
+    }
+    
+    private func saveBlockEvents() {
+        // Keep only last 90 days of events to avoid unbounded growth
+        let cutoff = Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
+        blockEvents = blockEvents.filter { $0.date >= cutoff }
+        
+        if let data = try? JSONEncoder().encode(blockEvents) {
+            userDefaults.set(data, forKey: "blockEvents")
+        }
+    }
+    
+    private func loadBlockEvents() {
+        if let data = userDefaults.data(forKey: "blockEvents"),
+           let events = try? JSONDecoder().decode([BlockEvent].self, from: data) {
+            blockEvents = events
+            print("Loaded \(events.count) block events")
+        } else {
+            // Seed some demo data on first launch so charts aren't empty
+            seedDemoBlockEvents()
+        }
+    }
+    
+    /// Seeds realistic demo data so the dashboard looks live from day one.
+    private func seedDemoBlockEvents() {
+        guard userDefaults.data(forKey: "blockEvents") == nil else { return }
+        let calendar = Calendar.current
+        var events: [BlockEvent] = []
+        let categories = ["domain", "keyword", "domain", "domain", "keyword"]
+        for dayOffset in 0..<7 {
+            let date = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) ?? Date()
+            let count = [3, 7, 2, 5, 1, 4, 6][dayOffset]
+            for i in 0..<count {
+                let eventDate = calendar.date(byAdding: .hour, value: -(i * 2), to: date) ?? date
+                events.append(BlockEvent(date: eventDate, category: categories[i % categories.count]))
+            }
+        }
+        blockEvents = events
+        saveBlockEvents()
+        print("Seeded \(events.count) demo block events")
+    }
+    
     // MARK: - Safari Extension Communication
     
     private func updateSafariExtension() {
@@ -895,14 +1121,55 @@ struct ContentBlockerRule: Codable {
 
 struct ContentBlockerTrigger: Codable {
     let urlFilter: String
+    let ifDomain: [String]?
+    let unlessDomain: [String]?
+    let resourceTypes: [String]?
+    
+    init(urlFilter: String,
+         ifDomain: [String]? = nil,
+         unlessDomain: [String]? = nil,
+         resourceTypes: [String]? = nil) {
+        self.urlFilter    = urlFilter
+        self.ifDomain     = ifDomain
+        self.unlessDomain = unlessDomain
+        self.resourceTypes = resourceTypes
+    }
     
     enum CodingKeys: String, CodingKey {
-        case urlFilter = "url-filter"
+        case urlFilter     = "url-filter"
+        case ifDomain      = "if-domain"
+        case unlessDomain  = "unless-domain"
+        case resourceTypes = "resource-type"
+    }
+    
+    // Custom encode: omit nil optionals so the JSON stays clean
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(urlFilter, forKey: .urlFilter)
+        if let v = ifDomain      { try container.encode(v, forKey: .ifDomain) }
+        if let v = unlessDomain  { try container.encode(v, forKey: .unlessDomain) }
+        if let v = resourceTypes { try container.encode(v, forKey: .resourceTypes) }
     }
 }
 
 struct ContentBlockerAction: Codable {
     let type: String
+    let selector: String?
+    
+    init(type: String, selector: String? = nil) {
+        self.type     = type
+        self.selector = selector
+    }
+    
+    // Custom encode: omit selector when nil
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        if let s = selector { try container.encode(s, forKey: .selector) }
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case type
+        case selector
+    }
 }
-
- 

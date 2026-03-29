@@ -13,6 +13,10 @@
 		BB4378BA2E1F53C000534EED /* ContentBlocker.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BB4378B12E1F53C000534EED /* ContentBlocker.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB4378D02E2742A800534EED /* PaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C72E2742A800534EED /* PaywallScreen.swift */; };
 		BB4378D12E2742A800534EED /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C22E2742A800534EED /* FAQView.swift */; };
+			AA2200002200002200002200 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1100001100001100001100 /* StatsView.swift */; };
+			AA4400004400004400004400 /* WhitelistEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3300003300003300003300 /* WhitelistEditorView.swift */; };
+			BB6600006600006600006600 /* SafeBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5500005500005500005500 /* SafeBrowserView.swift */; };
+			CC2200002200002200002202 /* HabitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1100001100001100001101 /* HabitManager.swift */; };
 		BB4378D22E2742A800534EED /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C12E2742A800534EED /* DashboardView.swift */; };
 		BB4378D32E2742A800534EED /* SubmitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CD2E2742A800534EED /* SubmitView.swift */; };
 		BB4378D42E2742A800534EED /* BlockerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */; };
@@ -28,7 +32,7 @@
 		BB4378DE2E2742A800534EED /* StatisticCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CC2E2742A800534EED /* StatisticCard.swift */; };
 		BB4378DF2E2742A800534EED /* InstructionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C42E2742A800534EED /* InstructionStep.swift */; };
 		BB4378E02E2742A800534EED /* KeywordEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C52E2742A800534EED /* KeywordEditorView.swift */; };
-		BB4379382E444A3400534EED /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BB4379372E444A3400534EED /* Launch Screen.storyboard */; };
+		BB4379382E444A3400534EED /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BB4379372E444A3400534EED /* LaunchScreen.storyboard */; };
 		BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB99A0012E99999900534EED /* RatingRequestManager.swift */; };
 		BBC567EC2A2EA0460017E798 /* Porn_BlockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */; };
 		BBC567EE2A2EA0460017E798 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567ED2A2EA0460017E798 /* ContentView.swift */; };
@@ -67,6 +71,10 @@
 		BB4378B12E1F53C000534EED /* ContentBlocker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ContentBlocker.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockerSettingsView.swift; sourceTree = "<group>"; };
 		BB4378C02E2742A800534EED /* ContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactView.swift; sourceTree = "<group>"; };
+			AA1100001100001100001100 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+			AA3300003300003300003300 /* WhitelistEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitelistEditorView.swift; sourceTree = "<group>"; };
+			BB5500005500005500005500 /* SafeBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeBrowserView.swift; sourceTree = "<group>"; };
+			CC1100001100001100001101 /* HabitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitManager.swift; sourceTree = "<group>"; };
 		BB4378C12E2742A800534EED /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		BB4378C22E2742A800534EED /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
 		BB4378C32E2742A800534EED /* FeatureRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureRow.swift; sourceTree = "<group>"; };
@@ -84,7 +92,7 @@
 		BB4378CF2E2742A800534EED /* WebsiteEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteEditorView.swift; sourceTree = "<group>"; };
 		BB43791D2E34701900534EED /* Porn BlockerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Porn BlockerDebug.entitlements"; sourceTree = "<group>"; };
 		BB43791F2E35C8B500534EED /* Porn Blocker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Porn Blocker.entitlements"; sourceTree = "<group>"; };
-		BB4379372E444A3400534EED /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		BB4379372E444A3400534EED /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "LaunchScreen.storyboard"; sourceTree = "<group>"; };
 		BB99A0012E99999900534EED /* RatingRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingRequestManager.swift; sourceTree = "<group>"; };
 		BBC567E82A2EA0460017E798 /* Porn Blocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Porn Blocker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Porn_BlockerApp.swift; sourceTree = "<group>"; };
@@ -156,6 +164,10 @@
 				BBC567ED2A2EA0460017E798 /* ContentView.swift */,
 				BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */,
 				BB4378C02E2742A800534EED /* ContactView.swift */,
+						AA1100001100001100001100 /* StatsView.swift */,
+						AA3300003300003300003300 /* WhitelistEditorView.swift */,
+						BB5500005500005500005500 /* SafeBrowserView.swift */,
+						CC1100001100001100001101 /* HabitManager.swift */,
 				BB4378C12E2742A800534EED /* DashboardView.swift */,
 				BB4378C22E2742A800534EED /* FAQView.swift */,
 				BB4378C32E2742A800534EED /* FeatureRow.swift */,
@@ -173,7 +185,7 @@
 				BB4378CF2E2742A800534EED /* WebsiteEditorView.swift */,
 				BBC567EF2A2EA0470017E798 /* Assets.xcassets */,
 				BBC567F12A2EA0470017E798 /* Preview Content */,
-				BB4379372E444A3400534EED /* Launch Screen.storyboard */,
+				BB4379372E444A3400534EED /* LaunchScreen.storyboard */,
 			);
 			path = "Porn Blocker";
 			sourceTree = "<group>";
@@ -281,7 +293,7 @@
 			files = (
 				BB43785B2E18B5AD00534EED /* keywordsList.json in Resources */,
 				BBC567F32A2EA0470017E798 /* Preview Assets.xcassets in Resources */,
-				BB4379382E444A3400534EED /* Launch Screen.storyboard in Resources */,
+				BB4379382E444A3400534EED /* LaunchScreen.storyboard in Resources */,
 				BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -304,6 +316,10 @@
 				BBC567EC2A2EA0460017E798 /* Porn_BlockerApp.swift in Sources */,
 				BB4378D02E2742A800534EED /* PaywallScreen.swift in Sources */,
 				BB4378D12E2742A800534EED /* FAQView.swift in Sources */,
+						AA2200002200002200002200 /* StatsView.swift in Sources */,
+						AA4400004400004400004400 /* WhitelistEditorView.swift in Sources */,
+						BB6600006600006600006600 /* SafeBrowserView.swift in Sources */,
+						CC2200002200002200002202 /* HabitManager.swift in Sources */,
 				BB4378D22E2742A800534EED /* DashboardView.swift in Sources */,
 				BB4378D32E2742A800534EED /* SubmitView.swift in Sources */,
 				BB4378D42E2742A800534EED /* BlockerSettingsView.swift in Sources */,

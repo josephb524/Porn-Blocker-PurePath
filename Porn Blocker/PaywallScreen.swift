@@ -6,124 +6,56 @@ struct PaywallScreen: View {
     @State private var showingError = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
+    @State private var featuresAppeared = false
+    
+    private let features: [(icon: String, text: String, color: Color)] = [
+        ("globe.badge.chevron.backward", "Block millions of porn sites in Safari", Color(hue: 0.6,  saturation: 0.7, brightness: 0.75)),
+        ("shield.fill",                  "Safe, private web browsing",              Color(hue: 0.38, saturation: 0.65, brightness: 0.5)),
+        ("gear",                         "Fully customizable block list",            Color(hue: 0.08, saturation: 0.8,  brightness: 0.9)),
+        ("textformat.abc",               "Custom keywords & websites",               Color(hue: 0.7,  saturation: 0.65, brightness: 0.8)),
+        ("arrow.triangle.2.circlepath",  "Automatic database updates",               Color(hue: 0.0,  saturation: 0.7,  brightness: 0.65)),
+    ]
     
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Get the unlimited access in the app")
-                .font(.title)
-                .bold()
-                .multilineTextAlignment(.center)
-            
-            VStack(alignment: .leading, spacing: 20) {
-                FeatureRow(icon: "globe", text: "Block millions of porn sites in safari")
-                FeatureRow(icon: "shield", text: "Safe web surfing")
-                FeatureRow(icon: "gear", text: "Database customization")
-                FeatureRow(icon: "textformat.abc", text: "Custom keywords & websites")
-                FeatureRow(icon: "checkmark.shield", text: "Real-time protection updates")
+        ScrollView {
+            VStack(spacing: 0) {
+                // Header
+                headerSection
+                
+                // Features
+                featuresSection
+                    .padding(.horizontal, 24)
+                    .padding(.top, 8)
+                
+                // Trial info + CTA
+                ctaSection
+                    .padding(.horizontal, 24)
+                    .padding(.top, 28)
+                
+                // Legal
+                legalSection
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+                    .padding(.bottom, 32)
             }
-            .padding(.vertical)
-            
-            // Dynamic pricing from App Store
-            VStack(spacing: 8) {
-                if subManager.isLoading && subManager.subscriptionProduct == nil {
-                    HStack {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                        Text("Loading pricing...")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    Text(subManager.subscriptionPrice)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                    
-                    Text("per \(subManager.subscriptionPeriod)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            Button(action: {
-                Task {
-                    do {
-                        try await subManager.purchase()
-                        if subManager.isSubscribed {
-                            isPresented = false
-                        }
-                    } catch SubscriptionError.userCancelled {
-                        // User cancelled, don't show error
-                        return
-                    } catch {
-                        showingError = true
-                    }
-                }
-            }) {
-                HStack {
-                    if subManager.isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(0.8)
-                        Text("Processing...")
-                    } else {
-                        Image(systemName: "crown.fill")
-                        Text("START NOW")
-                    }
-                }
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [Color.blue, Color.purple]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(12)
-            }
-            .disabled(subManager.isLoading || subManager.subscriptionProduct == nil)
-            .opacity(subManager.isLoading || subManager.subscriptionProduct == nil ? 0.6 : 1.0)
-            
-            Text("Payment will be charged to iTunes Account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period. Account will be charged for renewal within 24-hours prior to the end of the current period.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.top)
-            
-            HStack {
-                Button("Privacy Policy") {
-                    showPrivacyPolicy = true
-                }
-                Spacer()
-                Button("Terms of Use") {
-                    showTermsOfUse = true
-                }
-            }
-            .font(.caption)
         }
-        .padding()
+        .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button("Later") {
-                    isPresented = false
-                }
+                Button("Later") { isPresented = false }
+                    .foregroundColor(.white)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Restore") {
-                    Task { 
+                    Task {
                         await subManager.restore()
-                        if subManager.isSubscribed {
-                            isPresented = false
-                        } else if let errorMessage = subManager.errorMessage {
-                            showingError = true
-                        }
+                        if subManager.isSubscribed { isPresented = false }
+                        else if subManager.errorMessage != nil { showingError = true }
                     }
                 }
+                .foregroundColor(.white)
                 .disabled(subManager.isLoading)
             }
         }
@@ -132,19 +64,172 @@ struct PaywallScreen: View {
         } message: {
             Text(subManager.errorMessage ?? "An unexpected error occurred. Please try again.")
         }
-        .sheet(isPresented: $showPrivacyPolicy) {
-            NavigationView { PrivacyPolicyView() }
-        }
-        .sheet(isPresented: $showTermsOfUse) {
-            NavigationView { TermsView() }
-        }
+        .sheet(isPresented: $showPrivacyPolicy) { NavigationView { PrivacyPolicyView() } }
+        .sheet(isPresented: $showTermsOfUse)  { NavigationView { TermsView() } }
         .onAppear {
-            // Load products when the view appears if not already loaded
             if subManager.subscriptionProduct == nil && !subManager.isLoading {
-                Task {
-                    await subManager.loadProducts()
+                Task { await subManager.loadProducts() }
+            }
+            withAnimation(.easeOut(duration: 0.5)) { featuresAppeared = true }
+        }
+    }
+    
+    // MARK: - Header
+    
+    private var headerSection: some View {
+        ZStack(alignment: .bottom) {
+            // Gradient background
+            LinearGradient(
+                colors: [
+                    Color(hue: 0.6, saturation: 0.75, brightness: 0.45),
+                    Color(hue: 0.38, saturation: 0.65, brightness: 0.35)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 280)
+            
+            // Decorative circles
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.07))
+                    .frame(width: 220, height: 220)
+                    .offset(x: -100, y: 40)
+                Circle()
+                    .fill(Color.white.opacity(0.05))
+                    .frame(width: 160, height: 160)
+                    .offset(x: 120, y: -30)
+            }
+            
+            VStack(spacing: 10) {
+                Image(systemName: "checkmark.shield.fill")
+                    .font(.system(size: 56))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.15), radius: 8)
+                
+                Text("PurePath Premium")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Text("Try 7 days free, then \(subManager.subscriptionPrice)/\(subManager.subscriptionPeriod)")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.85))
+            }
+            .padding(.bottom, 32)
+        }
+    }
+    
+    // MARK: - Features
+    
+    private var featuresSection: some View {
+        VStack(spacing: 12) {
+            ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(feature.color.opacity(0.12))
+                            .frame(width: 42, height: 42)
+                        Image(systemName: feature.icon)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(feature.color)
+                    }
+                    
+                    Text(feature.text)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.body)
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
+                )
+                .opacity(featuresAppeared ? 1 : 0)
+                .offset(x: featuresAppeared ? 0 : -20)
+                .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.07), value: featuresAppeared)
             }
         }
     }
-} 
+    
+    // MARK: - CTA
+    
+    private var ctaSection: some View {
+        VStack(spacing: 14) {
+            if subManager.isLoading && subManager.subscriptionProduct == nil {
+                HStack(spacing: 8) {
+                    ProgressView().scaleEffect(0.85)
+                    Text("Loading pricing…")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 8)
+            }
+            
+            Button(action: {
+                Task {
+                    do {
+                        try await subManager.purchase()
+                        if subManager.isSubscribed { isPresented = false }
+                    } catch SubscriptionError.userCancelled {
+                        return
+                    } catch {
+                        showingError = true
+                    }
+                }
+            }) {
+                HStack(spacing: 10) {
+                    if subManager.isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(0.85)
+                        Text("Processing…")
+                    } else {
+                        Image(systemName: "star.fill")
+                        Text("START 7-DAY FREE TRIAL")
+                    }
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(
+                    LinearGradient(
+                        colors: [Color(hue: 0.6, saturation: 0.75, brightness: 0.65), Color(hue: 0.38, saturation: 0.65, brightness: 0.5)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(18)
+                .shadow(color: Color(hue: 0.6, saturation: 0.5, brightness: 0.5).opacity(0.35), radius: 12, x: 0, y: 6)
+            }
+            .disabled(subManager.isLoading || subManager.subscriptionProduct == nil)
+            .opacity((subManager.isLoading || subManager.subscriptionProduct == nil) ? 0.6 : 1.0)
+            
+            Text("7 days free, then auto-renews. Cancel anytime in Settings.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+    }
+    
+    // MARK: - Legal
+    
+    private var legalSection: some View {
+        HStack {
+            Button("Privacy Policy") { showPrivacyPolicy = true }
+            Spacer()
+            Button("Terms of Use") { showTermsOfUse = true }
+        }
+        .font(.caption)
+        .foregroundColor(.secondary)
+    }
+}
