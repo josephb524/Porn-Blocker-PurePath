@@ -510,13 +510,17 @@ class BlocklistManager: ObservableObject {
         
         // 3️⃣ Add predefined keyword-based rules with better patterns (limit to most important)
         let importantKeywords = Array(predefinedKeywords.prefix(maxKeywordRules))
+        let searchEngines = ["google.com", "bing.com", "duckduckgo.com", "yahoo.com", "baidu.com", "yandex.com"]
         print("Adding \(importantKeywords.count) predefined keyword rules")
         for keyword in importantKeywords {
             if !keyword.isEmpty && isValidKeyword(keyword) {
                 let escapedKeyword = escapeRegexCharacters(keyword)
                 let urlFilter = ".*\(escapedKeyword).*"
                 rules.append(ContentBlockerRule(
-                    trigger: ContentBlockerTrigger(urlFilter: urlFilter),
+                    trigger: ContentBlockerTrigger(
+                        urlFilter: urlFilter,
+                        unlessDomain: searchEngines // Do not block search results pages
+                    ),
                     action: ContentBlockerAction(type: "block")
                 ))
             }
@@ -530,7 +534,10 @@ class BlocklistManager: ObservableObject {
                 let escapedKeyword = escapeRegexCharacters(keyword)
                 let urlFilter = ".*\(escapedKeyword).*"
                 rules.append(ContentBlockerRule(
-                    trigger: ContentBlockerTrigger(urlFilter: urlFilter),
+                    trigger: ContentBlockerTrigger(
+                        urlFilter: urlFilter,
+                        unlessDomain: searchEngines // Do not block search results pages
+                    ),
                     action: ContentBlockerAction(type: "block")
                 ))
             }
@@ -989,48 +996,44 @@ class BlocklistManager: ObservableObject {
     
     private func generateSafariExtensionRules() -> [[String: Any]] {
         var rules: [[String: Any]] = []
-        var ruleId = 1
+        let searchEngines = ["google.com", "bing.com", "duckduckgo.com", "yahoo.com", "baidu.com", "yandex.com"]
         
         // Add keyword-based rules
         let allKeywords = predefinedKeywords + keywordBlocklist
         for keyword in allKeywords {
-            if !keyword.isEmpty {
+            if !keyword.isEmpty && keyword.count > 2 {
+                let escapedKeyword = escapeRegexCharacters(keyword)
                 rules.append([
-                    "id": ruleId,
-                    "priority": 1,
                     "action": ["type": "block"],
-                    "condition": [
-                        "urlFilter": "*\(keyword)*",
-                        "resourceTypes": ["main_frame", "sub_frame"]
+                    "trigger": [
+                        // Following Hacking with Swift article: use .* instead of * for valid regex
+                        "url-filter": ".*\(escapedKeyword).*",
+                        "unless-domain": searchEngines,
+                        "resource-type": ["document"]
                     ]
                 ])
-                ruleId += 1
             }
         }
         
-        // Add domain-based rules (sample of top domains to avoid too many rules)
+        // Add domain-based rules
         let topDomains = Array(apiBlocklist.prefix(1000)) + customBlocklist
         for domain in topDomains {
             if !whitelist.contains(domain) && !domain.isEmpty {
+                let escapedDomain = escapeRegexCharacters(domain)
                 rules.append([
-                    "id": ruleId,
-                    "priority": 1,
                     "action": ["type": "block"],
-                    "condition": [
-                        "urlFilter": "*\(domain)*",
-                        "resourceTypes": ["main_frame", "sub_frame"]
+                    "trigger": [
+                        // Simpler domain matching that is valid regex
+                        "url-filter": ".*\(escapedDomain).*", 
+                        "resource-type": ["document"]
                     ]
                 ])
-                ruleId += 1
                 
-                // Limit total rules to avoid Safari extension limits
-                if ruleId > 5000 {
-                    break
-                }
+                if rules.count > 5000 { break }
             }
         }
         
-        print("Generated \(rules.count) Safari extension rules")
+        print("Generated \(rules.count) Safari extension rules in standard format")
         return rules
     }
     

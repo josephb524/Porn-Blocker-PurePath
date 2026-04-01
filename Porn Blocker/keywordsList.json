@@ -36,5 +36,5 @@
   { "trigger": { "url-filter": ".*sexcam.*" }, "action": { "type": "block" } },
   { "trigger": { "url-filter": ".*masturbat.*" }, "action": { "type": "block" } },
   { "trigger": { "url-filter": ".*pegging.*" }, "action": { "type": "block" } },
-  { "trigger": { "url-filter": ".*69.*" }, "action": { "type": "block" } },
+  { "trigger": { "url-filter": ".*69.*" }, "action": { "type": "block" } }
 ]

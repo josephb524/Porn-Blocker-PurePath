@@ -424,14 +424,40 @@ struct SafeWebView: UIViewRepresentable {
             let allKeywords = manager.predefinedKeywords + manager.keywordBlocklist
             let whitelist = Set(manager.whitelist)
 
-            if whitelist.contains(where: { host.contains($0) }) {
+            if whitelist.contains(where: { allowedDomain in
+                let clean = allowedDomain.lowercased().trimmingCharacters(in: .whitespaces)
+                guard !clean.isEmpty else { return false }
+                return host == clean || host.hasSuffix(".\(clean)")
+            }) {
                 decisionHandler(.allow)
                 return
             }
 
             let urlString = url.absoluteString.lowercased()
-            let isDomainBlocked = allBlockedDomains.contains(where: { host.contains($0) || $0.contains(host) })
-            let isKeywordBlocked = allKeywords.contains(where: { urlString.contains($0.lowercased()) })
+            
+            // Domain blocking: exact match or subdomain match (preventing substring false positives)
+            let isDomainBlocked = allBlockedDomains.contains(where: { blockedDomain in
+                let clean = blockedDomain.lowercased().trimmingCharacters(in: .whitespaces)
+                guard !clean.isEmpty else { return false }
+                return host == clean || host.hasSuffix(".\(clean)")
+            })
+            
+            // Keyword blocking: smarter automatic matching using boundaries
+            let isKeywordBlocked = allKeywords.contains(where: { keyword in
+                let clean = keyword.lowercased().trimmingCharacters(in: .whitespaces)
+                guard !clean.isEmpty && clean.count > 2 else { return false }
+                if clean.contains("\\") || clean.contains("[") { return false }
+                
+                // Use regex for word boundaries to avoid matching keywords inside safe words (e.g., "sex" in "Essex")
+                // We define word boundaries as /, -, ., or ? to catch tags and queries specifically.
+                let pattern = "(^|[-/.?&])\(NSRegularExpression.escapedPattern(for: clean))($|[-/.?&])"
+                if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+                    let range = NSRange(location: 0, length: urlString.utf16.count)
+                    return regex.firstMatch(in: urlString, options: [], range: range) != nil
+                }
+                
+                return false
+            })
 
             if isDomainBlocked || isKeywordBlocked {
                 DispatchQueue.main.async { self.viewModel.showBlock(for: host) }
