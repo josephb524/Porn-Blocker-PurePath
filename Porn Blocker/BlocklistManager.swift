@@ -26,13 +26,33 @@ class BlocklistManager: ObservableObject {
     static let shared = BlocklistManager()
     
     @Published var apiBlocklist: [String] = []
-    @Published var customBlocklist: [String] = []
-    @Published var keywordBlocklist: [String] = []
-    @Published var predefinedKeywords: [String] = []
-    @Published var whitelist: [String] = []
+    @Published var customBlocklist: [String] = [] {
+        didSet { updateSets() }
+    }
+    @Published var keywordBlocklist: [String] = [] {
+        didSet { updateSets() }
+    }
+    @Published var predefinedKeywords: [String] = [] {
+        didSet { updateSets() }
+    }
+    @Published var whitelist: [String] = [] {
+        didSet { updateSets() }
+    }
     @Published var isLoading = false
     @Published var lastUpdated: Date?
     @Published var blockEvents: [BlockEvent] = []
+    
+    // Performance-optimized Sets for O(1) lookups in Safe Browser
+    var apiBlocklistSet: Set<String> = []
+    var customBlocklistSet: Set<String> = []
+    var keywordBlocklistSet: Set<String> = []
+    var predefinedKeywordsSet: Set<String> = []
+    var whitelistSet: Set<String> = []
+    
+    private let searchEngineDomains: Set<String> = [
+        "google.com", "bing.com", "duckduckgo.com", "yahoo.com", 
+        "baidu.com", "yandex.com", "ask.com", "ecosia.org"
+    ]
     
     // MARK: - Block Stats Computed Properties
     
@@ -183,6 +203,11 @@ class BlocklistManager: ObservableObject {
         }
         
         print("Loaded \(predefinedKeywords.count) predefined keywords: \(predefinedKeywords.prefix(10))")
+        updatePredefinedKeywordsSet()
+    }
+    
+    private func updatePredefinedKeywordsSet() {
+        predefinedKeywordsSet = Set(predefinedKeywords.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
     }
     
     // MARK: - Computed Properties
@@ -221,13 +246,21 @@ class BlocklistManager: ObservableObject {
     }
     
     private func loadCachedAPIBlocklist() {
+        guard let data = try? Data(contentsOf: apiBlocklistURL) else {
+            apiBlocklist = []
+            apiBlocklistSet = []
+            print("No cached API blocklist file found at \(apiBlocklistURL.path)")
+            return
+        }
+        
         do {
-            let data = try Data(contentsOf: apiBlocklistURL)
             apiBlocklist = try JSONDecoder().decode([String].self, from: data)
+            apiBlocklistSet = Set(apiBlocklist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
             print("Loaded \(apiBlocklist.count) domains from cache")
         } catch {
             print("Failed to load cached API blocklist: \(error)")
             apiBlocklist = []
+            apiBlocklistSet = []
         }
     }
     
@@ -292,12 +325,19 @@ class BlocklistManager: ObservableObject {
     
     // MARK: - API Integration
     
-    func checkAndUpdateBlocklist() {
-        if shouldDownloadAPIBlocklist() {
-            Task {
-                await fetchBlocklistFromAPI()
-            }
+    // Helper to check if a host is a known search engine
+    func isSearchEngine(_ host: String) -> Bool {
+        let cleanHost = host.lowercased().trimmingCharacters(in: .whitespaces)
+        return searchEngineDomains.contains { domain in
+            cleanHost == domain || cleanHost.hasSuffix(".\(domain)")
         }
+    }
+    
+    func updateSets() {
+        customBlocklistSet = Set(customBlocklist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
+        keywordBlocklistSet = Set(keywordBlocklist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
+        whitelistSet = Set(whitelist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
+        updatePredefinedKeywordsSet()
     }
     
     func fetchBlocklistFromAPI() async {
@@ -343,6 +383,7 @@ class BlocklistManager: ObservableObject {
             }
             
             apiBlocklist = domains
+            apiBlocklistSet = Set(apiBlocklist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
             lastUpdated = Date()
             
             // Save to both local cache and user defaults
@@ -921,6 +962,7 @@ class BlocklistManager: ObservableObject {
         lastUpdated = userDefaults.object(forKey: "lastUpdated") as? Date
         
         print("Loaded local data: \(customBlocklist.count) custom domains, \(keywordBlocklist.count) custom keywords, \(whitelist.count) whitelisted domains")
+        updateSets()
     }
     
     // MARK: - Block Event Logging
@@ -1071,10 +1113,11 @@ class BlocklistManager: ObservableObject {
     // MARK: - Content Blocker Integration
     
     func enableContentBlocker() async -> Bool {
-        // Always reload the content blocker to pick up subscription status changes
+        // Capture subscription status on main actor before entering background context
+        let isSubscribed = SubscriptionManager.shared.isSubscribed
+        
         return await withCheckedContinuation { continuation in
             #if os(iOS)
-            // Use the correct bundle identifier for your content blocker extension
             let extensionIdentifier = "com.jose.pimentel.Porn-Blocker.ContentBlocker"
             
             SFContentBlockerManager.reloadContentBlocker(withIdentifier: extensionIdentifier) { error in
@@ -1082,7 +1125,7 @@ class BlocklistManager: ObservableObject {
                     print("Error reloading content blocker: \(error)")
                     continuation.resume(returning: false)
                 } else {
-                    let statusMessage = SubscriptionManager.shared.isSubscribed ? "with blocking rules" : "with empty rules (not subscribed)"
+                    let statusMessage = isSubscribed ? "with blocking rules" : "with empty rules (not subscribed)"
                     print("Content blocker reloaded successfully \(statusMessage)")
                     continuation.resume(returning: true)
                 }

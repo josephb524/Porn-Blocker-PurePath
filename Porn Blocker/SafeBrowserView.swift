@@ -359,6 +359,7 @@ struct BlockedOverlayView: View {
 
 // MARK: - WKWebView Representable
 
+@MainActor
 struct SafeWebView: UIViewRepresentable {
     @ObservedObject var viewModel: SafeBrowserViewModel
 
@@ -413,6 +414,7 @@ struct SafeWebView: UIViewRepresentable {
             }
 
             let manager = BlocklistManager.shared
+            let isMainFrame = navigationAction.targetFrame?.isMainFrame ?? false
 
             // Only block if the user has an active subscription
             guard SubscriptionManager.shared.isSubscribed else {
@@ -420,47 +422,53 @@ struct SafeWebView: UIViewRepresentable {
                 return
             }
 
-            let allBlockedDomains = Set(manager.apiBlocklist + manager.customBlocklist)
-            let allKeywords = manager.predefinedKeywords + manager.keywordBlocklist
-            let whitelist = Set(manager.whitelist)
-
-            if whitelist.contains(where: { allowedDomain in
-                let clean = allowedDomain.lowercased().trimmingCharacters(in: .whitespaces)
-                guard !clean.isEmpty else { return false }
-                return host == clean || host.hasSuffix(".\(clean)")
+            // 1. Whitelist Check (Highest Priority)
+            if manager.whitelistSet.contains(where: { allowedDomain in
+                return host == allowedDomain || host.hasSuffix(".\(allowedDomain)")
             }) {
                 decisionHandler(.allow)
                 return
             }
 
+            // 2. Search Engine Immunity (Never keyword-block search engines)
+            let isSearchEngine = manager.isSearchEngine(host)
+
             let urlString = url.absoluteString.lowercased()
             
-            // Domain blocking: exact match or subdomain match (preventing substring false positives)
-            let isDomainBlocked = allBlockedDomains.contains(where: { blockedDomain in
-                let clean = blockedDomain.lowercased().trimmingCharacters(in: .whitespaces)
-                guard !clean.isEmpty else { return false }
-                return host == clean || host.hasSuffix(".\(clean)")
-            })
+            // 3. Domain Blocking (Check if the entire domain is restricted)
+            let isDomainBlocked = manager.apiBlocklistSet.contains(host) || 
+                                 manager.customBlocklistSet.contains(host) ||
+                                 manager.apiBlocklistSet.contains(where: { host.hasSuffix(".\($0)") }) ||
+                                 manager.customBlocklistSet.contains(where: { host.hasSuffix(".\($0)") })
             
-            // Keyword blocking: smarter automatic matching using boundaries
-            let isKeywordBlocked = allKeywords.contains(where: { keyword in
-                let clean = keyword.lowercased().trimmingCharacters(in: .whitespaces)
-                guard !clean.isEmpty && clean.count > 2 else { return false }
-                if clean.contains("\\") || clean.contains("[") { return false }
-                
-                // Use regex for word boundaries to avoid matching keywords inside safe words (e.g., "sex" in "Essex")
-                // We define word boundaries as /, -, ., or ? to catch tags and queries specifically.
-                let pattern = "(^|[-/.?&])\(NSRegularExpression.escapedPattern(for: clean))($|[-/.?&])"
-                if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                    let range = NSRange(location: 0, length: urlString.utf16.count)
-                    return regex.firstMatch(in: urlString, options: [], range: range) != nil
-                }
-                
-                return false
-            })
+            // 4. Keyword Blocking (Only if not a search engine)
+            var isKeywordBlocked = false
+            if !isSearchEngine {
+                let allKeywords = manager.predefinedKeywords + manager.keywordBlocklist
+                isKeywordBlocked = allKeywords.contains(where: { keyword in
+                    let clean = keyword.lowercased().trimmingCharacters(in: .whitespaces)
+                    guard !clean.isEmpty && clean.count > 2 else { return false }
+                    if clean.contains("\\") || clean.contains("[") { return false }
+                    
+                    // Use regex for word boundaries to avoid matching keywords inside safe words (e.g., "sex" in "Essex")
+                    let pattern = "(^|[-/.?&])\(NSRegularExpression.escapedPattern(for: clean))($|[-/.?&])"
+                    if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+                        let range = NSRange(location: 0, length: urlString.utf16.count)
+                        return regex.firstMatch(in: urlString, options: [], range: range) != nil
+                    }
+                    return false
+                })
+            }
 
             if isDomainBlocked || isKeywordBlocked {
-                DispatchQueue.main.async { self.viewModel.showBlock(for: host) }
+                print("🚫 [SafeBrowser] BLOCKED: \(host) | Reason: \(isDomainBlocked ? "Domain" : "Keyword") | MainFrame: \(isMainFrame)")
+                
+                if isMainFrame {
+                    // Only show the block overlay if the main page navigation is being blocked
+                    DispatchQueue.main.async { self.viewModel.showBlock(for: host) }
+                }
+                
+                // Always cancel the restricted request
                 decisionHandler(.cancel)
             } else {
                 decisionHandler(.allow)
