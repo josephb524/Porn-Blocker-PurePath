@@ -33,23 +33,19 @@ final class RatingRequestManager {
     func maybePromptForReview(context: UIApplication? = UIApplication.shared) {
         guard shouldPrompt() else { return }
         
-        // Try the system rating dialog first
         if let scene = context?.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
             SKStoreReviewController.requestReview(in: scene)
             userDefaults.set(Date(), forKey: lastPromptDateKey)
             
-            // Set a fallback timer in case the system dialog doesn't appear or work
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 self.showFallbackRatingPrompt()
             }
         } else {
-            // Fallback if no scene is available
             showFallbackRatingPrompt()
         }
     }
     
     func promptForReviewDirectly() {
-        // Force show the custom rating prompt (for testing or manual triggering)
         showFallbackRatingPrompt()
     }
     
@@ -57,7 +53,6 @@ final class RatingRequestManager {
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = scene.windows.first,
               let rootViewController = window.rootViewController else {
-            // Last resort: open App Store directly
             openAppStoreReview()
             return
         }
@@ -68,7 +63,6 @@ final class RatingRequestManager {
             preferredStyle: .alert
         )
         
-        // Add star rating buttons
         for rating in 1...5 {
             let starTitle = String(repeating: "⭐", count: rating)
             alert.addAction(UIAlertAction(title: starTitle, style: .default) { _ in
@@ -97,13 +91,11 @@ final class RatingRequestManager {
         let launches = userDefaults.integer(forKey: launchesKey)
         guard launches >= minLaunchesBeforePrompt else { return false }
 
-        // Ensure some days after first install
         if let firstInstall = userDefaults.object(forKey: firstInstallDateKey) as? Date {
             let daysSinceInstall = Calendar.current.dateComponents([.day], from: firstInstall, to: Date()).day ?? 0
             if daysSinceInstall < firstUseDelayDays { return false }
         }
 
-        // Throttle prompts
         if let lastPrompt = userDefaults.object(forKey: lastPromptDateKey) as? Date {
             let days = Calendar.current.dateComponents([.day], from: lastPrompt, to: Date()).day ?? 0
             if days < minDaysBetweenPrompts { return false }
@@ -115,4 +107,4 @@ final class RatingRequestManager {
     private var launches: Int {
         return userDefaults.integer(forKey: launchesKey)
     }
-} 
+}
