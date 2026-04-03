@@ -651,7 +651,7 @@ struct EditHabitView: View {
                                         RoundedRectangle(cornerRadius: 10)
                                             .fill(selectedEmoji == emoji
                                                   ? previewColor.opacity(0.2)
-                                                  : Color(.systemGray6))
+                                                  : Color(.secondarySystemBackground))
                                     )
                             }
                             .buttonStyle(.plain)
@@ -813,7 +813,7 @@ struct HabitHistoryGrid: View {
                                     .fill(
                                         isFuture  ? Color.clear :
                                         isChecked ? color :
-                                                    Color(.systemGray5)
+                                                    Color.primary.opacity(0.1)
                                     )
                                     .frame(maxWidth: .infinity)
                                     .aspectRatio(1, contentMode: .fit)
@@ -843,7 +843,7 @@ struct HabitHistoryGrid: View {
             // Legend
             HStack(spacing: 16) {
                 HStack(spacing: 5) {
-                    RoundedRectangle(cornerRadius: 3).fill(Color(.systemGray5)).frame(width: 12, height: 12)
+                    RoundedRectangle(cornerRadius: 3).fill(Color.primary.opacity(0.1)).frame(width: 12, height: 12)
                     Text("Missed").font(.caption2).foregroundColor(.secondary)
                 }
                 HStack(spacing: 5) {

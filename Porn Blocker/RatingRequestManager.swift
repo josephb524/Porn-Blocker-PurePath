@@ -4,8 +4,10 @@ import SwiftUI
 import UIKit
 
 @MainActor
-final class RatingRequestManager {
+final class RatingRequestManager: ObservableObject {
     static let shared = RatingRequestManager()
+    
+    @Published var showReviewPrompt = false
 
     private let userDefaults = UserDefaults.standard
     private let minLaunchesBeforePrompt = 5
@@ -13,11 +15,12 @@ final class RatingRequestManager {
     private let firstUseDelayDays = 3
     
     // Your App Store ID
-    private let appStoreID = "6749251520"
+    let appStoreID = "6749251520"
 
     private let launchesKey = "appLaunchCount"
     private let lastPromptDateKey = "lastRatingPromptDate"
     private let firstInstallDateKey = "firstInstallDate"
+    private let dismissPermanentlyKey = "reviewPromptDismissedPermanently"
 
     private init() {
         if userDefaults.object(forKey: firstInstallDateKey) == nil {
@@ -25,54 +28,35 @@ final class RatingRequestManager {
         }
     }
 
+    func userDismissedReview() {
+        userDefaults.set(true, forKey: dismissPermanentlyKey)
+    }
+
     func trackLaunch() {
         let launches = userDefaults.integer(forKey: launchesKey) + 1
         userDefaults.set(launches, forKey: launchesKey)
     }
 
-    func maybePromptForReview(context: UIApplication? = UIApplication.shared) {
+    func maybePromptForReview(context: UIApplication? = nil) {
         guard shouldPrompt() else { return }
         
-        if let scene = context?.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+        let actualContext = context ?? UIApplication.shared
+        
+        if let scene = actualContext.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
             SKStoreReviewController.requestReview(in: scene)
             userDefaults.set(Date(), forKey: lastPromptDateKey)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                self.showFallbackRatingPrompt()
+            // Wait slightly before showing our custom prompt as a follow-up
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                self.showReviewPrompt = true
             }
         } else {
-            showFallbackRatingPrompt()
+            self.showReviewPrompt = true
         }
     }
     
     func promptForReviewDirectly() {
-        showFallbackRatingPrompt()
-    }
-    
-    private func showFallbackRatingPrompt() {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = scene.windows.first,
-              let rootViewController = window.rootViewController else {
-            openAppStoreReview()
-            return
-        }
-        
-        let alert = UIAlertController(
-            title: "Enjoying Porn Blocker?",
-            message: "Tap a star to rate it on the App Store. Your feedback helps us improve the app!",
-            preferredStyle: .alert
-        )
-        
-        for rating in 1...5 {
-            let starTitle = String(repeating: "⭐", count: rating)
-            alert.addAction(UIAlertAction(title: starTitle, style: .default) { _ in
-                self.openAppStoreReview()
-            })
-        }
-        
-        alert.addAction(UIAlertAction(title: "Not Now", style: .cancel))
-        
-        rootViewController.present(alert, animated: true)
+        self.showReviewPrompt = true
     }
     
     private func openAppStoreReview() {
@@ -88,6 +72,8 @@ final class RatingRequestManager {
     }
 
     private func shouldPrompt() -> Bool {
+        if userDefaults.bool(forKey: dismissPermanentlyKey) { return false }
+        
         let launches = userDefaults.integer(forKey: launchesKey)
         guard launches >= minLaunchesBeforePrompt else { return false }
 

@@ -814,7 +814,7 @@ class BlocklistManager: ObservableObject {
             let data = try encoder.encode(rules)
             
             // Validate JSON before saving
-            if let jsonString = String(data: data, encoding: .utf8) {
+            if (String(data: data, encoding: .utf8)) != nil {
                 // Try to parse it back to ensure it's valid JSON
                 _ = try JSONSerialization.jsonObject(with: data, options: [])
                 

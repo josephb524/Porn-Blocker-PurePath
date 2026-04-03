@@ -302,11 +302,7 @@ final class SubscriptionManager: ObservableObject {
                     
                     if transaction.productID == self.productID {
                         print("🎯 Processing transaction for our product")
-                        await MainActor.run {
-                            Task {
-                                await self.checkSubscriptionStatus()
-                            }
-                        }
+                        await self.checkSubscriptionStatus()
                     }
                     
                     await transaction.finish()

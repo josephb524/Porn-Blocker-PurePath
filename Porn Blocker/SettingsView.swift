@@ -23,6 +23,19 @@ struct SettingsView: View {
                     NavigationLink(destination: BlockerSettingsView()) {
                         SettingsRow(icon: "gear", title: "Blocker Settings")
                     }
+                }
+                
+                Section(header: Text("Feedback")) {
+                    Button {
+                        RatingRequestManager.shared.promptForReviewDirectly()
+                    } label: {
+                        SettingsRow(icon: "star.fill", title: "Rate the App")
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                
+                Section {
                     //DO NOT DELETE THESE NAVIGATION LINKS
 //                    Button(action: { showSubmitSheet = true }) {
 //                        SettingsRow(icon: "magnifyingglass", title: "Submit keyword & website")
