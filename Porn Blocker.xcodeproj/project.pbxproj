@@ -12,6 +12,8 @@
 		BB4378582E18AE9B00534EED /* BlocklistManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378562E18AE9B00534EED /* BlocklistManager.swift */; };
 		BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378572E18AE9B00534EED /* SubscriptionManager.swift */; };
 		BBAAAA442E5555550053EED1 /* KeywordMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */; };
+		BBAAAA662E5555550053EED1 /* ContentBlockerRuleBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAA552E5555550053EED1 /* ContentBlockerRuleBuilder.swift */; };
+		BBAAAA882E5555550053EED1 /* BlocklistRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAA772E5555550053EED1 /* BlocklistRepository.swift */; };
 		BB4378BA2E1F53C000534EED /* ContentBlocker.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BB4378B12E1F53C000534EED /* ContentBlocker.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB4378D02E2742A800534EED /* PaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C72E2742A800534EED /* PaywallScreen.swift */; };
 		BB4378D12E2742A800534EED /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C22E2742A800534EED /* FAQView.swift */; };
@@ -71,6 +73,8 @@
 		BB4378562E18AE9B00534EED /* BlocklistManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistManager.swift; sourceTree = "<group>"; };
 		BB4378572E18AE9B00534EED /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordMatcher.swift; sourceTree = "<group>"; };
+		BBAAAA552E5555550053EED1 /* ContentBlockerRuleBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBlockerRuleBuilder.swift; sourceTree = "<group>"; };
+		BBAAAA772E5555550053EED1 /* BlocklistRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistRepository.swift; sourceTree = "<group>"; };
 		BB4378B12E1F53C000534EED /* ContentBlocker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ContentBlocker.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockerSettingsView.swift; sourceTree = "<group>"; };
 		BB4378C02E2742A800534EED /* ContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactView.swift; sourceTree = "<group>"; };
@@ -159,6 +163,8 @@
 				BB43791F2E35C8B500534EED /* Porn Blocker.entitlements */,
 				BB43791D2E34701900534EED /* Porn BlockerDebug.entitlements */,
 				BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */,
+				BBAAAA552E5555550053EED1 /* ContentBlockerRuleBuilder.swift */,
+				BBAAAA772E5555550053EED1 /* BlocklistRepository.swift */,
 				BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */,
 				BB4378562E18AE9B00534EED /* BlocklistManager.swift */,
 				BB4378572E18AE9B00534EED /* SubscriptionManager.swift */,
@@ -340,6 +346,8 @@
 				BB4378E02E2742A800534EED /* KeywordEditorView.swift in Sources */,
 				BB4378582E18AE9B00534EED /* BlocklistManager.swift in Sources */,
 				BBAAAA442E5555550053EED1 /* KeywordMatcher.swift in Sources */,
+				BBAAAA662E5555550053EED1 /* ContentBlockerRuleBuilder.swift in Sources */,
+				BBAAAA882E5555550053EED1 /* BlocklistRepository.swift in Sources */,
 				BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */,
 				BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */,
 			);

@@ -8,10 +8,8 @@ final class SubscriptionManager: ObservableObject {
     
     @Published private(set) var isSubscribed = false {
         didSet {
-            // Notify BlocklistManager when subscription status changes
             if oldValue != isSubscribed {
                 print("🔄 Subscription status changed: \(oldValue) → \(isSubscribed)")
-                BlocklistManager.shared.updateSubscriptionStatus()
             }
         }
     }
@@ -212,42 +210,43 @@ final class SubscriptionManager: ObservableObject {
         let wasSubscribed = isSubscribed
         isSubscribed = true
         expiryDate = transaction.expirationDate
-        
+
         // Update auto-renewal information
         await updateAutoRenewalInfo(from: transaction)
-        
-        // Persist the latest subscription status (including expiry) for the extension
-        BlocklistManager.shared.saveSubscriptionStatusToSharedStorage()
-        
+
         if let expiry = expiryDate {
             print("✅ Active subscription until: \(expiry)")
         } else {
             print("✅ Active subscription (no expiry)")
         }
-        
         if !wasSubscribed {
             print("🎉 Subscription activated!")
         }
+
+        // Let observers (BlocklistManager) re-sync the extension. Posted even
+        // when `isSubscribed` is unchanged so a renewed expiry date propagates.
+        NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
     }
     
     private func setSubscriptionExpired() async {
         let wasSubscribed = isSubscribed
         isSubscribed = false
         expiryDate = nil
-        
-        // Reset auto-renewal info when no subscription found
+
+        // Reset auto-renewal info when no subscription found.
         autoRenewalEnabled = false
         nextRenewalDate = nil
         renewalStatus = .noSubscription
         daysUntilRenewal = nil
-        
+
         if wasSubscribed {
-            print("🚨 Subscription expired or not found - blocking disabled")
-            print("🔄 Triggering content blocker update to disable blocking...")
-            // The didSet observer on isSubscribed will trigger BlocklistManager.shared.updateSubscriptionStatus()
+            print("🚨 Subscription expired or not found — blocking disabled")
         } else {
             print("📱 No active subscription found")
         }
+
+        // Let observers (BlocklistManager) re-sync the extension.
+        NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
     }
     
     private func updateAutoRenewalInfo(from transaction: StoreKit.Transaction) async {
@@ -454,4 +453,14 @@ enum RenewalStatus: String, CaseIterable {
     case noSubscription = "No Subscription"
     case notAutoRenewable = "Not Auto-Renewable"
     case unknown = "Unknown"
-} 
+}
+
+// MARK: - Notifications
+
+extension Notification.Name {
+    /// Posted by `SubscriptionManager` whenever subscription status is
+    /// (re-)evaluated. `BlocklistManager` observes this to re-sync the
+    /// content blocker — keeping the two managers decoupled.
+    static let subscriptionStatusChanged = Notification.Name("subscriptionStatusChanged")
+}
+
