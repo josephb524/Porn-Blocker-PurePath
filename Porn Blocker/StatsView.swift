@@ -13,7 +13,7 @@ struct StatsView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     if let habit = pornFreeHabit {
@@ -55,7 +55,6 @@ struct StatsView: View {
                 EditHabitView(habit: habit)
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 
     // MARK: - Porn Free Hero Card
@@ -409,11 +408,11 @@ struct AddHabitView: View {
     private let quickHues: [Double] = [0.38, 0.6, 0.08, 0.75, 0.0, 0.15, 0.55, 0.9]
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("Habit Details") {
                     TextField("Habit name (e.g. Exercise, Reading)", text: $name)
-                        .autocapitalization(.words)
+                        .textInputAutocapitalization(.words)
 
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Emoji").font(.caption).foregroundColor(.secondary)
@@ -518,7 +517,7 @@ struct PornFreeStartDateSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Preview banner
                 VStack(spacing: 6) {
@@ -608,7 +607,7 @@ struct EditHabitView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 // Preview header
                 Section {
@@ -635,7 +634,7 @@ struct EditHabitView: View {
                 // Name
                 Section("Name") {
                     TextField("Habit name", text: $name)
-                        .autocapitalization(.words)
+                        .textInputAutocapitalization(.words)
                 }
 
                 // Emoji

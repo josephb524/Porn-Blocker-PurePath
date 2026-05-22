@@ -65,7 +65,7 @@ final class RatingRequestManager: ObservableObject {
         if let url = URL(string: reviewURL) {
             UIApplication.shared.open(url, options: [:]) { success in
                 if !success {
-                    print("Failed to open App Store review URL")
+                    Log.debug("Failed to open App Store review URL")
                 }
             }
         }

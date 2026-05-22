@@ -64,8 +64,8 @@ struct PaywallScreen: View {
         } message: {
             Text(subManager.errorMessage ?? "An unexpected error occurred. Please try again.")
         }
-        .sheet(isPresented: $showPrivacyPolicy) { NavigationView { PrivacyPolicyView() } }
-        .sheet(isPresented: $showTermsOfUse)  { NavigationView { TermsView() } }
+        .sheet(isPresented: $showPrivacyPolicy) { NavigationStack { PrivacyPolicyView() } }
+        .sheet(isPresented: $showTermsOfUse)  { NavigationStack { TermsView() } }
         .onAppear {
             if subManager.subscriptionProduct == nil && !subManager.isLoading {
                 Task { await subManager.loadProducts() }

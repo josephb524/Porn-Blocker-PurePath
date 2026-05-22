@@ -7,13 +7,13 @@ struct WhitelistEditorView: View {
     @State private var showAddField = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 if showAddField {
                     Section {
                         HStack {
                             TextField("e.g. example.com", text: $newSite)
-                                .autocapitalization(.none)
+                                .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
                                 .keyboardType(.URL)
                             Button("Add") {

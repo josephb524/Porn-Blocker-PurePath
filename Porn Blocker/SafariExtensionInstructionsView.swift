@@ -6,7 +6,7 @@ struct SafariExtensionInstructionsView: View {
     @State private var showSettingsError = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
                     header
@@ -184,7 +184,7 @@ private struct SafariExtensionGuideView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     ForEach(steps) { step in

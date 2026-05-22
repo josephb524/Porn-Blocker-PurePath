@@ -15,7 +15,7 @@ struct WebsiteEditorView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 HStack {
                     TextField("Enter website URL", text: $newWebsite)

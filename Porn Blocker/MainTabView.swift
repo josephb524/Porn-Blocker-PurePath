@@ -44,10 +44,10 @@ struct MainTabView: View {
                 ReviewPromptView(
                     isPresented: $ratingManager.showReviewPrompt,
                     onReviewAction: {
-                        print("User opted to rate from prompt")
+                        Log.debug("User opted to rate from prompt")
                     },
                     onDismiss: {
-                        print("User dismissed review prompt")
+                        Log.debug("User dismissed review prompt")
                     }
                 )
                 .transition(.opacity.combined(with: .scale))

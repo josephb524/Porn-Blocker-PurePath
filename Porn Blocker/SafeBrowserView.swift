@@ -22,7 +22,7 @@ struct SafeBrowserView: View {
     // MARK: - Locked Gate (non-subscribers)
 
     private var lockedView: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 LinearGradient(
                     colors: [
@@ -127,18 +127,16 @@ struct SafeBrowserView: View {
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showPaywall) {
-                NavigationView {
+                NavigationStack {
                     PaywallScreen(isPresented: $showPaywall)
                 }
             }
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
-    }
+        }    }
 
     // MARK: - Browser (subscribers only)
 
     private var browserView: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 addressBar
 
@@ -166,9 +164,7 @@ struct SafeBrowserView: View {
             .onChange(of: viewModel.currentURL) { url in
                 if !isEditingAddress { addressText = url }
             }
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
-    }
+        }    }
 
     // MARK: - Address Bar
 
@@ -189,7 +185,7 @@ struct SafeBrowserView: View {
                     addressFocused = false
                 })
                 .font(.system(size: 15))
-                .autocapitalization(.none)
+                .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .keyboardType(.URL)
                 .focused($addressFocused)
@@ -453,7 +449,7 @@ struct SafeWebView: UIViewRepresentable {
             }
 
             if isDomainBlocked || isKeywordBlocked {
-                print("🚫 [SafeBrowser] BLOCKED: \(host) | Reason: \(isDomainBlocked ? "Domain" : "Keyword") | MainFrame: \(isMainFrame)")
+                Log.debug("🚫 [SafeBrowser] BLOCKED: \(host) | Reason: \(isDomainBlocked ? "Domain" : "Keyword") | MainFrame: \(isMainFrame)")
                 
                 if isMainFrame {
                     // Only show the block overlay if the main page navigation is being blocked

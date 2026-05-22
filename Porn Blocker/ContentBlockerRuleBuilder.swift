@@ -101,7 +101,7 @@ enum ContentBlockerRuleBuilder {
         if let bundleRules = loadBundleRules() {
             rules.append(contentsOf: bundleRules)
         } else {
-            print("ContentBlockerRuleBuilder: bundle rules missing — using essential fallback")
+            Log.debug("ContentBlockerRuleBuilder: bundle rules missing — using essential fallback")
             rules.append(contentsOf: essentialStaticRules())
         }
         let coreCount = rules.count
@@ -139,7 +139,7 @@ enum ContentBlockerRuleBuilder {
         rules.append(contentsOf: cosmetic)
 
         let keywordCount = KeywordMatcher.predefinedKeywords.count + customKeywordCount
-        print("ContentBlockerRuleBuilder: \(rules.count) rules — core \(coreCount), custom domains \(customDomainCount), API domains \(apiDomainCount), keyword \(keywordCount), cosmetic \(cosmetic.count)")
+        Log.debug("ContentBlockerRuleBuilder: \(rules.count) rules — core \(coreCount), custom domains \(customDomainCount), API domains \(apiDomainCount), keyword \(keywordCount), cosmetic \(cosmetic.count)")
         return rules
     }
 
@@ -169,9 +169,9 @@ enum ContentBlockerRuleBuilder {
                 if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
                     try data.write(to: documentsURL.appendingPathComponent("blockerList.json"))
                 }
-                print("ContentBlockerRuleBuilder: saved \(rules.count) rules (\(data.count) bytes)")
+                Log.debug("ContentBlockerRuleBuilder: saved \(rules.count) rules (\(data.count) bytes)")
             } catch {
-                print("ContentBlockerRuleBuilder: error saving rules — \(error)")
+                Log.debug("ContentBlockerRuleBuilder: error saving rules — \(error)")
             }
         }.value
     }
@@ -181,7 +181,7 @@ enum ContentBlockerRuleBuilder {
     /// Loads the core static ruleset bundled with the app.
     static func loadBundleRules() -> [ContentBlockerRule]? {
         guard let resourceURL = Bundle.main.url(forResource: "blockerList", withExtension: "json") else {
-            print("ContentBlockerRuleBuilder: blockerList.json not found in bundle")
+            Log.debug("ContentBlockerRuleBuilder: blockerList.json not found in bundle")
             return nil
         }
         do {
@@ -194,7 +194,7 @@ enum ContentBlockerRuleBuilder {
             guard let data = cleaned.data(using: .utf8) else { return nil }
             return try JSONDecoder().decode([ContentBlockerRule].self, from: data)
         } catch {
-            print("ContentBlockerRuleBuilder: error loading bundle rules — \(error)")
+            Log.debug("ContentBlockerRuleBuilder: error loading bundle rules — \(error)")
             return nil
         }
     }

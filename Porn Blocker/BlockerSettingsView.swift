@@ -299,5 +299,5 @@ struct BlockerSettingsView: View {
 }
 
 #Preview {
-    NavigationView { BlockerSettingsView() }
+    NavigationStack { BlockerSettingsView() }
 }

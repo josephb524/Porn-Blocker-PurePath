@@ -15,7 +15,7 @@ struct KeywordEditorView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 HStack {
                     TextField("Enter keyword", text: $newKeyword)

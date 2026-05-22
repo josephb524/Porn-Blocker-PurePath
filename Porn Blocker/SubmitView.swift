@@ -4,7 +4,7 @@ struct SubmitView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 30) {
                 // Blacklist Section
                 VStack(spacing: 16) {

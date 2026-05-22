@@ -9,7 +9,7 @@ final class SubscriptionManager: ObservableObject {
     @Published private(set) var isSubscribed = false {
         didSet {
             if oldValue != isSubscribed {
-                print("🔄 Subscription status changed: \(oldValue) → \(isSubscribed)")
+                Log.debug("🔄 Subscription status changed: \(oldValue) → \(isSubscribed)")
             }
         }
     }
@@ -68,14 +68,14 @@ final class SubscriptionManager: ObservableObject {
             
             if let product = products.first {
                 subscriptionProduct = product
-                print("✅ Loaded subscription product: \(product.displayName) - \(product.displayPrice)")
+                Log.debug("✅ Loaded subscription product: \(product.displayName) - \(product.displayPrice)")
             } else {
                 errorMessage = "Subscription product not found"
-                print("❌ Failed to load product with ID: \(productID)")
+                Log.debug("❌ Failed to load product with ID: \(productID)")
             }
         } catch {
             errorMessage = "Failed to load products: \(error.localizedDescription)"
-            print("❌ Error loading products: \(error)")
+            Log.debug("❌ Error loading products: \(error)")
         }
         
         isLoading = false
@@ -109,23 +109,23 @@ final class SubscriptionManager: ObservableObject {
                 // Finish the transaction
                 await transaction.finish()
                 
-                print("✅ Purchase successful!")
+                Log.debug("✅ Purchase successful!")
                 
             case .userCancelled:
-                print("🚫 User cancelled purchase")
+                Log.debug("🚫 User cancelled purchase")
                 throw SubscriptionError.userCancelled
                 
             case .pending:
-                print("⏳ Purchase pending")
+                Log.debug("⏳ Purchase pending")
                 throw SubscriptionError.purchasePending
                 
             @unknown default:
-                print("❌ Unknown purchase result")
+                Log.debug("❌ Unknown purchase result")
                 throw SubscriptionError.unknown
             }
         } catch {
             errorMessage = error.localizedDescription
-            print("❌ Purchase failed: \(error)")
+            Log.debug("❌ Purchase failed: \(error)")
             throw error
         }
     }
@@ -141,14 +141,14 @@ final class SubscriptionManager: ObservableObject {
             await checkSubscriptionStatus()
             
             if isSubscribed {
-                print("✅ Subscription restored successfully")
+                Log.debug("✅ Subscription restored successfully")
             } else {
                 errorMessage = "No active subscription found"
-                print("⚠️ No active subscription found")
+                Log.debug("⚠️ No active subscription found")
             }
         } catch {
             errorMessage = "Failed to restore: \(error.localizedDescription)"
-            print("❌ Restore failed: \(error)")
+            Log.debug("❌ Restore failed: \(error)")
         }
         
         isLoading = false
@@ -157,7 +157,7 @@ final class SubscriptionManager: ObservableObject {
     // MARK: - Subscription Status
     
     func checkSubscriptionStatus() async {
-        print("🔍 Checking subscription status at \(Date())")
+        Log.debug("🔍 Checking subscription status at \(Date())")
         var foundActiveSubscription = false
         var latestTransaction: StoreKit.Transaction?
         
@@ -165,33 +165,33 @@ final class SubscriptionManager: ObservableObject {
             if case .verified(let transaction) = result,
                transaction.productID == productID {
                 
-                print("📋 Found transaction: ID=\(transaction.id), ProductID=\(transaction.productID)")
-                print("📅 Purchase Date: \(transaction.purchaseDate)")
-                print("🚫 Revocation Date: \(transaction.revocationDate?.description ?? "None")")
-                print("⏰ Expiration Date: \(transaction.expirationDate?.description ?? "None")")
+                Log.debug("📋 Found transaction: ID=\(transaction.id), ProductID=\(transaction.productID)")
+                Log.debug("📅 Purchase Date: \(transaction.purchaseDate)")
+                Log.debug("🚫 Revocation Date: \(transaction.revocationDate?.description ?? "None")")
+                Log.debug("⏰ Expiration Date: \(transaction.expirationDate?.description ?? "None")")
                 
                 // Skip revoked transactions
                 if let revocationDate = transaction.revocationDate {
-                    print("❌ Transaction revoked at: \(revocationDate)")
+                    Log.debug("❌ Transaction revoked at: \(revocationDate)")
                     continue
                 }
                 
                 // Check if subscription is still valid
                 if let expirationDate = transaction.expirationDate {
                     let now = Date()
-                    print("🔍 Expiration check: \(expirationDate) > \(now) = \(expirationDate > now)")
+                    Log.debug("🔍 Expiration check: \(expirationDate) > \(now) = \(expirationDate > now)")
                     
                     if expirationDate > now {
-                        print("✅ Subscription is active until: \(expirationDate)")
+                        Log.debug("✅ Subscription is active until: \(expirationDate)")
                         latestTransaction = transaction
                         foundActiveSubscription = true
                     } else {
-                        print("❌ Subscription expired at: \(expirationDate)")
+                        Log.debug("❌ Subscription expired at: \(expirationDate)")
                         // Continue checking for newer transactions
                     }
                 } else {
                     // Non-expiring product (shouldn't happen with subscriptions)
-                    print("⚠️ Non-expiring subscription found")
+                    Log.debug("⚠️ Non-expiring subscription found")
                     latestTransaction = transaction
                     foundActiveSubscription = true
                 }
@@ -215,12 +215,12 @@ final class SubscriptionManager: ObservableObject {
         await updateAutoRenewalInfo(from: transaction)
 
         if let expiry = expiryDate {
-            print("✅ Active subscription until: \(expiry)")
+            Log.debug("✅ Active subscription until: \(expiry)")
         } else {
-            print("✅ Active subscription (no expiry)")
+            Log.debug("✅ Active subscription (no expiry)")
         }
         if !wasSubscribed {
-            print("🎉 Subscription activated!")
+            Log.debug("🎉 Subscription activated!")
         }
 
         // Let observers (BlocklistManager) re-sync the extension. Posted even
@@ -240,9 +240,9 @@ final class SubscriptionManager: ObservableObject {
         daysUntilRenewal = nil
 
         if wasSubscribed {
-            print("🚨 Subscription expired or not found — blocking disabled")
+            Log.debug("🚨 Subscription expired or not found — blocking disabled")
         } else {
-            print("📱 No active subscription found")
+            Log.debug("📱 No active subscription found")
         }
 
         // Let observers (BlocklistManager) re-sync the extension.
@@ -278,7 +278,7 @@ final class SubscriptionManager: ObservableObject {
             daysUntilRenewal = nil
         }
         
-        print("🔄 Auto-renewal info updated: \(renewalStatus.rawValue), \(daysUntilRenewal ?? 0) days until renewal")
+        Log.debug("🔄 Auto-renewal info updated: \(renewalStatus.rawValue), \(daysUntilRenewal ?? 0) days until renewal")
     }
 
     // MARK: - Transaction Listener
@@ -288,27 +288,27 @@ final class SubscriptionManager: ObservableObject {
             guard let self = self else { return }
             
             for await result in StoreKit.Transaction.updates {
-                print("🔄 Transaction update received")
+                Log.debug("🔄 Transaction update received")
                 do {
                     // Verify transaction inline
                     let transaction: StoreKit.Transaction
                     switch result {
                     case .unverified:
-                        print("❌ Unverified transaction received")
+                        Log.debug("❌ Unverified transaction received")
                         throw SubscriptionError.failedVerification
                     case .verified(let verifiedTransaction):
                         transaction = verifiedTransaction
-                        print("✅ Verified transaction: \(transaction.id) for product: \(transaction.productID)")
+                        Log.debug("✅ Verified transaction: \(transaction.id) for product: \(transaction.productID)")
                     }
                     
                     if transaction.productID == self.productID {
-                        print("🎯 Processing transaction for our product")
+                        Log.debug("🎯 Processing transaction for our product")
                         await self.checkSubscriptionStatus()
                     }
                     
                     await transaction.finish()
                 } catch {
-                    print("❌ Transaction verification failed: \(error)")
+                    Log.debug("❌ Transaction verification failed: \(error)")
                 }
             }
         }
@@ -374,11 +374,11 @@ final class SubscriptionManager: ObservableObject {
         
         // Log renewal information
         if let days = daysUntilRenewal {
-            print("🔄 Renewal status: \(renewalStatus.rawValue)")
-            print("📅 Days until renewal: \(days)")
+            Log.debug("🔄 Renewal status: \(renewalStatus.rawValue)")
+            Log.debug("📅 Days until renewal: \(days)")
             
             if days <= 7 {
-                print("⚠️ Subscription renewing soon!")
+                Log.debug("⚠️ Subscription renewing soon!")
             }
         }
     }

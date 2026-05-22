@@ -96,7 +96,7 @@ class BlocklistManager: ObservableObject {
             let cached = await self.repository.loadCache()
             if !cached.isEmpty {
                 await self.applyAPIDomains(cached)
-                print("BlocklistManager: loaded \(cached.count) cached domains")
+                Log.debug("BlocklistManager: loaded \(cached.count) cached domains")
                 self.updateContentBlocker()
             }
             if await self.repository.needsRefresh(haveCachedDomains: !cached.isEmpty) {
@@ -124,7 +124,7 @@ class BlocklistManager: ObservableObject {
         await repository.saveCache(domains)
         saveLocalData()
         updateContentBlocker()
-        print("BlocklistManager: refreshed — \(domains.count) domains")
+        Log.debug("BlocklistManager: refreshed — \(domains.count) domains")
     }
 
     func forceRefreshBlocklist() async {
@@ -247,7 +247,7 @@ class BlocklistManager: ObservableObject {
         await ContentBlockerRuleBuilder.write(rules, appGroupIdentifier: appGroupIdentifier)
 
         let success = await enableContentBlocker()
-        print("BlocklistManager: content blocker reloaded — \(rules.count) rules, subscribed: \(subscribed), success: \(success)")
+        Log.debug("BlocklistManager: content blocker reloaded — \(rules.count) rules, subscribed: \(subscribed), success: \(success)")
     }
 
     /// Reloads the Safari content blocker extension.
@@ -257,7 +257,7 @@ class BlocklistManager: ObservableObject {
             #if os(iOS)
             SFContentBlockerManager.reloadContentBlocker(withIdentifier: extensionIdentifier) { error in
                 if let error {
-                    print("BlocklistManager: error reloading content blocker — \(error)")
+                    Log.debug("BlocklistManager: error reloading content blocker — \(error)")
                     continuation.resume(returning: false)
                 } else {
                     continuation.resume(returning: true)
@@ -275,7 +275,7 @@ class BlocklistManager: ObservableObject {
             #if os(iOS)
             SFContentBlockerManager.getStateOfContentBlocker(withIdentifier: extensionIdentifier) { state, error in
                 if let error {
-                    print("BlocklistManager: error checking content blocker status — \(error)")
+                    Log.debug("BlocklistManager: error checking content blocker status — \(error)")
                     continuation.resume(returning: false)
                 } else {
                     continuation.resume(returning: state?.isEnabled ?? false)
@@ -290,7 +290,7 @@ class BlocklistManager: ObservableObject {
     /// Diagnostic: confirms the core bundled ruleset can be loaded.
     func verifyCoreBlockingRules() -> (isLoaded: Bool, count: Int, sampleRules: [String]) {
         guard let bundleRules = ContentBlockerRuleBuilder.loadBundleRules() else {
-            print("BlocklistManager: ❌ core blocking rules could not be loaded from bundle")
+            Log.debug("BlocklistManager: ❌ core blocking rules could not be loaded from bundle")
             return (false, 0, [])
         }
         let sample = bundleRules.prefix(5).map { $0.trigger.urlFilter }
@@ -318,7 +318,7 @@ class BlocklistManager: ObservableObject {
         }
 
         guard let containerURL = sharedContainerURL else {
-            print("BlocklistManager: failed to access shared container for subscription status")
+            Log.debug("BlocklistManager: failed to access shared container for subscription status")
             return
         }
         let statusURL = containerURL.appendingPathComponent("subscriptionStatus.json")
@@ -331,7 +331,7 @@ class BlocklistManager: ObservableObject {
             let data = try JSONSerialization.data(withJSONObject: payload)
             try data.write(to: statusURL)
         } catch {
-            print("BlocklistManager: error saving subscription status — \(error)")
+            Log.debug("BlocklistManager: error saving subscription status — \(error)")
         }
     }
 

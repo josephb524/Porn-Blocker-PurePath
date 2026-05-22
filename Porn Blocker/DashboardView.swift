@@ -19,7 +19,7 @@ struct DashboardView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Hero Protection Status Card
@@ -70,7 +70,6 @@ struct DashboardView: View {
                 SafariExtensionInstructionsView()
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     // MARK: - Protection Status Hero Card
@@ -227,18 +226,12 @@ struct DashboardView: View {
     
     private var actionButton: some View {
         VStack(spacing: 0) {
-            NavigationLink(isActive: $showPaywall) {
-                PaywallScreen(isPresented: $showPaywall)
-            } label: {
-                EmptyView()
-            }
-            
             Button(action: { showPaywall = true }) {
                 HStack(spacing: 12) {
                     Image(systemName: buttonIcon)
                         .font(.title2)
                         .fontWeight(.semibold)
-                    
+
                     Text(buttonText)
                         .font(.title3)
                         .fontWeight(.bold)
@@ -253,6 +246,9 @@ struct DashboardView: View {
                 )
             }
             .disabled(subManager.isSubscribed)
+        }
+        .navigationDestination(isPresented: $showPaywall) {
+            PaywallScreen(isPresented: $showPaywall)
         }
     }
     

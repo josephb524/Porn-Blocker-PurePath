@@ -36,9 +36,9 @@ actor BlocklistRepository {
             let data = try JSONEncoder().encode(domains)
             try data.write(to: cacheURL)
             UserDefaults.standard.set(Date(), forKey: lastUpdateKey)
-            print("BlocklistRepository: cached \(domains.count) domains")
+            Log.debug("BlocklistRepository: cached \(domains.count) domains")
         } catch {
-            print("BlocklistRepository: failed to save cache — \(error)")
+            Log.debug("BlocklistRepository: failed to save cache — \(error)")
         }
     }
 
@@ -58,22 +58,22 @@ actor BlocklistRepository {
         do {
             let (data, response) = try await URLSession.shared.data(from: remoteURL)
             if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-                print("BlocklistRepository: HTTP \(http.statusCode)")
+                Log.debug("BlocklistRepository: HTTP \(http.statusCode)")
                 return nil
             }
             guard let content = String(data: data, encoding: .utf8) else {
-                print("BlocklistRepository: response was not UTF-8")
+                Log.debug("BlocklistRepository: response was not UTF-8")
                 return nil
             }
             let domains = Self.parseHostsFile(content)
             guard domains.count > minimumTrustedCount else {
-                print("BlocklistRepository: only \(domains.count) domains parsed — ignoring")
+                Log.debug("BlocklistRepository: only \(domains.count) domains parsed — ignoring")
                 return nil
             }
-            print("BlocklistRepository: downloaded \(domains.count) domains")
+            Log.debug("BlocklistRepository: downloaded \(domains.count) domains")
             return domains
         } catch {
-            print("BlocklistRepository: download failed — \(error)")
+            Log.debug("BlocklistRepository: download failed — \(error)")
             return nil
         }
     }

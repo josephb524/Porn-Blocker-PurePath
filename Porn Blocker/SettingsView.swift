@@ -7,7 +7,7 @@ struct SettingsView: View {
     @State private var showSubmitSheet = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 
                 Section(header: Text("Appearance Settings")) {
@@ -98,7 +98,6 @@ struct SettingsView: View {
                 SubmitView()
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func shareApp() {
