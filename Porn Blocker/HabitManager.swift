@@ -116,18 +116,23 @@ struct TrackedHabit: Identifiable, Codable {
 
     // MARK: Helpers
 
-    static func dayKey(for date: Date) -> String {
+    /// Shared "yyyy-MM-dd" formatter. Building a `DateFormatter` is expensive,
+    /// so it is created once and reused — it is only ever read, never mutated.
+    private static let dayKeyFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: date)
+        return f
+    }()
+
+    static func dayKey(for date: Date) -> String {
+        dayKeyFormatter.string(from: date)
     }
 
     private func consecutiveStreak(endingOn date: Date) -> Int {
         let set = Set(checkIns)
         var streak = 0
         var cursor = Calendar.current.startOfDay(for: date)
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd"
+        let f = Self.dayKeyFormatter
         if set.contains(f.string(from: cursor)) {
             streak = 1
             cursor = Calendar.current.date(byAdding: .day, value: -1, to: cursor)!
@@ -140,7 +145,7 @@ struct TrackedHabit: Identifiable, Codable {
     }
 
     private func longestCheckInStreak() -> Int {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+        let f = Self.dayKeyFormatter
         let sorted = checkIns.compactMap { f.date(from: $0) }.sorted()
         guard !sorted.isEmpty else { return 0 }
         var longest = 1, current = 1

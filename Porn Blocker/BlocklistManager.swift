@@ -51,7 +51,10 @@ class BlocklistManager: ObservableObject {
     private let stevenBlackHostsURL = "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn/hosts"
     private let updateInterval: TimeInterval = 24 * 60 * 60 // 24 hours
     private let appGroupIdentifier = "group.com.jose.pimentel.PornBlocker" // Shared container for blocker rules
-    
+
+    /// Pending debounced content blocker rebuild — see `updateContentBlocker()`.
+    private var contentBlockerUpdateTask: Task<Void, Never>?
+
     // Local storage paths
     private var documentsDirectory: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -70,26 +73,24 @@ class BlocklistManager: ObservableObject {
         self.isEnabled = userDefaults.bool(forKey: "isEnabled")
         self.strictImageMode = userDefaults.bool(forKey: "strictImageMode")
         loadLocalData()
-        loadCachedAPIBlocklist()
 
-        // Save initial subscription status to shared storage
+        // Save initial subscription status so the extension has fresh data.
         saveSubscriptionStatusToSharedStorage()
-        
-        // Ensure Safari Content Blocker is reloaded on launch to reflect current subscription state
-        // This guarantees empty rules are applied if the user is not subscribed, avoiding stale cached rules
+
+        // Reflect the current subscription state immediately (debounced).
         updateContentBlocker()
-        
-        // Only download if we need to update
-        if shouldDownloadAPIBlocklist() {
-            print("Need to download/update API blocklist")
-            Task {
-                await fetchBlocklistFromAPI()
-            }
-        } else {
-            print("Using cached API blocklist with \(apiBlocklist.count) domains")
-            // Make sure content blocker is updated with cached data
-            if SubscriptionManager.shared.isSubscribed {
-                updateContentBlocker()
+
+        // Load the cached domain list off the main actor so launch isn't
+        // blocked, then download a fresh copy if it's stale.
+        Task { [weak self] in
+            guard let self else { return }
+            await self.loadCachedAPIBlocklist()
+            if self.shouldDownloadAPIBlocklist() {
+                print("Need to download/update API blocklist")
+                await self.fetchBlocklistFromAPI()
+            } else {
+                print("Using cached API blocklist with \(self.apiBlocklist.count) domains")
+                self.updateContentBlocker()
             }
         }
     }
@@ -129,33 +130,37 @@ class BlocklistManager: ObservableObject {
         return needsUpdate
     }
     
-    private func loadCachedAPIBlocklist() {
-        guard let data = try? Data(contentsOf: apiBlocklistURL) else {
-            apiBlocklist = []
-            apiBlocklistSet = []
-            print("No cached API blocklist file found at \(apiBlocklistURL.path)")
-            return
-        }
-        
-        do {
-            apiBlocklist = try JSONDecoder().decode([String].self, from: data)
-            apiBlocklistSet = Set(apiBlocklist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
-            print("Loaded \(apiBlocklist.count) domains from cache")
-        } catch {
-            print("Failed to load cached API blocklist: \(error)")
-            apiBlocklist = []
-            apiBlocklistSet = []
-        }
+    /// Reads and decodes the cached domain list off the main actor, then
+    /// publishes it. Decoding ~300k strings is too heavy to do on the main thread.
+    private func loadCachedAPIBlocklist() async {
+        let url = apiBlocklistURL
+        let (domains, set): ([String], Set<String>) = await Task.detached(priority: .utility) {
+            guard let data = try? Data(contentsOf: url),
+                  let decoded = try? JSONDecoder().decode([String].self, from: data) else {
+                return ([], [])
+            }
+            let set = Set(decoded.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
+            return (decoded, set)
+        }.value
+
+        apiBlocklist = domains
+        apiBlocklistSet = set
+        print("Loaded \(domains.count) domains from cache")
     }
-    
+
+    /// Encodes and writes the cached domain list off the main actor.
     private func saveCachedAPIBlocklist() {
-        do {
-            let data = try JSONEncoder().encode(apiBlocklist)
-            try data.write(to: apiBlocklistURL)
-            userDefaults.set(Date(), forKey: "apiBlocklistLastUpdate")
-            print("Saved \(apiBlocklist.count) domains to cache")
-        } catch {
-            print("Failed to save API blocklist to cache: \(error)")
+        let snapshot = apiBlocklist
+        let url = apiBlocklistURL
+        Task.detached(priority: .utility) {
+            do {
+                let data = try JSONEncoder().encode(snapshot)
+                try data.write(to: url)
+                UserDefaults.standard.set(Date(), forKey: "apiBlocklistLastUpdate")
+                print("Saved \(snapshot.count) domains to cache")
+            } catch {
+                print("Failed to save API blocklist to cache: \(error)")
+            }
         }
     }
     
@@ -268,7 +273,9 @@ class BlocklistManager: ObservableObject {
             print("Downloaded content length: \(hostsContent.count) characters")
             
             // Parse the hosts file
-            let domains = parseHostsFile(hostsContent)
+            let domains = await Task.detached(priority: .utility) {
+                Self.parseHostsFile(hostsContent)
+            }.value
             print("Parsed \(domains.count) domains")
             
             // Only update if we got a reasonable number of domains
@@ -299,7 +306,7 @@ class BlocklistManager: ObservableObject {
         }
     }
     
-    private func parseHostsFile(_ content: String) -> [String] {
+    nonisolated private static func parseHostsFile(_ content: String) -> [String] {
         var domains = Set<String>()
         
         // Split the content into lines
@@ -643,32 +650,30 @@ class BlocklistManager: ObservableObject {
         return regex?.firstMatch(in: domain, options: [], range: range) != nil
     }
 
+    /// Schedules a content blocker rebuild. Rapid callers (bulk keyword/domain
+    /// edits, launch, downloads) are coalesced into a single rebuild + reload.
     func updateContentBlocker() {
-        // Always update subscription status in shared storage
+        // Subscription status is cheap and read directly by the extension —
+        // keep it immediate rather than debounced.
         saveSubscriptionStatusToSharedStorage()
-        
-        // Check if user is subscribed
-        if SubscriptionManager.shared.isSubscribed {
-            // User is subscribed - generate and save blocking rules
-            let rules = generateContentBlockerRules()
-            saveContentBlockerRules(rules)
-            
-            // Reload the content blocker
-            Task {
-                let success = await enableContentBlocker()
-                print("✅ Content blocker reloaded with \(rules.count) blocking rules (subscribed): \(success)")
-            }
-        } else {
-            // User is NOT subscribed - save NO-OP rules to disable blocking without compilation error
-            let noopRules = generateNoopContentBlockerRules()
-            saveContentBlockerRules(noopRules)
-            
-            // Reload the content blocker with no-op rules
-            Task {
-                let success = await enableContentBlocker()
-                print("🚫 Content blocker reloaded with no-op rules (not subscribed): \(success)")
-            }
+
+        contentBlockerUpdateTask?.cancel()
+        contentBlockerUpdateTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s debounce window
+            guard !Task.isCancelled, let self else { return }
+            await self.rebuildContentBlocker()
         }
+    }
+
+    /// Builds the ruleset, writes it off the main actor, then reloads Safari.
+    private func rebuildContentBlocker() async {
+        let subscribed = SubscriptionManager.shared.isSubscribed
+        let rules = subscribed ? generateContentBlockerRules() : generateNoopContentBlockerRules()
+
+        await Self.writeContentBlockerRules(rules, appGroupIdentifier: appGroupIdentifier)
+
+        let success = await enableContentBlocker()
+        print("Content blocker reloaded — \(rules.count) rules, subscribed: \(subscribed), success: \(success)")
     }
     
     private func generateNoopContentBlockerRules() -> [ContentBlockerRule] {
@@ -682,117 +687,31 @@ class BlocklistManager: ObservableObject {
         ]
     }
     
-    private func saveContentBlockerRules(_ rules: [ContentBlockerRule]) {
-        do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let data = try encoder.encode(rules)
-            
-            // Validate JSON before saving
-            if (String(data: data, encoding: .utf8)) != nil {
-                // Try to parse it back to ensure it's valid JSON
-                _ = try JSONSerialization.jsonObject(with: data, options: [])
-                
-                // Save to shared container first (for Safari extension)
-                if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
-                    let sharedRulesURL = containerURL.appendingPathComponent("blockerList.json")
-                    try data.write(to: sharedRulesURL)
-                    print("✅ Content blocker rules saved to shared container: \(sharedRulesURL)")
-                    
-                    // Verify the file was written correctly
-                    let fileSize = try Data(contentsOf: sharedRulesURL).count
-                    print("✅ Shared rules file size: \(fileSize) bytes - ContentBlocker extension can now access these rules")
-                }
-                
-                // Also save to documents directory (fallback)
-                if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                    let rulesURL = documentsPath.appendingPathComponent("blockerList.json")
-                    try data.write(to: rulesURL)
-                    print("Content blocker rules also saved to documents: \(rulesURL)")
-                }
-                
-                print("Saved \(rules.count) rules (JSON size: \(data.count) bytes)")
-            }
-        } catch {
-            print("Error saving content blocker rules: \(error)")
-            // If there's an error, try to save a minimal fallback ruleset
-            saveFallbackRules()
-        }
-    }
-    
-    private func saveFallbackRules() {
-        print("Saving fallback rules due to JSON error...")
-        
-        // If not subscribed, save no-op rules instead of any blocking
-        if !SubscriptionManager.shared.isSubscribed {
+    /// Encodes the ruleset and writes it to the shared container (plus a
+    /// documents-directory copy). Runs entirely off the main actor — encoding a
+    /// large ruleset is far too heavy to do on the main thread.
+    nonisolated private static func writeContentBlockerRules(
+        _ rules: [ContentBlockerRule],
+        appGroupIdentifier: String
+    ) async {
+        await Task.detached(priority: .userInitiated) {
             do {
-                let empty: [ContentBlockerRule] = generateNoopContentBlockerRules()
-                let encoder = JSONEncoder()
-                encoder.outputFormatting = .prettyPrinted
-                let data = try encoder.encode(empty)
-                
-                if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
-                    let sharedRulesURL = containerURL.appendingPathComponent("blockerList.json")
-                    try data.write(to: sharedRulesURL)
-                    print("Fallback: not subscribed, saved no-op rules to shared container")
+                let data = try JSONEncoder().encode(rules)
+                // Round-trip through JSONSerialization to confirm it parses.
+                _ = try JSONSerialization.jsonObject(with: data)
+
+                let fileManager = FileManager.default
+                if let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
+                    try data.write(to: containerURL.appendingPathComponent("blockerList.json"))
                 }
-                
-                if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                    let rulesURL = documentsPath.appendingPathComponent("blockerList.json")
-                    try data.write(to: rulesURL)
-                    print("Fallback: not subscribed, saved no-op rules to documents directory")
+                if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+                    try data.write(to: documentsURL.appendingPathComponent("blockerList.json"))
                 }
+                print("Saved \(rules.count) content blocker rules (\(data.count) bytes)")
             } catch {
-                print("Error saving no-op fallback rules: \(error)")
+                print("Error saving content blocker rules: \(error)")
             }
-            return
-        }
-        
-        // Create a minimal set of rules that should always work (only when subscribed)
-        let fallbackRules = [
-            ContentBlockerRule(
-                trigger: ContentBlockerTrigger(urlFilter: ".*pornhub.*"),
-                action: ContentBlockerAction(type: "block")
-            ),
-            ContentBlockerRule(
-                trigger: ContentBlockerTrigger(urlFilter: ".*xvideos.*"),
-                action: ContentBlockerAction(type: "block")
-            ),
-            ContentBlockerRule(
-                trigger: ContentBlockerTrigger(urlFilter: ".*xnxx.*"),
-                action: ContentBlockerAction(type: "block")
-            ),
-            ContentBlockerRule(
-                trigger: ContentBlockerTrigger(urlFilter: ".*porn.*"),
-                action: ContentBlockerAction(type: "block")
-            ),
-            ContentBlockerRule(
-                trigger: ContentBlockerTrigger(urlFilter: ".*xxx.*"),
-                action: ContentBlockerAction(type: "block")
-            )
-        ]
-        
-        do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let data = try encoder.encode(fallbackRules)
-            
-            // Save to shared container
-            if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
-                let sharedRulesURL = containerURL.appendingPathComponent("blockerList.json")
-                try data.write(to: sharedRulesURL)
-                print("Fallback rules saved to shared container")
-            }
-            
-            // Also save to documents directory
-            if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let rulesURL = documentsPath.appendingPathComponent("blockerList.json")
-                try data.write(to: rulesURL)
-                print("Fallback rules saved to documents directory")
-            }
-        } catch {
-            print("Error saving fallback rules: \(error)")
-        }
+        }.value
     }
     
     // MARK: - Helper Methods

@@ -48,8 +48,10 @@ final class SubscriptionManager: ObservableObject {
     // MARK: - Expiration Timer
     
     private func startExpirationTimer() {
-        // Check expiration every 30 seconds for sandbox testing
-        expirationCheckTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+        // Re-check expiration hourly as a safety net. Real-time subscription
+        // changes already arrive through `Transaction.updates`, so a tight
+        // interval here would only drain the battery.
+        expirationCheckTimer = Timer.scheduledTimer(withTimeInterval: 3600.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             Task { @MainActor in
                 await self.checkSubscriptionStatus()
