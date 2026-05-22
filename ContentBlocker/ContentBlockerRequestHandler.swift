@@ -106,31 +106,42 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
     private func checkSubscriptionStatus() -> (Bool, Bool) {
         guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else {
             print("ContentBlocker: Failed to access shared container")
-            return (false, true) // treat as expired/not subscribed
+            return subscriptionStatusFromDefaults() ?? (false, true)
         }
-        
+
         let subscriptionStatusURL = containerURL.appendingPathComponent("subscriptionStatus.json")
-        
+
         do {
             let data = try Data(contentsOf: subscriptionStatusURL)
             let subscriptionData = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
             let isSubscribed = subscriptionData?["isSubscribed"] as? Bool ?? false
             let expiryTimestamp = subscriptionData?["expiryDate"] as? Double
-            let lastUpdated = subscriptionData?["lastUpdated"] as? Double ?? 0
             let now = Date().timeIntervalSince1970
-            let isExpired: Bool
-            if let expiryTimestamp = expiryTimestamp {
-                isExpired = now >= expiryTimestamp
-            } else {
-                isExpired = !isSubscribed
-            }
-            print("ContentBlocker: Subscription status: subscribed=\(isSubscribed) expired=\(isExpired), last updated: \(Date(timeIntervalSince1970: lastUpdated)))")
+            let isExpired = expiryTimestamp.map { now >= $0 } ?? !isSubscribed
+            print("ContentBlocker: Subscription status from file: subscribed=\(isSubscribed) expired=\(isExpired)")
             return (isSubscribed, isExpired)
         } catch {
-            print("ContentBlocker: Error reading subscription status from \(subscriptionStatusURL.path): \(error)")
-            print("ContentBlocker: File exists: \(FileManager.default.fileExists(atPath: subscriptionStatusURL.path))")
-            return (false, true) // treat as expired/not subscribed
+            // The JSON file is missing or corrupt — fall back to the app-group
+            // UserDefaults mirror rather than instantly stripping a paying
+            // user's protection over a transient file glitch.
+            print("ContentBlocker: Could not read subscription file (\(error)); using UserDefaults fallback")
+            return subscriptionStatusFromDefaults() ?? (false, true)
         }
+    }
+
+    /// Reads the subscription status mirrored into app-group UserDefaults by the
+    /// main app. Returns `nil` if the app has never written it.
+    private func subscriptionStatusFromDefaults() -> (Bool, Bool)? {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier),
+              defaults.object(forKey: "subscriptionStatusUpdated") != nil else {
+            return nil
+        }
+        let isSubscribed = defaults.bool(forKey: "isSubscribed")
+        let expiry = defaults.object(forKey: "subscriptionExpiry") as? Double
+        let now = Date().timeIntervalSince1970
+        let isExpired = expiry.map { now >= $0 } ?? !isSubscribed
+        print("ContentBlocker: Subscription status from UserDefaults: subscribed=\(isSubscribed) expired=\(isExpired)")
+        return (isSubscribed, isExpired)
     }
     
     private func getDynamicRulesURL() -> URL? {

@@ -442,22 +442,14 @@ struct SafeWebView: UIViewRepresentable {
                                  manager.customBlocklistSet.contains(where: { host.hasSuffix(".\($0)") })
             
             // 4. Keyword Blocking (Only if not a search engine)
+            // Shared with the Safari content blocker via KeywordMatcher so both
+            // engines block identically.
             var isKeywordBlocked = false
             if !isSearchEngine {
-                let allKeywords = manager.predefinedKeywords + manager.keywordBlocklist
-                isKeywordBlocked = allKeywords.contains(where: { keyword in
-                    let clean = keyword.lowercased().trimmingCharacters(in: .whitespaces)
-                    guard !clean.isEmpty && clean.count > 2 else { return false }
-                    if clean.contains("\\") || clean.contains("[") { return false }
-                    
-                    // Use regex for word boundaries to avoid matching keywords inside safe words (e.g., "sex" in "Essex")
-                    let pattern = "(^|[-/.?&])\(NSRegularExpression.escapedPattern(for: clean))($|[-/.?&])"
-                    if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                        let range = NSRange(location: 0, length: urlString.utf16.count)
-                        return regex.firstMatch(in: urlString, options: [], range: range) != nil
-                    }
-                    return false
-                })
+                isKeywordBlocked = KeywordMatcher.isBlocked(
+                    url: urlString,
+                    customKeywords: manager.keywordBlocklist
+                )
             }
 
             if isDomainBlocked || isKeywordBlocked {

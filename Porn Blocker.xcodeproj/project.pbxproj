@@ -11,7 +11,7 @@
 		AA4400004400004400004400 /* WhitelistEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3300003300003300003300 /* WhitelistEditorView.swift */; };
 		BB4378582E18AE9B00534EED /* BlocklistManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378562E18AE9B00534EED /* BlocklistManager.swift */; };
 		BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378572E18AE9B00534EED /* SubscriptionManager.swift */; };
-		BB43785B2E18B5AD00534EED /* keywordsList.json in Resources */ = {isa = PBXBuildFile; fileRef = BB43785A2E18B57E00534EED /* keywordsList.json */; };
+		BBAAAA442E5555550053EED1 /* KeywordMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */; };
 		BB4378BA2E1F53C000534EED /* ContentBlocker.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BB4378B12E1F53C000534EED /* ContentBlocker.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB4378D02E2742A800534EED /* PaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C72E2742A800534EED /* PaywallScreen.swift */; };
 		BB4378D12E2742A800534EED /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C22E2742A800534EED /* FAQView.swift */; };
@@ -33,6 +33,7 @@
 		BB4379382E444A3400534EED /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BB4379372E444A3400534EED /* LaunchScreen.storyboard */; };
 		BB6600006600006600006600 /* SafeBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5500005500005500005500 /* SafeBrowserView.swift */; };
 		BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB99A0012E99999900534EED /* RatingRequestManager.swift */; };
+		BBAAAA222E5555550053EED1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */; };
 		BBC567EC2A2EA0460017E798 /* Porn_BlockerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */; };
 		BBC567EE2A2EA0460017E798 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC567ED2A2EA0460017E798 /* ContentView.swift */; };
 		BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBC567EF2A2EA0470017E798 /* Assets.xcassets */; };
@@ -69,7 +70,7 @@
 		AA3300003300003300003300 /* WhitelistEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhitelistEditorView.swift; sourceTree = "<group>"; };
 		BB4378562E18AE9B00534EED /* BlocklistManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistManager.swift; sourceTree = "<group>"; };
 		BB4378572E18AE9B00534EED /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
-		BB43785A2E18B57E00534EED /* keywordsList.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = keywordsList.json; sourceTree = "<group>"; };
+		BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordMatcher.swift; sourceTree = "<group>"; };
 		BB4378B12E1F53C000534EED /* ContentBlocker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ContentBlocker.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockerSettingsView.swift; sourceTree = "<group>"; };
 		BB4378C02E2742A800534EED /* ContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactView.swift; sourceTree = "<group>"; };
@@ -93,6 +94,7 @@
 		BB4379372E444A3400534EED /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		BB5500005500005500005500 /* SafeBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeBrowserView.swift; sourceTree = "<group>"; };
 		BB99A0012E99999900534EED /* RatingRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingRequestManager.swift; sourceTree = "<group>"; };
+		BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BBC567E82A2EA0460017E798 /* Porn Blocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Porn Blocker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Porn_BlockerApp.swift; sourceTree = "<group>"; };
 		BBC567ED2A2EA0460017E798 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -156,7 +158,8 @@
 			children = (
 				BB43791F2E35C8B500534EED /* Porn Blocker.entitlements */,
 				BB43791D2E34701900534EED /* Porn BlockerDebug.entitlements */,
-				BB43785A2E18B57E00534EED /* keywordsList.json */,
+				BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */,
+				BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */,
 				BB4378562E18AE9B00534EED /* BlocklistManager.swift */,
 				BB4378572E18AE9B00534EED /* SubscriptionManager.swift */,
 				BB99A0012E99999900534EED /* RatingRequestManager.swift */,
@@ -291,7 +294,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BB43785B2E18B5AD00534EED /* keywordsList.json in Resources */,
+				BBAAAA222E5555550053EED1 /* PrivacyInfo.xcprivacy in Resources */,
 				BBC567F32A2EA0470017E798 /* Preview Assets.xcassets in Resources */,
 				BB4379382E444A3400534EED /* LaunchScreen.storyboard in Resources */,
 				BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */,
@@ -336,6 +339,7 @@
 				BB4378DF2E2742A800534EED /* InstructionStep.swift in Sources */,
 				BB4378E02E2742A800534EED /* KeywordEditorView.swift in Sources */,
 				BB4378582E18AE9B00534EED /* BlocklistManager.swift in Sources */,
+				BBAAAA442E5555550053EED1 /* KeywordMatcher.swift in Sources */,
 				BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */,
 				BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */,
 			);
@@ -367,14 +371,14 @@
 				INFOPLIST_FILE = ContentBlocker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ContentBlocker;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jose.pimentel.Porn-Blocker.ContentBlocker";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -398,14 +402,14 @@
 				INFOPLIST_FILE = ContentBlocker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ContentBlocker;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jose.pimentel.Porn-Blocker.ContentBlocker";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -547,8 +551,8 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -579,8 +583,8 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

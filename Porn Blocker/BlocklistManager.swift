@@ -2,25 +2,6 @@ import Foundation
 import SwiftUI
 import SafariServices
 
-// MARK: - Block Event Model
-
-struct BlockEvent: Codable, Identifiable {
-    var id = UUID()
-    let date: Date
-    let category: String // e.g. "keyword", "domain", "custom"
-    
-    // Computed: is this event from today?
-    var isToday: Bool {
-        Calendar.current.isDateInToday(date)
-    }
-    
-    var dayKey: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
-    }
-}
-
 @MainActor
 class BlocklistManager: ObservableObject {
     static let shared = BlocklistManager()
@@ -32,21 +13,20 @@ class BlocklistManager: ObservableObject {
     @Published var keywordBlocklist: [String] = [] {
         didSet { updateSets() }
     }
-    @Published var predefinedKeywords: [String] = [] {
-        didSet { updateSets() }
-    }
     @Published var whitelist: [String] = [] {
         didSet { updateSets() }
     }
     @Published var isLoading = false
     @Published var lastUpdated: Date?
-    @Published var blockEvents: [BlockEvent] = []
-    
+
+    /// Predefined adult-content keywords. Owned by `KeywordMatcher` so the
+    /// Safe Browser and the content blocker stay in sync.
+    var predefinedKeywords: [String] { KeywordMatcher.predefinedKeywords }
+
     // Performance-optimized Sets for O(1) lookups in Safe Browser
     var apiBlocklistSet: Set<String> = []
     var customBlocklistSet: Set<String> = []
     var keywordBlocklistSet: Set<String> = []
-    var predefinedKeywordsSet: Set<String> = []
     var whitelistSet: Set<String> = []
     
     private let searchEngineDomains: Set<String> = [
@@ -54,66 +34,6 @@ class BlocklistManager: ObservableObject {
         "baidu.com", "yandex.com", "ask.com", "ecosia.org"
     ]
     
-    // MARK: - Block Stats Computed Properties
-    
-    var blockedToday: Int {
-        blockEvents.filter { $0.isToday }.count
-    }
-    
-    var blockedThisWeek: Int {
-        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
-        return blockEvents.filter { $0.date >= weekAgo }.count
-    }
-    
-    /// Consecutive days with at least one block event ("days protected" streak)
-    var blockStreak: Int {
-        guard !blockEvents.isEmpty else { return 0 }
-        let calendar = Calendar.current
-        var streak = 0
-        var checkDate = Date()
-        let dayKeys = Set(blockEvents.map { $0.dayKey })
-        
-        // If no events today, still count as day 0 and look backwards
-        while true {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            let key = formatter.string(from: checkDate)
-            if dayKeys.contains(key) {
-                streak += 1
-                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
-            } else if streak == 0 {
-                // Allow one gap for today (protection might be active but no block needed yet)
-                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
-                let key2 = formatter.string(from: checkDate)
-                if dayKeys.contains(key2) {
-                    streak += 1
-                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate) ?? checkDate
-                } else {
-                    break
-                }
-            } else {
-                break
-            }
-        }
-        return streak
-    }
-    
-    /// Daily blocked counts for past 7 days (for chart)
-    var weeklyBlockCounts: [(day: String, count: Int)] {
-        let calendar = Calendar.current
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let shortFormatter = DateFormatter()
-        shortFormatter.dateFormat = "EEE"
-        
-        return (0..<7).reversed().map { offset in
-            let date = calendar.date(byAdding: .day, value: -offset, to: Date()) ?? Date()
-            let key = formatter.string(from: date)
-            let label = shortFormatter.string(from: date)
-            let count = blockEvents.filter { $0.dayKey == key }.count
-            return (day: label, count: count)
-        }
-    }
     @Published var strictImageMode: Bool {
         didSet {
             userDefaults.set(strictImageMode, forKey: "strictImageMode")
@@ -123,12 +43,7 @@ class BlocklistManager: ObservableObject {
     @Published var isEnabled: Bool {
         didSet {
             userDefaults.set(isEnabled, forKey: "isEnabled")
-            if isEnabled {
-                updateContentBlocker()
-                updateSafariExtension()
-            } else {
-                clearSafariExtensionRules()
-            }
+            updateContentBlocker()
         }
     }
     
@@ -154,11 +69,9 @@ class BlocklistManager: ObservableObject {
     init() {
         self.isEnabled = userDefaults.bool(forKey: "isEnabled")
         self.strictImageMode = userDefaults.bool(forKey: "strictImageMode")
-        loadPredefinedKeywords()
         loadLocalData()
         loadCachedAPIBlocklist()
-        loadBlockEvents()
-        
+
         // Save initial subscription status to shared storage
         saveSubscriptionStatusToSharedStorage()
         
@@ -179,35 +92,6 @@ class BlocklistManager: ObservableObject {
                 updateContentBlocker()
             }
         }
-    }
-    
-    // MARK: - Predefined Keywords Loading
-    
-    private func loadPredefinedKeywords() {
-        guard let path = Bundle.main.path(forResource: "keywordsList", ofType: "json"),
-              let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
-              let keywordRules = try? JSONDecoder().decode([ContentBlockerRule].self, from: data) else {
-            print("Failed to load predefined keywords")
-            return
-        }
-        
-        // Extract keywords from the URL filters
-        predefinedKeywords = keywordRules.compactMap { rule in
-            let urlFilter = rule.trigger.urlFilter
-            // Extract keyword from patterns like ".*porn.*" -> "porn"
-            if urlFilter.hasPrefix(".*") && urlFilter.hasSuffix(".*") {
-                let keyword = String(urlFilter.dropFirst(2).dropLast(2))
-                return keyword
-            }
-            return nil
-        }
-        
-        print("Loaded \(predefinedKeywords.count) predefined keywords: \(predefinedKeywords.prefix(10))")
-        updatePredefinedKeywordsSet()
-    }
-    
-    private func updatePredefinedKeywordsSet() {
-        predefinedKeywordsSet = Set(predefinedKeywords.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
     }
     
     // MARK: - Computed Properties
@@ -278,25 +162,38 @@ class BlocklistManager: ObservableObject {
     // MARK: - Subscription Status Management
     
     func saveSubscriptionStatusToSharedStorage() {
+        let isSubscribed = SubscriptionManager.shared.isSubscribed
+        let expiryTimestamp = SubscriptionManager.shared.expiryDate?.timeIntervalSince1970
+
+        // Mirror the status into app-group UserDefaults — a robust secondary
+        // source the content blocker falls back to if the JSON file below is
+        // ever missing or corrupt.
+        if let sharedDefaults = UserDefaults(suiteName: appGroupIdentifier) {
+            sharedDefaults.set(isSubscribed, forKey: "isSubscribed")
+            sharedDefaults.set(Date().timeIntervalSince1970, forKey: "subscriptionStatusUpdated")
+            if let expiryTimestamp {
+                sharedDefaults.set(expiryTimestamp, forKey: "subscriptionExpiry")
+            } else {
+                sharedDefaults.removeObject(forKey: "subscriptionExpiry")
+            }
+        }
+
         guard let containerURL = sharedContainerURL else {
             print("Failed to access shared container for subscription status")
             return
         }
-        
+
         let subscriptionStatusURL = containerURL.appendingPathComponent("subscriptionStatus.json")
-        let expiryTimestamp = SubscriptionManager.shared.expiryDate?.timeIntervalSince1970
         let subscriptionData: [String: Any] = [
-            "isSubscribed": SubscriptionManager.shared.isSubscribed,
+            "isSubscribed": isSubscribed,
             "expiryDate": expiryTimestamp as Any,
             "lastUpdated": Date().timeIntervalSince1970
         ]
-        
+
         do {
             let data = try JSONSerialization.data(withJSONObject: subscriptionData, options: [])
             try data.write(to: subscriptionStatusURL)
-            print("Saved subscription status to shared storage: \(SubscriptionManager.shared.isSubscribed) | expiry=\(String(describing: expiryTimestamp))")
-            print("Subscription status file path: \(subscriptionStatusURL.path)")
-            print("File exists after save: \(FileManager.default.fileExists(atPath: subscriptionStatusURL.path))")
+            print("Saved subscription status: subscribed=\(isSubscribed) expiry=\(String(describing: expiryTimestamp))")
         } catch {
             print("Error saving subscription status to \(subscriptionStatusURL.path): \(error)")
         }
@@ -337,7 +234,6 @@ class BlocklistManager: ObservableObject {
         customBlocklistSet = Set(customBlocklist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
         keywordBlocklistSet = Set(keywordBlocklist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
         whitelistSet = Set(whitelist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
-        updatePredefinedKeywordsSet()
     }
     
     func fetchBlocklistFromAPI() async {
@@ -385,16 +281,17 @@ class BlocklistManager: ObservableObject {
             apiBlocklist = domains
             apiBlocklistSet = Set(apiBlocklist.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
             lastUpdated = Date()
-            
+
             // Save to both local cache and user defaults
             saveCachedAPIBlocklist()
             saveLocalData()
-            
-            // Note: API domains are now only used for UI display, not for blocking rules
-            // Content blocker uses static rules from bundle instead
-            
+
+            // Rebuild the Safari content blocker so the freshly downloaded
+            // domains take effect without waiting for the next launch.
+            updateContentBlocker()
+
             isLoading = false
-            print("Successfully updated blocklist with \(domains.count) domains (for UI display only)")
+            print("Successfully updated blocklist with \(domains.count) domains")
             
         } catch {
             print("Error fetching blocklist: \(error)")
@@ -510,103 +407,98 @@ class BlocklistManager: ObservableObject {
     
     // MARK: - Content Blocker Generation
     
+    /// Max number of downloaded domains fed into the Safari content blocker.
+    /// Well under Safari's 150k-rule ceiling once core/keyword/cosmetic rules are added.
+    private static let maxAPIDomainRules = 35_000
+    /// Max number of user-defined custom keywords turned into content blocker rules.
+    private static let maxCustomKeywordRules = 50
+
     func generateContentBlockerRules() -> [ContentBlockerRule] {
-        // Only generate rules if user is subscribed
+        // Only generate rules if the user is subscribed
         guard SubscriptionManager.shared.isSubscribed else { return [] }
-        
+
         var rules: [ContentBlockerRule] = []
-        
-        // 1️⃣ ALWAYS include static rules from bundle (HIGHEST PRIORITY - NEVER SKIP)
+
+        // 1. Core static rules from the ContentBlocker bundle (never skipped)
         if let bundleRules = loadBundleRules() {
             rules.append(contentsOf: bundleRules)
-            print("✅ CORE BLOCKING: Added \(bundleRules.count) static rules from ContentBlocker bundle")
         } else {
-            // This should never happen, but if it does, use essential fallback rules
-            let essentialRules = createEssentialStaticRules()
-            rules.append(contentsOf: essentialRules)
-            print("⚠️ FALLBACK: Bundle rules failed to load, using \(essentialRules.count) essential static rules")
-            
-            // Log this as a serious issue
-            print("ERROR: Could not load core blockerList.json from ContentBlocker bundle!")
+            print("⚠️ Bundle rules failed to load — using essential fallback rules")
+            rules.append(contentsOf: createEssentialStaticRules())
         }
-        
-        // Limit total rules to stay well under Safari's limits (keep under 15,000)
-        let maxKeywordRules = 200
-        
-        // 2️⃣ Only use custom blocklist (no API domains to avoid massive file size)
-        let customDomains = Set(customBlocklist)
-        
-        // Add custom domain-based rules (excluding whitelisted sites)
-        for domain in customDomains {
-            if !whitelist.contains(domain) && !domain.isEmpty && isValidDomain(domain) {
-                // Create simpler, more reliable domain blocking pattern
-                let escapedDomain = escapeRegexCharacters(domain)
-                let urlFilter = ".*\(escapedDomain).*"
-                rules.append(ContentBlockerRule(
-                    trigger: ContentBlockerTrigger(urlFilter: urlFilter),
-                    action: ContentBlockerAction(type: "block")
-                ))
-            }
+        let coreCount = rules.count
+
+        let whitelisted = whitelistSet
+
+        // 2. Custom domains added by the user
+        var customDomainCount = 0
+        for domain in Set(customBlocklist)
+        where !whitelisted.contains(domain) && isValidDomain(domain) {
+            rules.append(domainRule(for: domain))
+            customDomainCount += 1
         }
-        
-        // 3️⃣ Add predefined keyword-based rules with better patterns (limit to most important)
-        let importantKeywords = Array(predefinedKeywords.prefix(maxKeywordRules))
-        let searchEngines = ["google.com", "bing.com", "duckduckgo.com", "yahoo.com", "baidu.com", "yandex.com"]
-        print("Adding \(importantKeywords.count) predefined keyword rules")
-        for keyword in importantKeywords {
-            if !keyword.isEmpty && isValidKeyword(keyword) {
-                let escapedKeyword = escapeRegexCharacters(keyword)
-                let urlFilter = ".*\(escapedKeyword).*"
-                rules.append(ContentBlockerRule(
-                    trigger: ContentBlockerTrigger(
-                        urlFilter: urlFilter,
-                        unlessDomain: searchEngines // Do not block search results pages
-                    ),
-                    action: ContentBlockerAction(type: "block")
-                ))
-            }
+
+        // 3. A capped, evenly-sampled slice of the downloaded domain list
+        var apiDomainCount = 0
+        for domain in sampledAPIDomains(cap: Self.maxAPIDomainRules)
+        where !whitelisted.contains(domain) {
+            rules.append(domainRule(for: domain))
+            apiDomainCount += 1
         }
-        
-        // 4️⃣ Add custom keyword-based rules (limit to reasonable number)
-        let limitedCustomKeywords = Array(keywordBlocklist.prefix(50))
-        print("Adding \(limitedCustomKeywords.count) custom keyword rules")
-        for keyword in limitedCustomKeywords {
-            if !keyword.isEmpty && isValidKeyword(keyword) {
-                let escapedKeyword = escapeRegexCharacters(keyword)
-                let urlFilter = ".*\(escapedKeyword).*"
-                rules.append(ContentBlockerRule(
-                    trigger: ContentBlockerTrigger(
-                        urlFilter: urlFilter,
-                        unlessDomain: searchEngines // Do not block search results pages
-                    ),
-                    action: ContentBlockerAction(type: "block")
-                ))
-            }
+
+        // 4. Keyword rules — search engines and whitelisted sites are exempt
+        let exemptDomains = Array(searchEngineDomains) + Array(whitelisted)
+        for filter in KeywordMatcher.predefinedURLFilters() {
+            rules.append(keywordRule(filter: filter, exemptDomains: exemptDomains))
         }
-        
-        let bundleRulesCount = loadBundleRules()?.count ?? 0
-        print("📊 Generated \(rules.count) content blocker rules:")
-        print("   ✅ CORE static rules from bundle: \(bundleRulesCount) (ALWAYS INCLUDED)")
-        print("   🏠 Custom domain rules: \(customDomains.count)")
-        print("   📝 Predefined keyword rules: \(importantKeywords.count)")
-        print("   ⭐ Custom keyword rules: \(limitedCustomKeywords.count)")
-        print("   📊 API domains available (UI only): \(apiBlocklist.count)")
-        
-        // CRITICAL: Verify that core static rules are included
-        if bundleRulesCount == 0 {
-            print("⚠️ WARNING: No core static rules found! This should never happen!")
-        } else {
-            print("✅ CONFIRMED: Core blocking rules (\(bundleRulesCount) rules) are included in blocking system")
+        var customKeywordCount = 0
+        for keyword in keywordBlocklist.prefix(Self.maxCustomKeywordRules) {
+            guard let filter = KeywordMatcher.customURLFilter(for: keyword) else { continue }
+            rules.append(keywordRule(filter: filter, exemptDomains: exemptDomains))
+            customKeywordCount += 1
         }
-        
-        // 5️⃣ Add CSS cosmetic filter rules (hide images/videos on matched pages)
+
+        // 5. CSS cosmetic rules — hide media on pages that partially load
         let cosmeticRules = generateCosmeticFilterRules()
         rules.append(contentsOf: cosmeticRules)
-        print("   🎨 Cosmetic CSS rules: \(cosmeticRules.count)")
-        
+
+        let keywordCount = KeywordMatcher.predefinedKeywords.count + customKeywordCount
+        print("📊 Generated \(rules.count) content blocker rules — core: \(coreCount), custom domains: \(customDomainCount), API domains: \(apiDomainCount), keyword: \(keywordCount), cosmetic: \(cosmeticRules.count)")
         return rules
     }
-    
+
+    // MARK: - Rule Builders
+
+    /// Evenly samples up to `cap` domains across the full downloaded list so
+    /// coverage is spread across the whole list rather than truncated.
+    private func sampledAPIDomains(cap: Int) -> [String] {
+        guard apiBlocklist.count > cap else { return apiBlocklist }
+        let step = Double(apiBlocklist.count) / Double(cap)
+        return (0..<cap).map { apiBlocklist[Int(Double($0) * step)] }
+    }
+
+    /// A block rule for a single domain. Domains only ever contain `.` as a
+    /// regex metacharacter, so escaping is cheap.
+    private func domainRule(for domain: String) -> ContentBlockerRule {
+        let escaped = domain.replacingOccurrences(of: ".", with: "\\.")
+        return ContentBlockerRule(
+            trigger: ContentBlockerTrigger(urlFilter: ".*\(escaped).*"),
+            action: ContentBlockerAction(type: "block")
+        )
+    }
+
+    /// A block rule for a keyword url-filter, exempting search engines and
+    /// whitelisted domains so search and trusted sites keep working.
+    private func keywordRule(filter: String, exemptDomains: [String]) -> ContentBlockerRule {
+        ContentBlockerRule(
+            trigger: ContentBlockerTrigger(
+                urlFilter: filter,
+                unlessDomain: exemptDomains.isEmpty ? nil : exemptDomains
+            ),
+            action: ContentBlockerAction(type: "block")
+        )
+    }
+
     // MARK: - CSS Cosmetic Filtering
     
     /// Generates css-display-none rules that hide visual media on pages matching adult URL patterns.
@@ -727,7 +619,7 @@ class BlocklistManager: ObservableObject {
             "tube8", "spankbang", "beeg", "rule34", "motherless", "efukt", "sex.com", "cam4",
             "livejasmin", "bongacams", "chaturbate", "onlyfans", "fansly", "stripchat", "camsoda",
             "adultfriendfinder", "ashley.madison", "imagefap", "gelbooru", "nhentai", "hanime",
-            "hentai", "porn", "xxx", "sex", "adult", "nude"
+            "hentai", "porn", "xxx"
         ]
         
         var rules: [ContentBlockerRule] = []
@@ -750,24 +642,7 @@ class BlocklistManager: ObservableObject {
         let range = NSRange(location: 0, length: domain.utf16.count)
         return regex?.firstMatch(in: domain, options: [], range: range) != nil
     }
-    
-    // Helper function to validate keywords
-    private func isValidKeyword(_ keyword: String) -> Bool {
-        // Ensure keyword doesn't contain problematic characters
-        let invalidChars = CharacterSet(charactersIn: "[]{}()+*?^$|\\")
-        return keyword.rangeOfCharacter(from: invalidChars) == nil && keyword.count > 1
-    }
-    
-    // Helper function to properly escape regex characters
-    private func escapeRegexCharacters(_ string: String) -> String {
-        let charactersToEscape = ["\\", ".", "*", "+", "?", "^", "$", "(", ")", "[", "]", "{", "}", "|"]
-        var escaped = string
-        for char in charactersToEscape {
-            escaped = escaped.replacingOccurrences(of: char, with: "\\\(char)")
-        }
-        return escaped
-    }
-    
+
     func updateContentBlocker() {
         // Always update subscription status in shared storage
         saveSubscriptionStatusToSharedStorage()
@@ -922,15 +797,21 @@ class BlocklistManager: ObservableObject {
     
     // MARK: - Helper Methods
     
+    /// Normalizes user-entered text down to a bare host: lowercased, scheme and
+    /// `www.` removed, and path / query / fragment / port stripped so that
+    /// `https://pornhub.com/videos?x=1` is stored simply as `pornhub.com`.
     private func cleanURL(_ url: String) -> String {
-        var cleanURL = url.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        if cleanURL.hasPrefix("http://") || cleanURL.hasPrefix("https://") {
-            cleanURL = String(cleanURL.dropFirst(cleanURL.hasPrefix("https://") ? 8 : 7))
+        var host = url.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if let schemeRange = host.range(of: "://") {
+            host = String(host[schemeRange.upperBound...])
         }
-        if cleanURL.hasPrefix("www.") {
-            cleanURL = String(cleanURL.dropFirst(4))
+        if host.hasPrefix("www.") {
+            host = String(host.dropFirst(4))
         }
-        return cleanURL
+        if let end = host.firstIndex(where: { $0 == "/" || $0 == "?" || $0 == "#" || $0 == ":" }) {
+            host = String(host[..<end])
+        }
+        return host
     }
     
     // MARK: - Public API
@@ -963,151 +844,6 @@ class BlocklistManager: ObservableObject {
         
         print("Loaded local data: \(customBlocklist.count) custom domains, \(keywordBlocklist.count) custom keywords, \(whitelist.count) whitelisted domains")
         updateSets()
-    }
-    
-    // MARK: - Block Event Logging
-    
-    func logBlockEvent(category: String = "domain") {
-        let event = BlockEvent(date: Date(), category: category)
-        blockEvents.append(event)
-        saveBlockEvents()
-    }
-    
-    private func saveBlockEvents() {
-        // Keep only last 90 days of events to avoid unbounded growth
-        let cutoff = Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? Date()
-        blockEvents = blockEvents.filter { $0.date >= cutoff }
-        
-        if let data = try? JSONEncoder().encode(blockEvents) {
-            userDefaults.set(data, forKey: "blockEvents")
-        }
-    }
-    
-    private func loadBlockEvents() {
-        if let data = userDefaults.data(forKey: "blockEvents"),
-           let events = try? JSONDecoder().decode([BlockEvent].self, from: data) {
-            blockEvents = events
-            print("Loaded \(events.count) block events")
-        } else {
-            // Seed some demo data on first launch so charts aren't empty
-            seedDemoBlockEvents()
-        }
-    }
-    
-    /// Seeds realistic demo data so the dashboard looks live from day one.
-    private func seedDemoBlockEvents() {
-        guard userDefaults.data(forKey: "blockEvents") == nil else { return }
-        let calendar = Calendar.current
-        var events: [BlockEvent] = []
-        let categories = ["domain", "keyword", "domain", "domain", "keyword"]
-        for dayOffset in 0..<7 {
-            let date = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) ?? Date()
-            let count = [3, 7, 2, 5, 1, 4, 6][dayOffset]
-            for i in 0..<count {
-                let eventDate = calendar.date(byAdding: .hour, value: -(i * 2), to: date) ?? date
-                events.append(BlockEvent(date: eventDate, category: categories[i % categories.count]))
-            }
-        }
-        blockEvents = events
-        saveBlockEvents()
-        print("Seeded \(events.count) demo block events")
-    }
-    
-    // MARK: - Safari Extension Communication
-    
-    private func updateSafariExtension() {
-        guard SubscriptionManager.shared.isSubscribed else { return }
-        
-        print("Updating Safari extension with blocking rules...")
-        
-        // Generate rules for the extension
-        let rules = generateSafariExtensionRules()
-        
-        // Save rules to a file that the extension can access
-        saveSafariExtensionRules(rules)
-        
-        // Notify Safari to reload the extension
-        reloadSafariExtension()
-    }
-    
-    private func clearSafariExtensionRules() {
-        print("Clearing Safari extension rules...")
-        saveSafariExtensionRules([])
-        reloadSafariExtension()
-    }
-    
-    private func generateSafariExtensionRules() -> [[String: Any]] {
-        var rules: [[String: Any]] = []
-        let searchEngines = ["google.com", "bing.com", "duckduckgo.com", "yahoo.com", "baidu.com", "yandex.com"]
-        
-        // Add keyword-based rules
-        let allKeywords = predefinedKeywords + keywordBlocklist
-        for keyword in allKeywords {
-            if !keyword.isEmpty && keyword.count > 2 {
-                let escapedKeyword = escapeRegexCharacters(keyword)
-                rules.append([
-                    "action": ["type": "block"],
-                    "trigger": [
-                        // Following Hacking with Swift article: use .* instead of * for valid regex
-                        "url-filter": ".*\(escapedKeyword).*",
-                        "unless-domain": searchEngines,
-                        "resource-type": ["document"]
-                    ]
-                ])
-            }
-        }
-        
-        // Add domain-based rules
-        let topDomains = Array(apiBlocklist.prefix(1000)) + customBlocklist
-        for domain in topDomains {
-            if !whitelist.contains(domain) && !domain.isEmpty {
-                let escapedDomain = escapeRegexCharacters(domain)
-                rules.append([
-                    "action": ["type": "block"],
-                    "trigger": [
-                        // Simpler domain matching that is valid regex
-                        "url-filter": ".*\(escapedDomain).*", 
-                        "resource-type": ["document"]
-                    ]
-                ])
-                
-                if rules.count > 5000 { break }
-            }
-        }
-        
-        print("Generated \(rules.count) Safari extension rules in standard format")
-        return rules
-    }
-    
-    private func saveSafariExtensionRules(_ rules: [[String: Any]]) {
-        do {
-            let data = try JSONSerialization.data(withJSONObject: rules, options: .prettyPrinted)
-            let rulesURL = documentsDirectory.appendingPathComponent("safariRules.json")
-            try data.write(to: rulesURL)
-            
-            // Also save to the extension's bundle if possible
-            if let bundlePath = Bundle.main.path(forResource: "rules", ofType: "json", inDirectory: "PornBlockerBlocker.appex/Resources") {
-                try data.write(to: URL(fileURLWithPath: bundlePath))
-            }
-            
-            print("Saved \(rules.count) rules for Safari extension")
-        } catch {
-            print("Error saving Safari extension rules: \(error)")
-        }
-    }
-    
-    private func reloadSafariExtension() {
-        #if os(iOS)
-        // On iOS, content blockers are managed through SFContentBlockerManager
-        Task {
-            let success = await enableContentBlocker()
-            if success {
-                print("Safari content blocker reloaded successfully")
-            } else {
-                print("Failed to reload Safari content blocker")
-            }
-        }
-        #endif
     }
     
     // MARK: - Content Blocker Integration
