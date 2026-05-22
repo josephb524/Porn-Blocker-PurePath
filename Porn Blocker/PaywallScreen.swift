@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 struct PaywallScreen: View {
     @StateObject private var subManager = SubscriptionManager.shared
@@ -7,7 +8,10 @@ struct PaywallScreen: View {
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
     @State private var featuresAppeared = false
-    
+    @State private var selectedProduct: Product?
+
+    private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
+
     private let features: [(icon: String, text: String, color: Color)] = [
         ("globe.badge.chevron.backward", "Block millions of porn sites in Safari", Color(hue: 0.6,  saturation: 0.7, brightness: 0.75)),
         ("shield.fill",                  "Safe, private web browsing",              Color(hue: 0.38, saturation: 0.65, brightness: 0.5)),
@@ -15,24 +19,29 @@ struct PaywallScreen: View {
         ("textformat.abc",               "Custom keywords & websites",               Color(hue: 0.7,  saturation: 0.65, brightness: 0.8)),
         ("arrow.triangle.2.circlepath",  "Automatic database updates",               Color(hue: 0.0,  saturation: 0.7,  brightness: 0.65)),
     ]
-    
+
+    /// The plan that will be purchased — the user's pick, defaulting to yearly.
+    private var activeProduct: Product? {
+        selectedProduct ?? subManager.yearlyProduct ?? subManager.products.first
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Header
                 headerSection
-                
-                // Features
+
                 featuresSection
                     .padding(.horizontal, 24)
                     .padding(.top, 8)
-                
-                // Trial info + CTA
+
+                planSelector
+                    .padding(.horizontal, 24)
+                    .padding(.top, 24)
+
                 ctaSection
                     .padding(.horizontal, 24)
-                    .padding(.top, 28)
-                
-                // Legal
+                    .padding(.top, 20)
+
                 legalSection
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
@@ -67,18 +76,17 @@ struct PaywallScreen: View {
         .sheet(isPresented: $showPrivacyPolicy) { NavigationStack { PrivacyPolicyView() } }
         .sheet(isPresented: $showTermsOfUse)  { NavigationStack { TermsView() } }
         .onAppear {
-            if subManager.subscriptionProduct == nil && !subManager.isLoading {
+            if !subManager.hasLoadedProducts && !subManager.isLoading {
                 Task { await subManager.loadProducts() }
             }
             withAnimation(.easeOut(duration: 0.5)) { featuresAppeared = true }
         }
     }
-    
+
     // MARK: - Header
-    
+
     private var headerSection: some View {
         ZStack(alignment: .bottom) {
-            // Gradient background
             LinearGradient(
                 colors: [
                     Color(hue: 0.6, saturation: 0.75, brightness: 0.45),
@@ -87,9 +95,8 @@ struct PaywallScreen: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 280)
-            
-            // Decorative circles
+            .frame(height: 260)
+
             ZStack {
                 Circle()
                     .fill(Color.white.opacity(0.07))
@@ -100,28 +107,28 @@ struct PaywallScreen: View {
                     .frame(width: 160, height: 160)
                     .offset(x: 120, y: -30)
             }
-            
+
             VStack(spacing: 10) {
                 Image(systemName: "checkmark.shield.fill")
                     .font(.system(size: 56))
                     .foregroundColor(.white)
                     .shadow(color: .black.opacity(0.15), radius: 8)
-                
-                Text("PurePath Premium")
+
+                Text("Porn Blocker Premium")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
-                
-                Text("Try 7 days free, then \(subManager.subscriptionPrice)/\(subManager.subscriptionPeriod)")
+
+                Text("Block adult content everywhere")
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.85))
             }
             .padding(.bottom, 32)
         }
     }
-    
+
     // MARK: - Features
-    
+
     private var featuresSection: some View {
         VStack(spacing: 12) {
             ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
@@ -134,14 +141,14 @@ struct PaywallScreen: View {
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(feature.color)
                     }
-                    
+
                     Text(feature.text)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
                         .font(.body)
@@ -159,33 +166,99 @@ struct PaywallScreen: View {
             }
         }
     }
-    
-    // MARK: - CTA
-    
-    private var ctaSection: some View {
-        VStack(spacing: 14) {
-            if subManager.isLoading && subManager.subscriptionProduct == nil {
+
+    // MARK: - Plan Selector
+
+    private var planSelector: some View {
+        VStack(spacing: 10) {
+            if subManager.hasLoadedProducts {
+                ForEach(subManager.products) { product in
+                    planCard(product)
+                }
+            } else if subManager.isLoading {
                 HStack(spacing: 8) {
                     ProgressView().scaleEffect(0.85)
-                    Text("Loading pricing…")
+                    Text("Loading plans…")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+            } else {
+                Text("Pricing unavailable. Please check your connection and try again.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.vertical, 16)
             }
-            
-            Button(action: {
-                Task {
-                    do {
-                        try await subManager.purchase()
-                        if subManager.isSubscribed { isPresented = false }
-                    } catch SubscriptionError.userCancelled {
-                        return
-                    } catch {
-                        showingError = true
+        }
+    }
+
+    private func planCard(_ product: Product) -> some View {
+        let isSelected = activeProduct?.id == product.id
+        let isYearly = product.id == subManager.yearlyProduct?.id
+
+        return Button {
+            selectedProduct = product
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundColor(isSelected ? accent : Color(.systemGray3))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 8) {
+                        Text(product.planName)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        if isYearly, let savings = subManager.yearlySavingsPercent {
+                            Text("SAVE \(savings)%")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(accent))
+                        }
+                    }
+                    if let trial = product.freeTrialText {
+                        Text(trial)
+                            .font(.caption)
+                            .foregroundColor(accent)
                     }
                 }
-            }) {
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(product.displayPrice)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Text("per \(product.periodUnitText)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color(.systemBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(isSelected ? accent : Color(.systemGray4),
+                                    lineWidth: isSelected ? 2 : 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - CTA
+
+    private var ctaSection: some View {
+        VStack(spacing: 14) {
+            Button(action: purchaseSelectedPlan) {
                 HStack(spacing: 10) {
                     if subManager.isLoading {
                         ProgressView()
@@ -194,7 +267,7 @@ struct PaywallScreen: View {
                         Text("Processing…")
                     } else {
                         Image(systemName: "star.fill")
-                        Text("START 7-DAY FREE TRIAL")
+                        Text(ctaTitle)
                     }
                 }
                 .font(.headline)
@@ -203,26 +276,55 @@ struct PaywallScreen: View {
                 .frame(height: 56)
                 .background(
                     LinearGradient(
-                        colors: [Color(hue: 0.6, saturation: 0.75, brightness: 0.65), Color(hue: 0.38, saturation: 0.65, brightness: 0.5)],
+                        colors: [Color(hue: 0.6, saturation: 0.75, brightness: 0.65), accent],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
                 .cornerRadius(18)
-                .shadow(color: Color(hue: 0.6, saturation: 0.5, brightness: 0.5).opacity(0.35), radius: 12, x: 0, y: 6)
+                .shadow(color: accent.opacity(0.35), radius: 12, x: 0, y: 6)
             }
-            .disabled(subManager.isLoading || subManager.subscriptionProduct == nil)
-            .opacity((subManager.isLoading || subManager.subscriptionProduct == nil) ? 0.6 : 1.0)
-            
-            Text("7 days free, then auto-renews. Cancel anytime in Settings.")
+            .disabled(subManager.isLoading || activeProduct == nil)
+            .opacity((subManager.isLoading || activeProduct == nil) ? 0.6 : 1.0)
+
+            Text(disclaimerText)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
     }
-    
+
+    private var ctaTitle: String {
+        activeProduct?.freeTrialText != nil ? "START FREE TRIAL" : "SUBSCRIBE NOW"
+    }
+
+    private var disclaimerText: String {
+        guard let product = activeProduct else {
+            return "Auto-renews until cancelled. Cancel anytime in Settings."
+        }
+        let price = "\(product.displayPrice)/\(product.periodUnitText)"
+        if let trial = product.freeTrialText {
+            return "\(trial), then \(price). Auto-renews until cancelled — cancel anytime in Settings."
+        }
+        return "\(price). Auto-renews until cancelled — cancel anytime in Settings."
+    }
+
+    private func purchaseSelectedPlan() {
+        guard let product = activeProduct else { return }
+        Task {
+            do {
+                try await subManager.purchase(product)
+                if subManager.isSubscribed { isPresented = false }
+            } catch SubscriptionError.userCancelled {
+                return
+            } catch {
+                showingError = true
+            }
+        }
+    }
+
     // MARK: - Legal
-    
+
     private var legalSection: some View {
         HStack {
             Button("Privacy Policy") { showPrivacyPolicy = true }

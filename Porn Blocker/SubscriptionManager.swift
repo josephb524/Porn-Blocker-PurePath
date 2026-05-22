@@ -14,7 +14,8 @@ final class SubscriptionManager: ObservableObject {
         }
     }
     @Published private(set) var expiryDate: Date? = nil
-    @Published private(set) var subscriptionProduct: Product? = nil
+    /// Available subscription products, cheapest first.
+    @Published private(set) var products: [Product] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String? = nil
     
@@ -24,8 +25,12 @@ final class SubscriptionManager: ObservableObject {
     @Published private(set) var renewalStatus: RenewalStatus = .unknown
     @Published private(set) var daysUntilRenewal: Int? = nil
     
-    // Update this with your actual product ID from App Store Connect
-    private let productID = "pornBlocker"
+    // Product IDs — must match the auto-renewable subscriptions configured in
+    // App Store Connect. `nonisolated` so the background transaction listener
+    // can read them.
+    private nonisolated static let monthlyProductID = "pornBlockerMonthly"
+    private nonisolated static let yearlyProductID = "pornBlocker"
+    private nonisolated static let productIDs: Set<String> = [monthlyProductID, yearlyProductID]
     private var updateListenerTask: Task<Void, Never>? = nil
     private var expirationCheckTimer: Timer?
 
@@ -60,42 +65,35 @@ final class SubscriptionManager: ObservableObject {
     // MARK: - Product Loading
     
     func loadProducts() async {
+        isLoading = true
+        errorMessage = nil
         do {
-            isLoading = true
-            errorMessage = nil
-            
-            let products = try await Product.products(for: [productID])
-            
-            if let product = products.first {
-                subscriptionProduct = product
-                Log.debug("✅ Loaded subscription product: \(product.displayName) - \(product.displayPrice)")
+            let loaded = try await Product.products(for: Self.productIDs)
+            products = loaded.sorted { $0.price < $1.price }
+            if products.isEmpty {
+                errorMessage = "Subscription products not found"
+                Log.debug("❌ No subscription products loaded")
             } else {
-                errorMessage = "Subscription product not found"
-                Log.debug("❌ Failed to load product with ID: \(productID)")
+                Log.debug("✅ Loaded \(products.count) products: \(products.map(\.id))")
             }
         } catch {
             errorMessage = "Failed to load products: \(error.localizedDescription)"
             Log.debug("❌ Error loading products: \(error)")
         }
-        
         isLoading = false
     }
 
     // MARK: - Purchase Flow
     
-    func purchase() async throws {
-        guard let product = subscriptionProduct else {
-            throw SubscriptionError.productNotLoaded
-        }
-        
+    func purchase(_ product: Product) async throws {
         isLoading = true
         errorMessage = nil
-        
+
         // Use defer to ensure isLoading is always reset
         defer {
             isLoading = false
         }
-        
+
         do {
             let result = try await product.purchase()
             
@@ -163,7 +161,7 @@ final class SubscriptionManager: ObservableObject {
         
         for await result in StoreKit.Transaction.currentEntitlements {
             if case .verified(let transaction) = result,
-               transaction.productID == productID {
+               Self.productIDs.contains(transaction.productID) {
                 
                 Log.debug("📋 Found transaction: ID=\(transaction.id), ProductID=\(transaction.productID)")
                 Log.debug("📅 Purchase Date: \(transaction.purchaseDate)")
@@ -301,7 +299,7 @@ final class SubscriptionManager: ObservableObject {
                         Log.debug("✅ Verified transaction: \(transaction.id) for product: \(transaction.productID)")
                     }
                     
-                    if transaction.productID == self.productID {
+                    if Self.productIDs.contains(transaction.productID) {
                         Log.debug("🎯 Processing transaction for our product")
                         await self.checkSubscriptionStatus()
                     }
@@ -327,37 +325,18 @@ final class SubscriptionManager: ObservableObject {
     
     // MARK: - Helper Properties
     
-    var subscriptionPrice: String {
-        subscriptionProduct?.displayPrice ?? "$39.99"
-    }
-    
-    var isYearlySubscription: Bool {
-        guard let product = subscriptionProduct,
-              case .autoRenewable = product.type else {
-            return false
-        }
-        return true
-    }
-    
-    var subscriptionPeriod: String {
-        guard let product = subscriptionProduct,
-              let subscription = product.subscription else {
-            return "1 year"
-        }
-        
-        let period = subscription.subscriptionPeriod
-        switch period.unit {
-        case .day:
-            return "\(period.value) day\(period.value > 1 ? "s" : "")"
-        case .week:
-            return "\(period.value) week\(period.value > 1 ? "s" : "")"
-        case .month:
-            return "\(period.value) month\(period.value > 1 ? "s" : "")"
-        case .year:
-            return "\(period.value) year\(period.value > 1 ? "s" : "")"
-        @unknown default:
-            return "1 year"
-        }
+    var monthlyProduct: Product? { products.first { $0.id == Self.monthlyProductID } }
+    var yearlyProduct: Product? { products.first { $0.id == Self.yearlyProductID } }
+    var hasLoadedProducts: Bool { !products.isEmpty }
+
+    /// Percentage saved by the yearly plan versus paying monthly for a year.
+    var yearlySavingsPercent: Int? {
+        guard let monthly = monthlyProduct, let yearly = yearlyProduct else { return nil }
+        let monthlyAnnual = monthly.price * 12
+        guard monthlyAnnual > 0 else { return nil }
+        let saved = (monthlyAnnual - yearly.price) / monthlyAnnual
+        let percent = Int((NSDecimalNumber(decimal: saved).doubleValue * 100).rounded())
+        return percent > 0 ? percent : nil
     }
     
     // MARK: - Auto-Renewal Management
@@ -462,5 +441,48 @@ extension Notification.Name {
     /// (re-)evaluated. `BlocklistManager` observes this to re-sync the
     /// content blocker — keeping the two managers decoupled.
     static let subscriptionStatusChanged = Notification.Name("subscriptionStatusChanged")
+}
+
+// MARK: - Product Display Helpers
+
+extension Product {
+    /// The subscription period as a short noun, e.g. "month" or "year".
+    var periodUnitText: String {
+        guard let period = subscription?.subscriptionPeriod else { return "" }
+        let plural = period.value > 1
+        switch period.unit {
+        case .day:   return plural ? "\(period.value) days" : "day"
+        case .week:  return plural ? "\(period.value) weeks" : "week"
+        case .month: return plural ? "\(period.value) months" : "month"
+        case .year:  return plural ? "\(period.value) years" : "year"
+        @unknown default: return ""
+        }
+    }
+
+    /// A capitalized plan name derived from the period, e.g. "Monthly" / "Yearly".
+    var planName: String {
+        switch subscription?.subscriptionPeriod.unit {
+        case .day:   return "Daily"
+        case .week:  return "Weekly"
+        case .month: return "Monthly"
+        case .year:  return "Yearly"
+        default:     return displayName
+        }
+    }
+
+    /// A free-trial description if this product has a free-trial introductory
+    /// offer, e.g. "7-day free trial"; otherwise `nil`.
+    var freeTrialText: String? {
+        guard let offer = subscription?.introductoryOffer,
+              offer.paymentMode == .freeTrial else { return nil }
+        let period = offer.period
+        switch period.unit {
+        case .day:   return "\(period.value)-day free trial"
+        case .week:  return "\(period.value)-week free trial"
+        case .month: return "\(period.value)-month free trial"
+        case .year:  return "\(period.value)-year free trial"
+        @unknown default: return nil
+        }
+    }
 }
 

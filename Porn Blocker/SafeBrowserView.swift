@@ -323,7 +323,7 @@ struct BlockedOverlayView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
 
-                    Text("This website has been blocked by PurePath because it contains adult content.")
+                    Text("This website has been blocked by Porn Blocker because it contains adult content.")
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
