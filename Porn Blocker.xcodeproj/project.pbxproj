@@ -16,6 +16,15 @@
 		BBAAAA882E5555550053EED1 /* BlocklistRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAA772E5555550053EED1 /* BlocklistRepository.swift */; };
 		BBAAAAAA2E5555550053EED1 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAA992E5555550053EED1 /* Log.swift */; };
 		BBAAAABB2E5555550053EED1 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAA992E5555550053EED1 /* Log.swift */; };
+		BBAAAB122E5555550053EED1 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB112E5555550053EED1 /* ChatMessage.swift */; };
+		BBAAAB142E5555550053EED1 /* ChatConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB132E5555550053EED1 /* ChatConversation.swift */; };
+		BBAAAB162E5555550053EED1 /* ConversationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB152E5555550053EED1 /* ConversationStore.swift */; };
+		BBAAAB182E5555550053EED1 /* BuddyChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB172E5555550053EED1 /* BuddyChatService.swift */; };
+		BBAAAB1A2E5555550053EED1 /* BuddyChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB192E5555550053EED1 /* BuddyChatViewModel.swift */; };
+		BBAAAB1C2E5555550053EED1 /* ChatRichText.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB1B2E5555550053EED1 /* ChatRichText.swift */; };
+		BBAAAB1E2E5555550053EED1 /* SpeechController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB1D2E5555550053EED1 /* SpeechController.swift */; };
+		BBAAAB202E5555550053EED1 /* BuddyChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB1F2E5555550053EED1 /* BuddyChatView.swift */; };
+		BBAAAB222E5555550053EED1 /* ConversationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAB212E5555550053EED1 /* ConversationListView.swift */; };
 		BB4378BA2E1F53C000534EED /* ContentBlocker.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BB4378B12E1F53C000534EED /* ContentBlocker.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BB4378D02E2742A800534EED /* PaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C72E2742A800534EED /* PaywallScreen.swift */; };
 		BB4378D12E2742A800534EED /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C22E2742A800534EED /* FAQView.swift */; };
@@ -78,6 +87,15 @@
 		BBAAAA552E5555550053EED1 /* ContentBlockerRuleBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBlockerRuleBuilder.swift; sourceTree = "<group>"; };
 		BBAAAA772E5555550053EED1 /* BlocklistRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistRepository.swift; sourceTree = "<group>"; };
 		BBAAAA992E5555550053EED1 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		BBAAAB112E5555550053EED1 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
+		BBAAAB132E5555550053EED1 /* ChatConversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatConversation.swift; sourceTree = "<group>"; };
+		BBAAAB152E5555550053EED1 /* ConversationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationStore.swift; sourceTree = "<group>"; };
+		BBAAAB172E5555550053EED1 /* BuddyChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuddyChatService.swift; sourceTree = "<group>"; };
+		BBAAAB192E5555550053EED1 /* BuddyChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuddyChatViewModel.swift; sourceTree = "<group>"; };
+		BBAAAB1B2E5555550053EED1 /* ChatRichText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRichText.swift; sourceTree = "<group>"; };
+		BBAAAB1D2E5555550053EED1 /* SpeechController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechController.swift; sourceTree = "<group>"; };
+		BBAAAB1F2E5555550053EED1 /* BuddyChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuddyChatView.swift; sourceTree = "<group>"; };
+		BBAAAB212E5555550053EED1 /* ConversationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationListView.swift; sourceTree = "<group>"; };
 		BB4378B12E1F53C000534EED /* ContentBlocker.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ContentBlocker.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB4378BF2E2742A800534EED /* BlockerSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockerSettingsView.swift; sourceTree = "<group>"; };
 		BB4378C02E2742A800534EED /* ContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactView.swift; sourceTree = "<group>"; };
@@ -169,6 +187,15 @@
 				BBAAAA552E5555550053EED1 /* ContentBlockerRuleBuilder.swift */,
 				BBAAAA772E5555550053EED1 /* BlocklistRepository.swift */,
 				BBAAAA992E5555550053EED1 /* Log.swift */,
+				BBAAAB112E5555550053EED1 /* ChatMessage.swift */,
+				BBAAAB132E5555550053EED1 /* ChatConversation.swift */,
+				BBAAAB152E5555550053EED1 /* ConversationStore.swift */,
+				BBAAAB172E5555550053EED1 /* BuddyChatService.swift */,
+				BBAAAB192E5555550053EED1 /* BuddyChatViewModel.swift */,
+				BBAAAB1B2E5555550053EED1 /* ChatRichText.swift */,
+				BBAAAB1D2E5555550053EED1 /* SpeechController.swift */,
+				BBAAAB1F2E5555550053EED1 /* BuddyChatView.swift */,
+				BBAAAB212E5555550053EED1 /* ConversationListView.swift */,
 				BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */,
 				BB4378562E18AE9B00534EED /* BlocklistManager.swift */,
 				BB4378572E18AE9B00534EED /* SubscriptionManager.swift */,
@@ -354,6 +381,15 @@
 				BBAAAA662E5555550053EED1 /* ContentBlockerRuleBuilder.swift in Sources */,
 				BBAAAA882E5555550053EED1 /* BlocklistRepository.swift in Sources */,
 				BBAAAAAA2E5555550053EED1 /* Log.swift in Sources */,
+				BBAAAB122E5555550053EED1 /* ChatMessage.swift in Sources */,
+				BBAAAB142E5555550053EED1 /* ChatConversation.swift in Sources */,
+				BBAAAB162E5555550053EED1 /* ConversationStore.swift in Sources */,
+				BBAAAB182E5555550053EED1 /* BuddyChatService.swift in Sources */,
+				BBAAAB1A2E5555550053EED1 /* BuddyChatViewModel.swift in Sources */,
+				BBAAAB1C2E5555550053EED1 /* ChatRichText.swift in Sources */,
+				BBAAAB1E2E5555550053EED1 /* SpeechController.swift in Sources */,
+				BBAAAB202E5555550053EED1 /* BuddyChatView.swift in Sources */,
+				BBAAAB222E5555550053EED1 /* ConversationListView.swift in Sources */,
 				BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */,
 				BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */,
 			);

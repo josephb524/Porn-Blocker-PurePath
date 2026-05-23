@@ -18,6 +18,13 @@ final class SubscriptionManager: ObservableObject {
     @Published private(set) var products: [Product] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String? = nil
+
+    /// Apple-signed JWS for the active subscription. Sent to the chat Worker
+    /// as proof of entitlement — `nil` when not subscribed.
+    @Published private(set) var signedTransactionJWS: String? = nil
+    /// The transaction's original (first-purchase) identifier — useful for
+    /// per-user rate limiting on the Worker.
+    @Published private(set) var originalTransactionID: UInt64? = nil
     
     // Auto-renewal specific properties
     @Published private(set) var autoRenewalEnabled = true
@@ -100,13 +107,18 @@ final class SubscriptionManager: ObservableObject {
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                
+
+                // Capture the Apple-signed JWS — the chat Worker uses it as
+                // proof of entitlement.
+                signedTransactionJWS = verification.jwsRepresentation
+                originalTransactionID = transaction.originalID
+
                 // Update subscription status
                 await updateSubscriptionStatus(from: transaction)
-                
+
                 // Finish the transaction
                 await transaction.finish()
-                
+
                 Log.debug("✅ Purchase successful!")
                 
             case .userCancelled:
@@ -156,50 +168,38 @@ final class SubscriptionManager: ObservableObject {
     
     func checkSubscriptionStatus() async {
         Log.debug("🔍 Checking subscription status at \(Date())")
-        var foundActiveSubscription = false
+        var foundActive = false
         var latestTransaction: StoreKit.Transaction?
-        
+        var latestJWS: String?
+
         for await result in StoreKit.Transaction.currentEntitlements {
-            if case .verified(let transaction) = result,
-               Self.productIDs.contains(transaction.productID) {
-                
-                Log.debug("📋 Found transaction: ID=\(transaction.id), ProductID=\(transaction.productID)")
-                Log.debug("📅 Purchase Date: \(transaction.purchaseDate)")
-                Log.debug("🚫 Revocation Date: \(transaction.revocationDate?.description ?? "None")")
-                Log.debug("⏰ Expiration Date: \(transaction.expirationDate?.description ?? "None")")
-                
-                // Skip revoked transactions
-                if let revocationDate = transaction.revocationDate {
-                    Log.debug("❌ Transaction revoked at: \(revocationDate)")
-                    continue
-                }
-                
-                // Check if subscription is still valid
-                if let expirationDate = transaction.expirationDate {
-                    let now = Date()
-                    Log.debug("🔍 Expiration check: \(expirationDate) > \(now) = \(expirationDate > now)")
-                    
-                    if expirationDate > now {
-                        Log.debug("✅ Subscription is active until: \(expirationDate)")
-                        latestTransaction = transaction
-                        foundActiveSubscription = true
-                    } else {
-                        Log.debug("❌ Subscription expired at: \(expirationDate)")
-                        // Continue checking for newer transactions
-                    }
-                } else {
-                    // Non-expiring product (shouldn't happen with subscriptions)
-                    Log.debug("⚠️ Non-expiring subscription found")
-                    latestTransaction = transaction
-                    foundActiveSubscription = true
-                }
+            guard case .verified(let transaction) = result,
+                  Self.productIDs.contains(transaction.productID),
+                  transaction.revocationDate == nil else { continue }
+
+            // Subscription must have an expiration in the future; non-expiring
+            // entries shouldn't happen for these auto-renewables but we accept
+            // them defensively.
+            let isActive: Bool
+            if let expiry = transaction.expirationDate {
+                isActive = expiry > Date()
+            } else {
+                isActive = true
             }
+            guard isActive else { continue }
+
+            latestTransaction = transaction
+            latestJWS = result.jwsRepresentation
+            foundActive = true
+            Log.debug("✅ Active subscription: \(transaction.productID), expiry: \(transaction.expirationDate?.description ?? "none")")
         }
-        
-        if foundActiveSubscription, let transaction = latestTransaction {
+
+        if foundActive, let transaction = latestTransaction {
+            // Capture proof of entitlement for the chat Worker.
+            signedTransactionJWS = latestJWS
+            originalTransactionID = transaction.originalID
             await updateSubscriptionStatus(from: transaction)
         } else {
-            // No active subscription found or all expired
             await setSubscriptionExpired()
         }
     }
@@ -230,6 +230,8 @@ final class SubscriptionManager: ObservableObject {
         let wasSubscribed = isSubscribed
         isSubscribed = false
         expiryDate = nil
+        signedTransactionJWS = nil
+        originalTransactionID = nil
 
         // Reset auto-renewal info when no subscription found.
         autoRenewalEnabled = false

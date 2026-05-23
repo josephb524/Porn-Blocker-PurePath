@@ -1,0 +1,14 @@
+name = "porn-blocker-buddy"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Must match the iOS app's bundle identifier exactly.
+APPLE_BUNDLE_ID = "com.jose.pimentel.Porn-Blocker"
+
+# Fireworks model. See https://fireworks.ai/models for the catalog —
+# `llama-v3p3-70b-instruct` is a strong conversational alternative.
+FIREWORKS_MODEL = "accounts/fireworks/models/gpt-oss-120b"
+
+# Secrets (set via `npx wrangler secret put <NAME>`):
+#   FIREWORKS_API_KEY  — starts with `fw_`

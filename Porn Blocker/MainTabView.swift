@@ -30,13 +30,20 @@ struct MainTabView: View {
                         Text("Safe Browse")
                     }
                     .tag(2)
-                
+
+                BuddyChatView()
+                    .tabItem {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                        Text("Buddy")
+                    }
+                    .tag(3)
+
                 SettingsView()
                     .tabItem {
                         Image(systemName: "gear")
                         Text("Settings")
                     }
-                    .tag(3)
+                    .tag(4)
             }
             
             // Custom Review Prompt Overlay
