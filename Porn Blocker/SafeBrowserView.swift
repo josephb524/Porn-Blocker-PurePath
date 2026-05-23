@@ -19,6 +19,16 @@ struct SafeBrowserView: View {
         }
     }
 
+    /// Caption under the "Unlock Safe Browser" button. Mirrors the paywall:
+    /// if the default plan (yearly) has a free-trial offer, mention it;
+    /// otherwise just say "Cancel anytime".
+    private var trialTeaserText: String {
+        if let trial = subManager.yearlyProduct?.freeTrialText {
+            return "\(trial) · Cancel anytime"
+        }
+        return "Cancel anytime"
+    }
+
     // MARK: - Locked Gate (non-subscribers)
 
     private var lockedView: some View {
@@ -118,7 +128,7 @@ struct SafeBrowserView: View {
                         }
                         .padding(.horizontal, 24)
 
-                        Text("7-day free trial · Cancel anytime")
+                        Text(trialTeaserText)
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.5))
                     }
