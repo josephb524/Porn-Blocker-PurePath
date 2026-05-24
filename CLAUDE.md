@@ -169,6 +169,37 @@ data and check-in history. A few non-obvious behaviors live here:
    surface used by the gear button), and calls `router.clear()` so it
    isn't replayed.
 
+### Rating prompts
+
+`RatingRequestManager` (a `@MainActor` singleton) exposes two entry
+points that are intentionally non-overlapping — don't merge them:
+
+- **`maybePromptForReview()`** — called from `Porn_BlockerApp` on
+  `didBecomeActive`. Gated by `shouldPrompt()` (≥5 launches, ≥3 days
+  since first install, ≥90 days since the last prompt, not permanently
+  dismissed). Fires Apple's native
+  `SKStoreReviewController.requestReview(in: scene)` sheet and
+  **nothing else**. If no foreground scene is available it returns
+  silently — iOS will fire `didBecomeActive` again later.
+- **`promptForReviewDirectly()`** — called only from Settings → "Rate
+  the App". Shows the custom `ReviewPromptView` overlay defined in
+  `MainTabView`.
+
+The previous behavior chained the custom overlay 2 seconds after the
+native sheet on the auto path, which visually stacked both popups.
+Don't reintroduce that — the two paths are mutually exclusive by design.
+
+**Native sheet caveats** (not a code issue, frequently misdiagnosed):
+`SKStoreReviewController` only fully works on App Store-installed
+builds. In Xcode-run / simulator / TestFlight builds the sheet may
+appear with **Submit permanently disabled** — that's Apple's design.
+iOS also rate-limits the prompt to ≤3 displays per Apple ID per app
+per year, after which `requestReview(in:)` silently no-ops.
+
+The `appStoreID` (`6749251520`) is **not** passed to the native sheet —
+that API looks the app up by bundle ID. The ID is only used by the
+custom prompt's `?action=write-review` deep link.
+
 ### Logging
 
 - **`Log`** — logging facade over `os.Logger`. Use `Log.debug(...)` and
@@ -260,6 +291,13 @@ Apple's root cert.
   pull live `displayPrice` / period from `Product`, and the trial copy is
   derived from `Product.freeTrialText` (an extension on `Product` in
   `SubscriptionManager.swift`).
+- **Paywall legal links are external `Link`s, not in-app sheets.** The
+  Privacy Policy and Terms of Use rows in `PaywallScreen.legalSection`
+  open the hosted URLs directly in Safari (see "Hardcoded values worth
+  knowing" for the exact URLs). The in-app `PrivacyPolicyView` /
+  `TermsView` are still used by Settings, but the paywall intentionally
+  surfaces the canonical hosted documents — App Store reviewers expect
+  to land on a real URL, not an in-app sheet.
 - **Don't break the one-directional dep:** `BlocklistManager` may read
   `SubscriptionManager`, but `SubscriptionManager` must not reference
   `BlocklistManager`. Subscription changes propagate via the
@@ -293,10 +331,15 @@ Apple's root cert.
 
 ## Hardcoded values worth knowing
 
-- **App Store ID** in `RatingRequestManager.swift`: `6749251520`.
+- **App Store ID** in `RatingRequestManager.swift`: `6749251520`. Used
+  only by the custom prompt's write-review deep link — the native
+  `SKStoreReviewController` resolves the app by bundle ID instead.
 - **App group** in `BlocklistManager.swift` and `ContentBlocker*.swift`:
   `group.com.jose.pimentel.PornBlocker`.
 - **Worker endpoint** in `BuddyChatService.swift` — must be updated after
   every `wrangler deploy`.
+- **Paywall legal URLs** in `PaywallScreen.swift`:
+  - Privacy Policy: <https://josephb524.github.io/Porn-Blocker-Pure-Path-Privacy/>
+  - Terms of Use: Apple Standard EULA — <https://www.apple.com/legal/internet-services/itunes/dev/stdeula/>
 - **Anthropic-style chat history cap** (`MAX_MESSAGES` in `worker/src/index.ts`):
   40 messages.

@@ -5,12 +5,17 @@ struct PaywallScreen: View {
     @StateObject private var subManager = SubscriptionManager.shared
     @Binding var isPresented: Bool
     @State private var showingError = false
-    @State private var showPrivacyPolicy = false
-    @State private var showTermsOfUse = false
     @State private var featuresAppeared = false
     @State private var selectedProduct: Product?
 
     private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
+
+    // Legal links open externally (Safari) rather than as in-app sheets,
+    // so the App Store reviewer and users see canonical hosted documents.
+    // Terms uses Apple's Standard EULA, which the in-app TermsView also
+    // references as the controlling agreement.
+    private let privacyPolicyURL = URL(string: "https://josephb524.github.io/Porn-Blocker-Pure-Path-Privacy/")!
+    private let termsOfUseURL    = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 
     private let features: [(icon: String, text: String, color: Color)] = [
         ("globe.badge.chevron.backward",        "Block millions of porn sites in Safari", Color(hue: 0.6,  saturation: 0.7, brightness: 0.75)),
@@ -74,8 +79,6 @@ struct PaywallScreen: View {
         } message: {
             Text(subManager.errorMessage ?? "An unexpected error occurred. Please try again.")
         }
-        .sheet(isPresented: $showPrivacyPolicy) { NavigationStack { PrivacyPolicyView() } }
-        .sheet(isPresented: $showTermsOfUse)  { NavigationStack { TermsView() } }
         .onAppear {
             if !subManager.hasLoadedProducts && !subManager.isLoading {
                 Task { await subManager.loadProducts() }
@@ -328,9 +331,9 @@ struct PaywallScreen: View {
 
     private var legalSection: some View {
         HStack {
-            Button("Privacy Policy") { showPrivacyPolicy = true }
+            Link("Privacy Policy", destination: privacyPolicyURL)
             Spacer()
-            Button("Terms of Use") { showTermsOfUse = true }
+            Link("Terms of Use", destination: termsOfUseURL)
         }
         .font(.caption)
         .foregroundColor(.secondary)

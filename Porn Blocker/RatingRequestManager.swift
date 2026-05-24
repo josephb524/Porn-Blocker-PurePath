@@ -37,22 +37,22 @@ final class RatingRequestManager: ObservableObject {
         userDefaults.set(launches, forKey: launchesKey)
     }
 
+    /// Auto-prompt path (called on `didBecomeActive`). Fires Apple's native
+    /// `SKStoreReviewController` sheet only — the custom `ReviewPromptView`
+    /// is reserved for the explicit "Rate the App" tap in Settings (see
+    /// `promptForReviewDirectly`). If no foreground scene exists we simply
+    /// skip; iOS will give us another `didBecomeActive` shortly.
     func maybePromptForReview(context: UIApplication? = nil) {
         guard shouldPrompt() else { return }
-        
+
         let actualContext = context ?? UIApplication.shared
-        
-        if let scene = actualContext.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-            SKStoreReviewController.requestReview(in: scene)
-            userDefaults.set(Date(), forKey: lastPromptDateKey)
-            
-            // Wait slightly before showing our custom prompt as a follow-up
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                self.showReviewPrompt = true
-            }
-        } else {
-            self.showReviewPrompt = true
-        }
+
+        guard let scene = actualContext.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+        else { return }
+
+        SKStoreReviewController.requestReview(in: scene)
+        userDefaults.set(Date(), forKey: lastPromptDateKey)
     }
     
     func promptForReviewDirectly() {
