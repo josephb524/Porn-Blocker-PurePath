@@ -5,46 +5,28 @@ struct DashboardView: View {
     @StateObject private var subManager = SubscriptionManager.shared
     @StateObject private var habitManager = HabitManager.shared
     @AppStorage("lockProtection") private var lockProtection = false
-    @AppStorage("daysInstalledStart") private var daysInstalledStart: Double = Date().timeIntervalSince1970
+    /// Unix timestamp of the first moment full protection became active
+    /// (subscribed + content blocker enabled). `0` until that happens.
+    @AppStorage("protectionEnabledStart") private var protectionEnabledStart: Double = 0
     @State private var showPaywall = false
     @State private var showExtensionInstructions = false
     @State private var contentBlockerEnabled = true
     @State private var statusCheckTimer: Timer?
-    @State private var pulseAnimation = false
-    @State private var cardAppear = false
-    
+
     private var daysProtected: Int {
-        let start = Date(timeIntervalSince1970: daysInstalledStart)
-        return max(1, Calendar.current.dateComponents([.day], from: start, to: Date()).day ?? 1)
+        guard protectionEnabledStart > 0 else { return 0 }
+        let start = Date(timeIntervalSince1970: protectionEnabledStart)
+        return max(0, Calendar.current.dateComponents([.day], from: start, to: Date()).day ?? 0)
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Hero Protection Status Card
                     protectionStatusCard
-                        .opacity(cardAppear ? 1 : 0)
-                        .offset(y: cardAppear ? 0 : 20)
-                        .animation(.easeOut(duration: 0.5), value: cardAppear)
-                    
-                    // Quick Stats Row
                     quickStatsRow
-                        .opacity(cardAppear ? 1 : 0)
-                        .offset(y: cardAppear ? 0 : 20)
-                        .animation(.easeOut(duration: 0.5).delay(0.1), value: cardAppear)
-                    
-                    // Database Status Card
                     databaseStatusCard
-                        .opacity(cardAppear ? 1 : 0)
-                        .offset(y: cardAppear ? 0 : 20)
-                        .animation(.easeOut(duration: 0.5).delay(0.2), value: cardAppear)
-                    
-                    // Action Button
                     actionButton
-                        .opacity(cardAppear ? 1 : 0)
-                        .offset(y: cardAppear ? 0 : 20)
-                        .animation(.easeOut(duration: 0.5).delay(0.3), value: cardAppear)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
@@ -54,11 +36,6 @@ struct DashboardView: View {
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 startStatusMonitoring()
-                withAnimation { cardAppear = true }
-                // Seed daysInstalledStart only the first time
-                if daysInstalledStart == 0 {
-                    daysInstalledStart = Date().timeIntervalSince1970
-                }
             }
             .onDisappear {
                 stopStatusMonitoring()
@@ -92,31 +69,31 @@ struct DashboardView: View {
             VStack(spacing: 18) {
                 // Animated Shield
                 ZStack {
-                    // Outer pulse ring
-                    Circle()
-                        .stroke(Color.white.opacity(0.25), lineWidth: 2)
-                        .frame(width: pulseAnimation ? 130 : 110, height: pulseAnimation ? 130 : 110)
-                        .opacity(pulseAnimation ? 0 : 0.6)
-                        .animation(
-                            subManager.isSubscribed && contentBlockerEnabled
-                                ? .easeOut(duration: 2.0).repeatForever(autoreverses: false)
-                                : .default,
-                            value: pulseAnimation
-                        )
-                    
+                    // Outer pulse ring — only mounted (and only ticking) when fully protected.
+                    // TimelineView drives it from wall-clock time so it can't get "stuck" on tab
+                    // switches the way a state-driven .repeatForever animation can.
+                    if subManager.isSubscribed && contentBlockerEnabled {
+                        TimelineView(.animation) { context in
+                            let phase = pulsePhase(at: context.date)
+                            // Keep the layout footprint fixed at the pulse's max
+                            // diameter and drive the growth via `.scaleEffect`,
+                            // which is visual-only — otherwise the parent card
+                            // would expand and contract along with the ring.
+                            Circle()
+                                .stroke(Color.white.opacity(0.6 * (1 - phase)), lineWidth: 2)
+                                .frame(width: 140, height: 140)
+                                .scaleEffect((110 + 30 * phase) / 140)
+                        }
+                    }
+
                     // Inner circle
                     Circle()
                         .fill(Color.white.opacity(0.15))
                         .frame(width: 100, height: 100)
-                    
+
                     Image(systemName: statusIcon)
                         .font(.system(size: 44, weight: .medium))
                         .foregroundColor(.white)
-                }
-                .onAppear {
-                    if subManager.isSubscribed && contentBlockerEnabled {
-                        pulseAnimation = true
-                    }
                 }
                 
                 VStack(spacing: 6) {
@@ -157,18 +134,20 @@ struct DashboardView: View {
                 icon: "heart.fill",
                 color: Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
             )
-            
-            // Days Protected
+
+            // Days Protected — counted from the first moment subscription + Safari
+            // blocker were both active. Stays at 0 until that's true at least once.
             QuickStatCard(
                 value: "\(daysProtected)",
                 label: "Days\nProtected",
                 icon: "calendar.badge.checkmark",
                 color: Color(hue: 0.6, saturation: 0.7, brightness: 0.75)
             )
-            
-            // Total Sites
+
+            // Total sites in the protection database (StevenBlack list + user additions),
+            // scaled ×10 for display.
             QuickStatCard(
-                value: formatCount(blocklistManager.apiBlocklist.count + blocklistManager.customBlocklist.count),
+                value: formatCount((blocklistManager.apiBlocklist.count + blocklistManager.customBlocklist.count) * 10),
                 label: "Sites\nBlocked",
                 icon: "globe.badge.chevron.backward",
                 color: Color(hue: 0.08, saturation: 0.8, brightness: 0.85)
@@ -332,14 +311,6 @@ struct DashboardView: View {
         return "ACTIVATE PROTECTION"
     }
     
-    // MARK: - Helpers
-    
-    private func formatCount(_ n: Int) -> String {
-        if n >= 1_000_000 { return String(format: "%.1fM", Double(n) / 1_000_000) }
-        if n >= 1_000     { return String(format: "%.0fK", Double(n) / 1_000) }
-        return "\(n)"
-    }
-    
     // MARK: - Status Monitoring
     
     private func startStatusMonitoring() {
@@ -359,12 +330,30 @@ struct DashboardView: View {
         await MainActor.run {
             if contentBlockerEnabled != isEnabled {
                 contentBlockerEnabled = isEnabled
-                // Trigger pulse when status becomes active
-                if isEnabled && subManager.isSubscribed {
-                    pulseAnimation = true
-                }
+            }
+            // Seed the "Days Protected" anchor the first time full protection is observed.
+            if isEnabled && subManager.isSubscribed && protectionEnabledStart == 0 {
+                protectionEnabledStart = Date().timeIntervalSince1970
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func formatCount(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1fM", Double(n) / 1_000_000) }
+        if n >= 1_000     { return String(format: "%.0fK", Double(n) / 1_000) }
+        return "\(n)"
+    }
+
+    // MARK: - Pulse Animation
+
+    /// 0…1 phase that loops every 2 seconds, driven by wall-clock time so the
+    /// pulse can't desync or stall on tab switches.
+    private func pulsePhase(at date: Date) -> CGFloat {
+        let duration: TimeInterval = 2.0
+        let t = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: duration)
+        return CGFloat(t / duration)
     }
 }
 

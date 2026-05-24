@@ -13,11 +13,12 @@ struct PaywallScreen: View {
     private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
 
     private let features: [(icon: String, text: String, color: Color)] = [
-        ("globe.badge.chevron.backward", "Block millions of porn sites in Safari", Color(hue: 0.6,  saturation: 0.7, brightness: 0.75)),
-        ("shield.fill",                  "Safe, private web browsing",              Color(hue: 0.38, saturation: 0.65, brightness: 0.5)),
-        ("gear",                         "Fully customizable block list",            Color(hue: 0.08, saturation: 0.8,  brightness: 0.9)),
-        ("textformat.abc",               "Custom keywords & websites",               Color(hue: 0.7,  saturation: 0.65, brightness: 0.8)),
-        ("arrow.triangle.2.circlepath",  "Automatic database updates",               Color(hue: 0.0,  saturation: 0.7,  brightness: 0.65)),
+        ("globe.badge.chevron.backward",        "Block millions of porn sites in Safari", Color(hue: 0.6,  saturation: 0.7, brightness: 0.75)),
+        ("bubble.left.and.bubble.right.fill",   "Buddy chat — talk through urges 24/7",   Color(hue: 0.9,  saturation: 0.65, brightness: 0.75)),
+        ("shield.fill",                         "Safe, private web browsing",             Color(hue: 0.38, saturation: 0.65, brightness: 0.5)),
+        ("gear",                                "Fully customizable block list",          Color(hue: 0.08, saturation: 0.8,  brightness: 0.9)),
+        ("textformat.abc",                      "Custom keywords & websites",             Color(hue: 0.7,  saturation: 0.65, brightness: 0.8)),
+        ("arrow.triangle.2.circlepath",         "Automatic database updates",             Color(hue: 0.0,  saturation: 0.7,  brightness: 0.65)),
     ]
 
     /// The plan that will be purchased — the user's pick, defaulting to yearly.

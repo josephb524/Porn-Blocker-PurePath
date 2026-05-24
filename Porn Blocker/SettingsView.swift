@@ -3,17 +3,22 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var blocklistManager = BlocklistManager.shared
     @StateObject private var subManager = SubscriptionManager.shared
-    @AppStorage("darkMode") private var darkMode = true
+    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
     @State private var showSubmitSheet = false
     
     var body: some View {
         NavigationStack {
             List {
                 
-                Section(header: Text("Appearance Settings")) {
-                    Toggle("Dark Mode", isOn: $darkMode)
-                    
-                    Text("Toggle between light and dark appearance")
+                Section(header: Text("Appearance")) {
+                    Picker("Appearance", selection: $appearanceMode) {
+                        ForEach(AppearanceMode.allCases) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    Text("Match your device's setting, or pick light or dark.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

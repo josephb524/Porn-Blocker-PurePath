@@ -4,9 +4,13 @@ import StoreKit
 struct MainTabView: View {
     @StateObject private var blocklistManager = BlocklistManager.shared
     @State private var selectedTab = 0
-    
+
     @StateObject private var ratingManager = RatingRequestManager.shared
-    
+
+    /// Watched so a tapped habit reminder pulls the user onto the Streaks tab.
+    /// `StatsView` consumes the same router to open the edit sheet.
+    @StateObject private var habitRouter = HabitNotificationRouter.shared
+
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
@@ -16,25 +20,25 @@ struct MainTabView: View {
                         Text("Protection")
                     }
                     .tag(0)
-                
-                StatsView()
-                    .tabItem {
-                        Image(systemName: "chart.bar.fill")
-                        Text("Streaks")
-                    }
-                    .tag(1)
-                
+
                 SafeBrowserView()
                     .tabItem {
                         Image(systemName: "safari.fill")
                         Text("Safe Browse")
                     }
-                    .tag(2)
+                    .tag(1)
 
                 BuddyChatView()
                     .tabItem {
                         Image(systemName: "bubble.left.and.bubble.right.fill")
                         Text("Buddy")
+                    }
+                    .tag(2)
+
+                StatsView()
+                    .tabItem {
+                        Image(systemName: "chart.bar.fill")
+                        Text("Streaks")
                     }
                     .tag(3)
 
@@ -59,6 +63,19 @@ struct MainTabView: View {
                 )
                 .transition(.opacity.combined(with: .scale))
                 .zIndex(100)
+            }
+        }
+        // Cold launch — the delegate may have already routed a habit ID
+        // before the view subscribed below.
+        .onAppear {
+            if habitRouter.pendingHabitID != nil {
+                selectedTab = 3
+            }
+        }
+        // Warm tap — router updates while the app is running.
+        .onChange(of: habitRouter.pendingHabitID) { newValue in
+            if newValue != nil {
+                selectedTab = 3
             }
         }
     }

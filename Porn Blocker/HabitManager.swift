@@ -130,16 +130,21 @@ struct TrackedHabit: Identifiable, Codable {
 
     private func consecutiveStreak(endingOn date: Date) -> Int {
         let set = Set(checkIns)
-        var streak = 0
-        var cursor = Calendar.current.startOfDay(for: date)
         let f = Self.dayKeyFormatter
-        if set.contains(f.string(from: cursor)) {
-            streak = 1
+        var cursor = Calendar.current.startOfDay(for: date)
+
+        // Grace day: if today isn't checked in yet, start counting from
+        // yesterday so the streak number persists through the current day.
+        // It only drops to 0 once today ends without a check-in (i.e. at
+        // midnight, when "yesterday" itself becomes the missed day).
+        if !set.contains(f.string(from: cursor)) {
             cursor = Calendar.current.date(byAdding: .day, value: -1, to: cursor)!
-            while set.contains(f.string(from: cursor)) {
-                streak += 1
-                cursor = Calendar.current.date(byAdding: .day, value: -1, to: cursor)!
-            }
+        }
+
+        var streak = 0
+        while set.contains(f.string(from: cursor)) {
+            streak += 1
+            cursor = Calendar.current.date(byAdding: .day, value: -1, to: cursor)!
         }
         return streak
     }
@@ -177,39 +182,132 @@ let allMilestones: [Milestone] = [
 
 // MARK: - Habit Notification Manager
 
-struct HabitNotificationManager {
+/// Prefix on the scheduled notification's identifier. `NotificationDelegate`
+/// parses this back out to learn which habit the tap belongs to.
+private let habitNotificationPrefix = "habit-"
 
-    static func requestPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
-    }
+struct HabitNotificationManager {
 
     static func schedule(for habit: TrackedHabit) {
         let center = UNUserNotificationCenter.current()
-        let identifier = "habit-\(habit.id.uuidString)"
+        let identifier = "\(habitNotificationPrefix)\(habit.id.uuidString)"
         center.removePendingNotificationRequests(withIdentifiers: [identifier])
         guard habit.reminderEnabled else { return }
 
         center.getNotificationSettings { settings in
-            guard settings.authorizationStatus == .authorized else {
-                requestPermission()
-                return
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                // First-time enable: ask, then schedule on the same call
+                // chain. Previously this branch only asked and returned,
+                // so the user's first reminder was never actually queued
+                // and didn't fire that day.
+                center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                    guard granted else { return }
+                    addRequest(for: habit, on: center, identifier: identifier)
+                }
+            case .authorized, .provisional, .ephemeral:
+                addRequest(for: habit, on: center, identifier: identifier)
+            case .denied:
+                // User opted out — leave it; they can re-enable in Settings.
+                break
+            @unknown default:
+                break
             }
-            let content = UNMutableNotificationContent()
-            content.title  = "\(habit.emoji) \(habit.name)"
-            content.body   = "Don't break your streak — check in for today! 🔥"
-            content.sound  = .default
-
-            var comps = Calendar.current.dateComponents([.hour, .minute], from: habit.reminderTime)
-            comps.second = 0
-            let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
-            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-            center.add(request)
         }
     }
 
     static func cancel(for habitID: UUID) {
-        let identifier = "habit-\(habitID.uuidString)"
+        let identifier = "\(habitNotificationPrefix)\(habitID.uuidString)"
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    }
+
+    /// Builds and submits the actual repeating request. Pulled out so both
+    /// the already-authorized branch and the `.notDetermined`-then-granted
+    /// branch above share the same code path.
+    private static func addRequest(for habit: TrackedHabit,
+                                   on center: UNUserNotificationCenter,
+                                   identifier: String) {
+        let content = UNMutableNotificationContent()
+        content.title  = "\(habit.emoji) \(habit.name)"
+        content.body   = "Don't break your streak — check in for today! 🔥"
+        content.sound  = .default
+        // Round-trip the habit ID in userInfo too, so the tap handler
+        // doesn't have to rely solely on parsing the identifier.
+        content.userInfo = ["habitID": habit.id.uuidString]
+
+        var comps = Calendar.current.dateComponents([.hour, .minute], from: habit.reminderTime)
+        comps.second = 0
+        let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        center.add(request) { error in
+            if let error {
+                Log.error("Failed to schedule habit reminder: \(error.localizedDescription)")
+            } else if let next = trigger.nextTriggerDate() {
+                Log.debug("Scheduled habit reminder for \(habit.name) — next fires at \(next)")
+            }
+        }
+    }
+}
+
+// MARK: - Habit Notification Routing
+
+/// Shared bus that the notification delegate publishes into and the UI
+/// observes. Stays set until consumed so a cold-launch tap (where views
+/// aren't yet subscribed when the delegate fires) is still picked up by
+/// whichever view appears next.
+@MainActor
+final class HabitNotificationRouter: ObservableObject {
+    static let shared = HabitNotificationRouter()
+
+    /// Set by the notification delegate when a habit reminder is tapped.
+    /// `MainTabView` reacts by switching to the Streaks tab; `StatsView`
+    /// reacts by opening the edit sheet for that habit, then clears it.
+    @Published var pendingHabitID: UUID?
+
+    private init() {}
+
+    func received(habitID: UUID) {
+        pendingHabitID = habitID
+    }
+
+    func clear() {
+        pendingHabitID = nil
+    }
+}
+
+/// `UNUserNotificationCenterDelegate` that routes habit-reminder taps into
+/// `HabitNotificationRouter`. Installed by `AppDelegate` at launch.
+final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationDelegate()
+
+    /// Keep the banner visible if the reminder fires while the app is open.
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound, .badge])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        defer { completionHandler() }
+
+        // Prefer userInfo (explicit), fall back to parsing the identifier
+        // for older notifications already scheduled before this change.
+        let userInfo = response.notification.request.content.userInfo
+        let id: UUID? = {
+            if let raw = userInfo["habitID"] as? String, let uuid = UUID(uuidString: raw) {
+                return uuid
+            }
+            let identifier = response.notification.request.identifier
+            guard identifier.hasPrefix(habitNotificationPrefix) else { return nil }
+            return UUID(uuidString: String(identifier.dropFirst(habitNotificationPrefix.count)))
+        }()
+
+        guard let habitID = id else { return }
+        Task { @MainActor in
+            HabitNotificationRouter.shared.received(habitID: habitID)
+        }
     }
 }
 

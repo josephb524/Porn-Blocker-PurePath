@@ -4,6 +4,7 @@ import SwiftUI
 
 struct StatsView: View {
     @StateObject private var habitManager = HabitManager.shared
+    @StateObject private var habitRouter = HabitNotificationRouter.shared
     @State private var showAddHabit = false
     @State private var selectedEditHabit: TrackedHabit? = nil
     @State private var appear = false
@@ -49,12 +50,28 @@ struct StatsView: View {
                     }
                 }
             }
-            .onAppear { withAnimation { appear = true } }
+            .onAppear {
+                withAnimation { appear = true }
+                openEditSheetForPendingHabit()
+            }
+            .onChange(of: habitRouter.pendingHabitID) { _ in
+                openEditSheetForPendingHabit()
+            }
             .sheet(isPresented: $showAddHabit) { AddHabitView() }
             .sheet(item: $selectedEditHabit) { habit in
                 EditHabitView(habit: habit)
             }
         }
+    }
+
+    /// If a habit reminder was tapped, open that habit's edit sheet (where
+    /// the user can mark today done via the history grid) and clear the
+    /// pending ID so it isn't re-handled on the next view event.
+    private func openEditSheetForPendingHabit() {
+        guard let id = habitRouter.pendingHabitID,
+              let habit = habitManager.habits.first(where: { $0.id == id }) else { return }
+        selectedEditHabit = habit
+        habitRouter.clear()
     }
 
     // MARK: - Porn Free Hero Card
@@ -119,9 +136,7 @@ struct StatsView: View {
 
                     // Stats row
                     HStack(spacing: 0) {
-                        pornFreeStat(value: "\(habit.longestStreak)", label: "Best Streak")
-                        Divider().frame(height: 30).background(Color.white.opacity(0.2))
-                        pornFreeStat(value: "\(habit.totalDays)", label: "Total Days")
+                        pornFreeStat(value: "\(habit.longestStreak)", label: "Longest Streak")
                         Divider().frame(height: 30).background(Color.white.opacity(0.2))
                         pornFreeStat(value: nextMilestoneLabel(habit.currentStreak), label: "Next Goal")
                     }

@@ -18,9 +18,20 @@ struct BuddyChatView: View {
 // MARK: - Locked Gate (non-subscribers)
 
 private struct BuddyLockedView: View {
+    @StateObject private var subManager = SubscriptionManager.shared
     @State private var showPaywall = false
 
     private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
+
+    /// Caption under the "Unlock Buddy Chat" button. Mirrors the paywall:
+    /// if the default plan (yearly) has a free-trial offer, mention it;
+    /// otherwise just say "Cancel anytime".
+    private var trialTeaserText: String {
+        if let trial = subManager.yearlyProduct?.freeTrialText {
+            return "\(trial) · Cancel anytime"
+        }
+        return "Cancel anytime"
+    }
 
     var body: some View {
         NavigationStack {
@@ -116,6 +127,10 @@ private struct BuddyLockedView: View {
                             )
                         }
                         .padding(.horizontal, 24)
+
+                        Text(trialTeaserText)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.5))
                     }
                     .padding(.bottom, 40)
                 }
@@ -309,7 +324,7 @@ private struct BuddyChatContent: View {
                     ForEach(suggestedPrompts, id: \.self) { prompt in
                         Button {
                             viewModel.draft = prompt
-                            inputFocused = true
+                            viewModel.send()
                         } label: {
                             HStack {
                                 Text(prompt)
