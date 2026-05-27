@@ -87,7 +87,9 @@ Both engines go through `KeywordMatcher` so they block identically.
   buddy chat, customizable list, etc.), plan picker (monthly + yearly,
   yearly selected by default with a dynamic "SAVE X%" badge), Subscribe +
   Restore buttons. Dynamically shows free-trial copy if a product has an
-  introductory offer.
+  introductory offer. The layout is tuned for App Store guideline
+  **3.1.2(c)** compliance — see "Paywall layout (App Store 3.1.2(c))" below
+  before changing fonts, button copy, or pricing prominence.
 
 `SubscriptionManager` posts a `.subscriptionStatusChanged` notification when
 status changes; `BlocklistManager` observes it and re-syncs the content
@@ -109,6 +111,35 @@ Product IDs must match in **three** places: `SubscriptionManager.swift`,
 Both declared in `SubscriptionManager` as `nonisolated static let` so the
 detached transaction listener can reference them without Swift 6 isolation
 warnings.
+
+#### Paywall layout (App Store 3.1.2(c))
+
+The first submission was rejected under guideline **3.1.2(c)** for not
+making the auto-renewing subscription terms clear in the purchase flow.
+The current `PaywallScreen` layout is the fix — don't undo these without
+re-reading the rejection notice:
+
+- **Billed price is the most prominent pricing element.** In `planCard`,
+  `product.displayPrice` is `.title2.bold()` (larger than the plan name
+  `.subheadline` and the trial caption `.caption2`). The disclosure block
+  under the CTA repeats the price as `.title3.bold()`. Any new pricing
+  element you add (intro pricing, calculated per-month price, savings
+  badge) must render *smaller and subordinate* to `displayPrice`.
+- **CTA button must state that a subscription follows the trial.** When a
+  trial is available, the button shows two lines: primary "Start Free
+  Trial & Subscribe" (`.headline`) and secondary "Then $X.XX per year,
+  auto-renews" (`.subheadline.semibold`, same white color). The secondary
+  line is **on the button itself** — Apple specifically called out that
+  the trial CTA must indicate "no less prominently" that a subscription
+  follows. Don't move that line off the button.
+- **Disclosure paragraph below the CTA** must mention that the
+  subscription begins automatically at trial end, that it auto-renews,
+  and that cancellation happens in Settings ≥24 hours before renewal.
+  See `billingDisclosure(for:)`.
+- **Free-trial copy on plan cards is intentionally muted** ("Includes
+  3-day free trial", `.caption2`, secondary color). Don't restyle it in
+  accent color or larger fonts — that's what got the original layout
+  rejected.
 
 ### Buddy Chat (paid feature)
 
@@ -290,7 +321,11 @@ Apple's root cert.
 - **Don't reintroduce hardcoded prices** in `PaywallScreen`. Both plans
   pull live `displayPrice` / period from `Product`, and the trial copy is
   derived from `Product.freeTrialText` (an extension on `Product` in
-  `SubscriptionManager.swift`).
+  `SubscriptionManager.swift`). When touching paywall typography or CTA
+  copy, re-read "Paywall layout (App Store 3.1.2(c))" — the visual
+  hierarchy (billed price dominant, trial copy subordinate, CTA states
+  that a subscription follows the trial) is load-bearing for
+  resubmission.
 - **Paywall legal links are external `Link`s, not in-app sheets.** The
   Privacy Policy and Terms of Use rows in `PaywallScreen.legalSection`
   open the hosted URLs directly in Safari (see "Hardcoded values worth

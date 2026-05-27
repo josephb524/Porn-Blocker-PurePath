@@ -213,7 +213,8 @@ struct PaywallScreen: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 8) {
                         Text(product.planName)
-                            .font(.headline)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
                             .foregroundColor(.primary)
                         if isYearly, let savings = subManager.yearlySavingsPercent {
                             Text("SAVE \(savings)%")
@@ -226,9 +227,9 @@ struct PaywallScreen: View {
                         }
                     }
                     if let trial = product.freeTrialText {
-                        Text(trial)
-                            .font(.caption)
-                            .foregroundColor(accent)
+                        Text("Includes \(trial.lowercased())")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -236,10 +237,11 @@ struct PaywallScreen: View {
 
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(product.displayPrice)
-                        .font(.headline)
+                        .font(.title2)
+                        .fontWeight(.bold)
                         .foregroundColor(.primary)
                     Text("per \(product.periodUnitText)")
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundColor(.secondary)
                 }
             }
@@ -263,21 +265,31 @@ struct PaywallScreen: View {
     private var ctaSection: some View {
         VStack(spacing: 14) {
             Button(action: purchaseSelectedPlan) {
-                HStack(spacing: 10) {
+                Group {
                     if subManager.isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(0.85)
-                        Text("Processing…")
+                        HStack(spacing: 10) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(0.85)
+                            Text("Processing…")
+                                .font(.headline)
+                        }
                     } else {
-                        Image(systemName: "star.fill")
-                        Text(ctaTitle)
+                        VStack(spacing: 3) {
+                            Text(ctaPrimaryTitle)
+                                .font(.headline)
+                            if let secondary = ctaSecondaryTitle {
+                                Text(secondary)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                            }
+                        }
                     }
                 }
-                .font(.headline)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 56)
+                .frame(minHeight: 56)
+                .padding(.vertical, 8)
                 .background(
                     LinearGradient(
                         colors: [Color(hue: 0.6, saturation: 0.75, brightness: 0.65), accent],
@@ -291,26 +303,58 @@ struct PaywallScreen: View {
             .disabled(subManager.isLoading || activeProduct == nil)
             .opacity((subManager.isLoading || activeProduct == nil) ? 0.6 : 1.0)
 
-            Text(disclaimerText)
-                .font(.caption)
+            if let product = activeProduct {
+                billingDisclosure(for: product)
+            }
+        }
+    }
+
+    /// CTA button title. When a free trial is available, the button must make
+    /// clear that an auto-renewing subscription follows — Apple guideline
+    /// 3.1.2(c). The post-trial price is rendered as a secondary line on the
+    /// button itself so it's no less prominent than the trial mention.
+    private var ctaPrimaryTitle: String {
+        guard let product = activeProduct else { return "Subscribe Now" }
+        if product.freeTrialText != nil {
+            return "Start Free Trial & Subscribe"
+        }
+        return "Subscribe Now"
+    }
+
+    private var ctaSecondaryTitle: String? {
+        guard let product = activeProduct, product.freeTrialText != nil else { return nil }
+        return "Then \(product.displayPrice) per \(product.periodUnitText), auto-renews"
+    }
+
+    /// Below-button disclosure. The total billed amount is the largest, boldest
+    /// element; trial duration and cancellation language are subordinate.
+    @ViewBuilder
+    private func billingDisclosure(for product: Product) -> some View {
+        VStack(spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(product.displayPrice)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                if let trial = product.freeTrialText {
+                    Text("per \(product.periodUnitText) after \(trial)")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("per \(product.periodUnitText)")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Text(product.freeTrialText != nil
+                 ? "Your subscription begins automatically when the free trial ends. Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date."
+                 : "Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.")
+                .font(.caption2)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
-    }
-
-    private var ctaTitle: String {
-        activeProduct?.freeTrialText != nil ? "START FREE TRIAL" : "SUBSCRIBE NOW"
-    }
-
-    private var disclaimerText: String {
-        guard let product = activeProduct else {
-            return "Auto-renews until cancelled. Cancel anytime in Settings."
-        }
-        let price = "\(product.displayPrice)/\(product.periodUnitText)"
-        if let trial = product.freeTrialText {
-            return "\(trial), then \(price). Auto-renews until cancelled — cancel anytime in Settings."
-        }
-        return "\(price). Auto-renews until cancelled — cancel anytime in Settings."
     }
 
     private func purchaseSelectedPlan() {
