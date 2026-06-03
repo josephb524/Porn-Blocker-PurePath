@@ -106,7 +106,7 @@ Product IDs must match in **three** places: `SubscriptionManager.swift`,
 `worker/src/verify.ts` (`VALID_PRODUCT_IDS`), **and** App Store Connect.
 
 - `pornBlocker` — yearly
-- `pornBlockerMonthly` — monthly
+- `monthlyPornBlocker` — monthly
 
 Both declared in `SubscriptionManager` as `nonisolated static let` so the
 detached transaction listener can reference them without Swift 6 isolation
@@ -160,6 +160,43 @@ re-reading the rejection notice:
 - tap `Done` in `ToolbarItemGroup(placement: .keyboard)`
 
 Keep all three when refactoring — the iOS norm is "all three or none".
+
+### Dashboard "Days Protected"
+
+The `DashboardView` "Days Protected" quick-stat counts **cumulative days
+protection has actually been active**, where active means **subscribed AND
+the Safari content blocker enabled** — the same pair that turns the status
+hero card green. It pauses while protection is off and resumes from where it
+left off; it does **not** reset to 0, and it does **not** keep climbing while
+protection is off.
+
+Two `@AppStorage` values back it (don't go back to a single anchor):
+
+- `protectedSecondsBanked` — banked time from completed active stretches.
+- `protectionStretchStart` — Unix timestamp the current stretch began, `0`
+  while protection is off.
+
+`daysProtected = floor((banked + current live stretch) / 86_400)`.
+`reconcileProtectionAccrual()` is the single source of truth: it opens a
+stretch when protection becomes active and banks the elapsed time when it
+stops. It must be driven by **both** signals — `checkContentBlockerStatus()`
+(extension enabled flag) and `.onChange(of: subManager.isSubscribed)` — so a
+subscription lapse mid-session banks correctly, not just an extension toggle.
+
+Non-obvious bits:
+
+- **Legacy migration.** `migrateLegacyAnchorIfNeeded()` carries existing
+  users over from the old single `protectionEnabledStart` anchor exactly
+  once (preserving the number they saw), then zeroes that key. Don't remove
+  it until you're sure no installs still hold the old key.
+- **Whole-day (24h) granularity.** A stretch under 24h banks 0 days, so day
+  one reads `0` until 24h elapse. This is intentional parity with the
+  original card — if you change it to count day-one as `1`, do it
+  deliberately.
+- **Background lapses are approximate.** Reconciliation only happens while
+  the app observes the state change, so time between a background
+  lapse/toggle and the next app open is counted as protected. Exact
+  lapse-time banking would need `SubscriptionManager`'s expiration date.
 
 ### Streaks, reminders, and deep-linking
 

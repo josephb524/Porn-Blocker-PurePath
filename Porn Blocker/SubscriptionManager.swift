@@ -35,7 +35,7 @@ final class SubscriptionManager: ObservableObject {
     // Product IDs — must match the auto-renewable subscriptions configured in
     // App Store Connect. `nonisolated` so the background transaction listener
     // can read them.
-    private nonisolated static let monthlyProductID = "pornBlockerMonthly"
+    private nonisolated static let monthlyProductID = "monthlyPornBlocker"
     private nonisolated static let yearlyProductID = "pornBlocker"
     private nonisolated static let productIDs: Set<String> = [monthlyProductID, yearlyProductID]
     private var updateListenerTask: Task<Void, Never>? = nil

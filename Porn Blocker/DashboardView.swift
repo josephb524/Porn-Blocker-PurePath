@@ -5,18 +5,31 @@ struct DashboardView: View {
     @StateObject private var subManager = SubscriptionManager.shared
     @StateObject private var habitManager = HabitManager.shared
     @AppStorage("lockProtection") private var lockProtection = false
-    /// Unix timestamp of the first moment full protection became active
-    /// (subscribed + content blocker enabled). `0` until that happens.
+    /// Legacy anchor (Unix timestamp of the first moment full protection became
+    /// active). Kept only for one-time migration into the accumulator below; set
+    /// to `0` once migrated. See `reconcileProtectionAccrual()`.
     @AppStorage("protectionEnabledStart") private var protectionEnabledStart: Double = 0
+    /// Banked protected time (seconds) from past active stretches. Full protection
+    /// means subscribed **and** the Safari content blocker enabled — the same pair
+    /// that turns the status card green.
+    @AppStorage("protectedSecondsBanked") private var protectedSecondsBanked: Double = 0
+    /// Unix timestamp the current active stretch began, or `0` while protection is
+    /// off. The count pauses (no live stretch) when off and resumes from the bank
+    /// when protection comes back.
+    @AppStorage("protectionStretchStart") private var protectionStretchStart: Double = 0
     @State private var showPaywall = false
     @State private var showExtensionInstructions = false
     @State private var contentBlockerEnabled = true
     @State private var statusCheckTimer: Timer?
 
+    /// Cumulative whole days protection has actually been active — banked time plus
+    /// any live stretch in progress. Pauses while protection is off.
     private var daysProtected: Int {
-        guard protectionEnabledStart > 0 else { return 0 }
-        let start = Date(timeIntervalSince1970: protectionEnabledStart)
-        return max(0, Calendar.current.dateComponents([.day], from: start, to: Date()).day ?? 0)
+        var total = protectedSecondsBanked
+        if protectionStretchStart > 0 {
+            total += Date().timeIntervalSince1970 - protectionStretchStart
+        }
+        return max(0, Int(total / 86_400))
     }
 
     var body: some View {
@@ -42,6 +55,11 @@ struct DashboardView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                 Task { await checkContentBlockerStatus() }
+            }
+            .onChange(of: subManager.isSubscribed) { _ in
+                // Subscription lapsing/renewing flips protection on or off just like
+                // toggling the extension — bank or resume the accumulator accordingly.
+                reconcileProtectionAccrual()
             }
             .sheet(isPresented: $showExtensionInstructions) {
                 SafariExtensionInstructionsView()
@@ -331,10 +349,41 @@ struct DashboardView: View {
             if contentBlockerEnabled != isEnabled {
                 contentBlockerEnabled = isEnabled
             }
-            // Seed the "Days Protected" anchor the first time full protection is observed.
-            if isEnabled && subManager.isSubscribed && protectionEnabledStart == 0 {
-                protectionEnabledStart = Date().timeIntervalSince1970
+            reconcileProtectionAccrual()
+        }
+    }
+
+    /// Keeps the "Days Protected" accumulator in sync with the live protection
+    /// state. Starts a stretch when protection becomes fully active (subscribed +
+    /// blocker enabled), and banks the elapsed time when it stops — so the count
+    /// pauses while off and resumes from where it left off.
+    private func reconcileProtectionAccrual() {
+        let now = Date().timeIntervalSince1970
+        let active = subManager.isSubscribed && contentBlockerEnabled
+        migrateLegacyAnchorIfNeeded(active: active, now: now)
+        if active {
+            if protectionStretchStart == 0 {
+                protectionStretchStart = now
             }
+        } else if protectionStretchStart > 0 {
+            protectedSecondsBanked += max(0, now - protectionStretchStart)
+            protectionStretchStart = 0
+        }
+    }
+
+    /// One-time migration from the old single `protectionEnabledStart` anchor to the
+    /// banked/stretch model, preserving whatever count the user already saw. Runs at
+    /// most once — the legacy key is zeroed after.
+    private func migrateLegacyAnchorIfNeeded(active: Bool, now: Double) {
+        guard protectionEnabledStart > 0 else { return }
+        let legacy = protectionEnabledStart
+        protectionEnabledStart = 0
+        if active {
+            // Still protected — keep counting live from the original anchor.
+            if protectionStretchStart == 0 { protectionStretchStart = legacy }
+        } else {
+            // Not protected now — bank the time the old code would have shown.
+            protectedSecondsBanked += max(0, now - legacy)
         }
     }
 

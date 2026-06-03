@@ -2,7 +2,7 @@ import type { Env, TransactionPayload } from './types';
 
 /// Product IDs allowed to use the buddy-chat endpoint. Keep this in sync
 /// with `SubscriptionManager.swift` and App Store Connect.
-const VALID_PRODUCT_IDS = new Set<string>(['pornBlocker', 'pornBlockerMonthly']);
+const VALID_PRODUCT_IDS = new Set<string>(['pornBlocker', 'monthlyPornBlocker']);
 
 export type VerifyResult =
   | { ok: true; payload: TransactionPayload }
