@@ -236,10 +236,6 @@ private struct BuddyChatContent: View {
                     }
                     .accessibilityLabel("New chat")
                 }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { inputFocused = false }
-                }
             }
             .sheet(isPresented: $showHistory) {
                 ConversationListView { conversation in

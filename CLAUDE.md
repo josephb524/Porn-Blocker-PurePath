@@ -154,12 +154,11 @@ re-reading the rejection notice:
 | `ChatRichText.swift` | Lightweight markdown renderer for assistant messages — paragraphs, blockquotes, bullets, inline bold/italic via `AttributedString`. Flattens headings, tables, HTML to plain text. Includes `TypingIndicator`. |
 | `SpeechController.swift` | `AVSpeechSynthesizer` wrapper. `toggle(messageID:text:)`. Strips markdown before speaking. Default voice `en-US`. |
 
-**Keyboard dismiss — three ways** in the chat content:
+**Keyboard dismiss — two ways** in the chat content:
 - tap the chat background (`.onTapGesture` on the `Color(.systemGroupedBackground)` wrapper)
 - swipe down on the message list or empty-state scroll view (`.scrollDismissesKeyboard(.interactively)`)
-- tap `Done` in `ToolbarItemGroup(placement: .keyboard)`
 
-Keep all three when refactoring — the iOS norm is "all three or none".
+Deliberately **no** `Done` button in `ToolbarItemGroup(placement: .keyboard)` — on iOS 26 it renders as a floating capsule that overlaps the send button; don't re-add it.
 
 ### Dashboard "Days Protected"
 
