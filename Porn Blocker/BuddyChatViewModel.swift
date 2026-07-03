@@ -10,6 +10,9 @@ final class BuddyChatViewModel: ObservableObject {
     @Published var streamError: String?
 
     private var streamTask: Task<Void, Never>?
+    // Bumped on every send/cancel so a stale task's completion can't clobber
+    // the state of a newer stream (e.g. cancel → immediate follow-up send).
+    private var streamGeneration = 0
     private let store: ConversationStore
     private let subManager: SubscriptionManager
 
@@ -57,10 +60,13 @@ final class BuddyChatViewModel: ObservableObject {
         store.upsert(conversation)
 
         // Build the request body — drop the empty placeholder; the model
-        // only sees real turns.
-        let messagesForRequest = Array(conversation.messages.dropLast())
+        // only sees real turns. Cap the history so long conversations don't
+        // hit the worker's MAX_MESSAGES (40) rejection.
+        let messagesForRequest = Array(conversation.messages.dropLast().suffix(20))
 
         isStreaming = true
+        streamGeneration += 1
+        let generation = streamGeneration
         streamTask = Task { [weak self] in
             guard let self else { return }
             do {
@@ -68,15 +74,34 @@ final class BuddyChatViewModel: ObservableObject {
                     signedTransaction: jws,
                     messages: messagesForRequest
                 )
+                // Batch deltas and flush ~10x/sec. Publishing every token
+                // floods the main thread (a @Published update + full
+                // re-render per token) and freezes the UI in long chats.
+                var pending = ""
+                var lastFlush = ContinuousClock.now
+                let flushInterval: Duration = .milliseconds(100)
                 for try await delta in stream {
-                    self.appendDelta(delta, to: assistantID)
+                    pending += delta
+                    let now = ContinuousClock.now
+                    if now - lastFlush >= flushInterval {
+                        self.appendDelta(pending, to: assistantID)
+                        pending = ""
+                        lastFlush = now
+                    }
+                }
+                if !pending.isEmpty {
+                    self.appendDelta(pending, to: assistantID)
                 }
             } catch is CancellationError {
                 // user cancelled, nothing to surface
             } catch {
-                self.streamError = (error as? LocalizedError)?.errorDescription
-                    ?? error.localizedDescription
+                if self.streamGeneration == generation {
+                    self.streamError = (error as? LocalizedError)?.errorDescription
+                        ?? error.localizedDescription
+                }
             }
+            guard self.streamGeneration == generation else { return }
+            self.dropEmptyMessage(assistantID)
             self.isStreaming = false
             self.store.upsert(self.conversation)
         }
@@ -84,9 +109,13 @@ final class BuddyChatViewModel: ObservableObject {
 
     /// Cancels an in-flight stream. Whatever has been streamed so far stays.
     func cancel() {
+        streamGeneration += 1
         streamTask?.cancel()
         streamTask = nil
         isStreaming = false
+        if let last = conversation.messages.last, last.role == .assistant, last.content.isEmpty {
+            conversation.messages.removeLast()
+        }
         store.upsert(conversation)
     }
 
@@ -120,5 +149,13 @@ final class BuddyChatViewModel: ObservableObject {
     private func appendDelta(_ text: String, to messageID: UUID) {
         guard let idx = conversation.messages.firstIndex(where: { $0.id == messageID }) else { return }
         conversation.messages[idx].content += text
+    }
+
+    /// Removes a still-empty assistant placeholder (nothing ever streamed in)
+    /// so it doesn't sit in the transcript showing a typing indicator forever.
+    private func dropEmptyMessage(_ messageID: UUID) {
+        guard let idx = conversation.messages.firstIndex(where: { $0.id == messageID }),
+              conversation.messages[idx].content.isEmpty else { return }
+        conversation.messages.remove(at: idx)
     }
 }
