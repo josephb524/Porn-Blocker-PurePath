@@ -69,6 +69,7 @@ final class BuddyChatViewModel: ObservableObject {
         let generation = streamGeneration
         streamTask = Task { [weak self] in
             guard let self else { return }
+            var streamEndedCleanly = true
             do {
                 let stream = BuddyChatService.streamChat(
                     signedTransaction: jws,
@@ -94,14 +95,25 @@ final class BuddyChatViewModel: ObservableObject {
                 }
             } catch is CancellationError {
                 // user cancelled, nothing to surface
+                streamEndedCleanly = false
             } catch {
+                streamEndedCleanly = false
                 if self.streamGeneration == generation {
                     self.streamError = (error as? LocalizedError)?.errorDescription
                         ?? error.localizedDescription
                 }
             }
             guard self.streamGeneration == generation else { return }
+            let placeholderStillEmpty = self.conversation.messages.contains {
+                $0.id == assistantID && $0.content.isEmpty
+            }
             self.dropEmptyMessage(assistantID)
+            if streamEndedCleanly && placeholderStillEmpty {
+                // Stream finished with HTTP 200 but zero content tokens (e.g. the
+                // model spent its whole token budget on reasoning). Without this,
+                // the reply just vanishes with no feedback.
+                self.streamError = "No response was received. Please try again."
+            }
             self.isStreaming = false
             self.store.upsert(self.conversation)
         }
@@ -109,6 +121,7 @@ final class BuddyChatViewModel: ObservableObject {
 
     /// Cancels an in-flight stream. Whatever has been streamed so far stays.
     func cancel() {
+        let wasStreaming = isStreaming
         streamGeneration += 1
         streamTask?.cancel()
         streamTask = nil
@@ -116,7 +129,12 @@ final class BuddyChatViewModel: ObservableObject {
         if let last = conversation.messages.last, last.role == .assistant, last.content.isEmpty {
             conversation.messages.removeLast()
         }
-        store.upsert(conversation)
+        // Persist only if a stream was actually interrupted — newChat()/load()
+        // route through here, and an unconditional upsert (which stamps
+        // updatedAt) bumped every visited conversation to the top of history.
+        if wasStreaming {
+            store.upsert(conversation)
+        }
     }
 
     /// Starts a fresh conversation, discarding the current draft and any

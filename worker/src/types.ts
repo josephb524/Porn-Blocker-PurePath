@@ -7,6 +7,10 @@ export interface Env {
   FIREWORKS_MODEL?: string;
   /// Fireworks API key (`fw_…`). Set via `wrangler secret put`.
   FIREWORKS_API_KEY: string;
+  /// Optional KV namespace holding daily message-quota counters.
+  SUB_CACHE?: KVNamespace;
+  /// Optional per-user burst rate limiter (ratelimit unsafe binding).
+  RATE_LIMITER?: { limit(input: { key: string }): Promise<{ success: boolean }> };
 }
 
 export interface ChatRequest {

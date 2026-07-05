@@ -280,9 +280,18 @@ A Cloudflare Worker that:
 
 1. Verifies the iOS app's StoreKit 2 signed transaction JWS locally
    (`src/verify.ts`) — bundle ID, product ID, expiry, revocation.
-2. Proxies the conversation to **Fireworks AI** with streaming
+2. Validates `messages` at runtime — roles restricted to user/assistant,
+   16 KB/message + 200 KB total caps (blocks system-role injection and
+   oversized payloads).
+3. Rate-limits per `originalTransactionId`: burst limiter 20/60s (the
+   ratelimit binding only supports 10s/60s periods) + KV daily quota of
+   200/UTC-day (`quota:` keys in `SUB_CACHE`). Both bindings are optional
+   in code (`if (env.…)` guards), so the worker runs without them.
+4. Proxies the conversation to **Fireworks AI** with streaming
    (`src/fireworks.ts`), using their OpenAI-compatible chat completions API.
-3. Re-frames Fireworks' OpenAI-style SSE into a tiny `data: {"text":"…"}`
+   Upstream errors map to a generic 502 `{error:"upstream_error"}` — don't
+   pass Fireworks bodies/statuses through.
+5. Re-frames Fireworks' OpenAI-style SSE into a tiny `data: {"text":"…"}`
    format the iOS client consumes directly.
 
 **Endpoint:** `POST /chat`. Body: `{ signedTransaction, messages }`. Anything
@@ -334,10 +343,15 @@ app holds.
 ### Security note
 
 The Worker decodes the JWS payload without verifying Apple's signature.
-Forging a JWS that decodes to a valid bundle + allow-listed product +
-future-expiry is impractical without compromising Apple's signing
-infrastructure. If abuse appears, add `crypto.subtle.verify` against
-Apple's root cert.
+**This does not stop deliberate forgery** — bundleId/productIds are public
+(extractable from the shipped binary) and expiry just needs to be in the
+future, so anyone inspecting the app's traffic can mint a passing JWS and
+rotate `originalTransactionId` to dodge per-user rate keys. The claim
+checks only keep honest clients honest; abuse mitigation is the burst
+limiter + KV daily quota. If abuse appears, add real signature
+verification against Apple's root cert (x5c chain via
+`crypto.subtle.verify`) — backward compatible, since real app versions
+send genuine Apple-signed JWS.
 
 ## Conventions
 

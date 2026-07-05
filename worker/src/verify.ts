@@ -11,10 +11,15 @@ export type VerifyResult =
 /// Decodes the JWS payload locally and checks bundle / product / expiry /
 /// revocation against the configured allow-list.
 ///
-/// **Note:** we trust the JWS payload without verifying Apple's signature.
-/// Forging a JWS that decodes to a valid bundle + product + future-expiry
-/// is impractical without compromising Apple's signing infrastructure. If
-/// abuse appears, switch to `crypto.subtle.verify` against Apple's root.
+/// **Note:** we trust the JWS payload WITHOUT verifying Apple's signature.
+/// This does not stop deliberate forgery — bundleId/productIds are public
+/// (extractable from the shipped binary) and expiry just needs to be in the
+/// future, so anyone inspecting the app's traffic can mint a passing JWS and
+/// rotate originalTransactionId to dodge per-user rate keys. The claim checks
+/// only keep honest clients honest; abuse mitigation is the burst limiter +
+/// KV daily quota in index.ts. If abuse appears, add real signature
+/// verification against Apple's root cert (x5c chain via crypto.subtle.verify)
+/// — backward compatible, since real app versions send genuine Apple JWS.
 export function verifySignedTransaction(jws: string, env: Env): VerifyResult {
   let payload: TransactionPayload;
   try {

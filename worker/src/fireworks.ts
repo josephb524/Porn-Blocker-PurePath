@@ -37,8 +37,10 @@ export async function proxyChat(body: ChatRequest, env: Env): Promise<Response> 
   if (!upstream.ok || !upstream.body) {
     const text = upstream.body ? (await upstream.text()).slice(0, 500) : '';
     console.log('fireworks_error', { status: upstream.status, body: text });
-    return new Response(JSON.stringify({ error: 'upstream_error', detail: text }), {
-      status: upstream.status === 200 ? 502 : upstream.status,
+    // Generic 502: don't leak Fireworks account details to clients, and don't
+    // pass upstream statuses through as if they were the worker's own.
+    return new Response(JSON.stringify({ error: 'upstream_error' }), {
+      status: 502,
       headers: { 'content-type': 'application/json' },
     });
   }

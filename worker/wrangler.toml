@@ -12,3 +12,19 @@ FIREWORKS_MODEL = "accounts/fireworks/models/gpt-oss-120b"
 
 # Secrets (set via `npx wrangler secret put <NAME>`):
 #   FIREWORKS_API_KEY  — starts with `fw_`
+
+# Per-user burst limit (the ratelimit binding only supports period = 10 or 60
+# seconds; the 200/day cap lives in KV below). Both bindings are optional in
+# the code (guarded with `if (env.…)`), so the worker still runs without them.
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "4001"
+simple = { limit = 20, period = 60 }
+
+# KV: daily message quota counters (quota:{originalTransactionId}:{YYYY-MM-DD}).
+# Same account-level namespace the other apps' chat workers use — keys are
+# scoped by transaction ID, so the apps can't collide.
+[[kv_namespaces]]
+binding = "SUB_CACHE"
+id = "bc0b5626849a48aabc5352ee7b807088"

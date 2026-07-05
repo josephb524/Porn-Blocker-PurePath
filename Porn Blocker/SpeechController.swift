@@ -30,18 +30,37 @@ final class SpeechController: NSObject, ObservableObject {
     func stop() {
         synthesizer.stopSpeaking(at: .immediate)
         speakingMessageID = nil
+        deactivateAudioSession()
     }
 
     // MARK: - Private
 
     private func speak(messageID: UUID, text: String) {
         synthesizer.stopSpeaking(at: .immediate)
+        // .playback so speech is audible with the ringer switch muted — the
+        // default session category silences the synthesizer on muted devices.
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .spokenAudio)
+        try? session.setActive(true)
         let clean = Self.stripMarkdown(text)
         let utterance = AVSpeechUtterance(string: clean)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         synthesizer.speak(utterance)
         speakingMessageID = messageID
+    }
+
+    fileprivate func handleSpeechEnded() {
+        // The didCancel delegate callback lands on a later runloop turn; if a
+        // new utterance already started (toggle from message A to B), don't
+        // clear B's indicator or tear down the session underneath it.
+        guard !synthesizer.isSpeaking else { return }
+        speakingMessageID = nil
+        deactivateAudioSession()
+    }
+
+    private func deactivateAudioSession() {
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 
     /// Strips markdown noise that shouldn't be spoken aloud.
@@ -64,9 +83,9 @@ final class SpeechController: NSObject, ObservableObject {
 
 extension SpeechController: AVSpeechSynthesizerDelegate {
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        Task { @MainActor [weak self] in self?.speakingMessageID = nil }
+        Task { @MainActor [weak self] in self?.handleSpeechEnded() }
     }
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        Task { @MainActor [weak self] in self?.speakingMessageID = nil }
+        Task { @MainActor [weak self] in self?.handleSpeechEnded() }
     }
 }
