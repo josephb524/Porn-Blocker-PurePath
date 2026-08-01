@@ -208,6 +208,53 @@ data and check-in history. A few non-obvious behaviors live here:
   ends without a check-in. `isCheckedInToday` still strictly checks
   today's key, so the check-in button correctly empties at midnight —
   giving the user a visual nudge without zeroing the count.
+- **Relapse removes today + yesterday, nothing else.** `recordRelapse`
+  (triggered by the hero card's "I slipped today" link → confirmation
+  dialog) deletes exactly those two day keys — the minimum that defeats
+  the grace day so the streak reads 0 immediately. All older check-ins
+  stay (history grid, "days logged"). Removing only today would NOT
+  reset anything: the grace day would keep counting from yesterday.
+- **`bestStreakRecord` preserves Longest Streak across relapses.**
+  `longestStreak` for check-in habits is
+  `max(longestCheckInStreak(), bestStreakRecord)`; `recordRelapse`
+  freezes the current best into `bestStreakRecord` *before* removing
+  keys, because the removal can shorten the final run and would
+  otherwise shrink the displayed record by up to 2 days.
+- **Backdating backfills real check-ins.** `setStartDate` (reached via
+  `PornFreeStartDateSheet` — from the hero card's "Set your start date"
+  link at streak 0, or the "I've been clean since…" row in Porn Free
+  Settings) writes day keys from the chosen date **through today
+  inclusive** (stopping at yesterday would let the streak silently
+  collapse at midnight), unioned with existing keys. The sheet's
+  `dayCount` preview counts the chosen day as day 1 to match.
+  `EditHabitView` re-syncs its `localCheckIns` snapshot when this sheet
+  closes (`.onChange(of: showStartDateSheet)`) — without that, the edit
+  sheet's own Save would clobber the backfill with stale data. The hero
+  card also has a one-tap check-in capsule (toggles
+  `checkIn`/`undoCheckIn`, mirroring `HabitCard`).
+- **Persistence is deliberately paranoid.** `dayKeyFormatter` is pinned
+  to `en_US_POSIX` + Gregorian (an unpinned formatter under a
+  Buddhist-calendar or Arabic-numeral locale writes keys that never
+  match again, silently zeroing streaks); `sanitizeDayKeys()` runs every
+  launch between `load()` and `ensureBuiltInHabit()` to repair/drop
+  legacy non-canonical keys and dedupe. `TrackedHabit.init(from:)` is
+  fully tolerant — every field has a fallback, `isBuiltIn` decodes
+  first so a failed `id` falls back to `TrackedHabit.builtInID` (the
+  built-in is identified by id everywhere; a random UUID would spawn a
+  duplicate), and `isAutoStreak` defaults to `false` so a decode
+  fallback can never re-trigger the auto-streak migration and resurrect
+  a relapsed streak. On a store-level decode failure, `load()` copies
+  the raw blob to `trackedHabits_v2_corrupt` **before** anything can
+  overwrite the main key, then salvages per-element via
+  `FailableDecodable`. Don't weaken any of this — the failure mode it
+  prevents is a user's year-long history silently vanishing.
+- **Logic test harness.** `HabitManager.swift` + `Log.swift` compile
+  standalone for macOS, so streak/relapse/backfill/decode logic can be
+  tested without the simulator:
+  `swiftc -parse-as-library -o harness "Porn Blocker/HabitManager.swift" "Porn Blocker/Log.swift" harness.swift`
+  with a scenario-per-process main (the singleton's init runs
+  load/sanitize/ensure once, so seed `UserDefaults` first, one scenario
+  per run).
 - **The hero ring is absolute progress, not segment progress.**
   `ringProgress(streak:)` in `StatsView.swift` is
   `min(1.0, streak / nextMilestone)` — it counts from **zero** to the next

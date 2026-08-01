@@ -7,6 +7,8 @@ struct StatsView: View {
     @StateObject private var habitRouter = HabitNotificationRouter.shared
     @State private var showAddHabit = false
     @State private var selectedEditHabit: TrackedHabit? = nil
+    @State private var showRelapseConfirm = false
+    @State private var showStartDateSheet = false
     @State private var appear = false
 
     private var pornFreeHabit: TrackedHabit? {
@@ -61,7 +63,26 @@ struct StatsView: View {
             .sheet(item: $selectedEditHabit) { habit in
                 EditHabitView(habit: habit)
             }
+            .sheet(isPresented: $showStartDateSheet) {
+                if let h = pornFreeHabit { PornFreeStartDateSheet(habit: h) }
+            }
+            .confirmationDialog("Reset your streak?", isPresented: $showRelapseConfirm, titleVisibility: .visible) {
+                Button("Reset My Streak", role: .destructive) {
+                    habitManager.recordRelapse(habitID: HabitManager.pornFreeID)
+                }
+                Button("Not Now", role: .cancel) {}
+            } message: {
+                Text(relapseMessage)
+            }
         }
+    }
+
+    private var relapseMessage: String {
+        let longest = pornFreeHabit?.longestStreak ?? 0
+        if longest > 0 {
+            return "A slip doesn't erase your progress — your history stays. Your longest streak was \(longest) days. You got there before, and you can get back there."
+        }
+        return "Every restart is part of the journey. Your history stays — only the current streak resets."
     }
 
     /// If a habit reminder was tapped, open that habit's edit sheet (where
@@ -125,7 +146,7 @@ struct StatsView: View {
 
                     // Label
                     VStack(spacing: 4) {
-                        Text("🛡️ Porn Free")
+                        Text("\(habit.emoji) \(habit.name)")
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
@@ -141,6 +162,50 @@ struct StatsView: View {
                         pornFreeStat(value: nextMilestoneLabel(habit.currentStreak), label: "Next Goal")
                     }
                     .padding(.top, 4)
+
+                    // One-tap check-in
+                    Button(action: {
+                        if habit.isCheckedInToday {
+                            habitManager.undoCheckIn(habitID: habit.id)
+                        } else {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            habitManager.checkIn(habitID: habit.id)
+                        }
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: habit.isCheckedInToday ? "checkmark.seal.fill" : "checkmark.circle")
+                            Text(habit.isCheckedInToday ? "Checked in today" : "Check In Today")
+                                .fontWeight(.semibold)
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(habit.isCheckedInToday
+                            ? .white.opacity(0.85)
+                            : Color(hue: 0.38, saturation: 0.7, brightness: 0.32))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Capsule().fill(habit.isCheckedInToday ? Color.white.opacity(0.14) : Color.white))
+                        .animation(.spring(response: 0.35, dampingFraction: 0.75), value: habit.isCheckedInToday)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 4)
+
+                    if habit.currentStreak > 0 {
+                        Button(action: { showRelapseConfirm = true }) {
+                            Text("I slipped today")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.55))
+                                .underline()
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Button(action: { showStartDateSheet = true }) {
+                            Text("Been clean for a while? Set your start date")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.55))
+                                .underline()
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
                 .padding(.vertical, 28)
                 .padding(.horizontal, 20)
@@ -522,11 +587,14 @@ struct PornFreeStartDateSheet: View {
     }
 
     private var dayCount: Int {
-        max(0, Calendar.current.dateComponents(
+        let diff = max(0, Calendar.current.dateComponents(
             [.day],
             from: Calendar.current.startOfDay(for: selectedDate),
             to: Calendar.current.startOfDay(for: Date())
         ).day ?? 0)
+        // The chosen day counts as day 1, matching the streak the backfill
+        // produces (picking today → 1 key → streak 1).
+        return diff + 1
     }
 
     var body: some View {
@@ -601,6 +669,7 @@ struct EditHabitView: View {
     @State private var reminderEnabled: Bool
     @State private var reminderTime: Date
     @State private var showDeleteConfirm = false
+    @State private var showStartDateSheet = false
 
     private let quickEmojis = ["⭐️","💪","📚","🧘","🏃","🎨","✍️","🎵","🌿","💧","🥗","😴","🙏","🏋️","🚴"]
     private let quickHues: [Double] = [0.38, 0.6, 0.08, 0.75, 0.0, 0.15, 0.55, 0.9]
@@ -701,6 +770,24 @@ struct EditHabitView: View {
                     }
                 }
 
+                // Backdate (built-in habit only)
+                if habit.isBuiltIn {
+                    Section {
+                        Button(action: { showStartDateSheet = true }) {
+                            HStack {
+                                Label("I've been clean since…", systemImage: "calendar.badge.clock")
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    } footer: {
+                        Text("Already had a streak going before you got the app? Backfill it from your quit date.")
+                    }
+                }
+
                 // History grid — tap any past day to check in or undo
                 Section {
                     HabitHistoryGrid(checkIns: $localCheckIns, color: previewColor)
@@ -755,6 +842,16 @@ struct EditHabitView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("This will permanently delete the habit and all its check-in history.")
+            }
+            .sheet(isPresented: $showStartDateSheet) {
+                PornFreeStartDateSheet(habit: habit)
+            }
+            .onChange(of: showStartDateSheet) { isShowing in
+                // Re-sync after a backfill — Save writes localCheckIns wholesale,
+                // so a stale snapshot here would silently wipe the backfill.
+                if !isShowing {
+                    localCheckIns = habitManager.habits.first(where: { $0.id == habit.id })?.checkIns ?? localCheckIns
+                }
             }
         }
     }

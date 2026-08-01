@@ -2,9 +2,20 @@ import Foundation
 import SwiftUI
 import UserNotifications
 
+/// Wraps an element so a single undecodable entry yields `nil` instead of
+/// failing the whole array — used to salvage a damaged habit store.
+private struct FailableDecodable<T: Decodable>: Decodable {
+    let value: T?
+    init(from decoder: Decoder) throws { value = try? T(from: decoder) }
+}
+
 // MARK: - Habit Model
 
 struct TrackedHabit: Identifiable, Codable {
+    /// Canonical ID of the built-in "Porn Free" habit. Lives here (not on the
+    /// @MainActor manager) so the nonisolated decoder can reference it.
+    static let builtInID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+
     var id: UUID
     var name: String
     var emoji: String
@@ -16,6 +27,7 @@ struct TrackedHabit: Identifiable, Codable {
     var isBuiltIn: Bool
     var reminderEnabled: Bool
     var reminderTime: Date       // only hour & minute are used
+    var bestStreakRecord: Int    // best streak ever seen — survives relapse key removal
 
     // MARK: Init
 
@@ -29,7 +41,8 @@ struct TrackedHabit: Identifiable, Codable {
          relapseHistory: [Date] = [],
          isBuiltIn: Bool = false,
          reminderEnabled: Bool = false,
-         reminderTime: Date = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date()) {
+         reminderTime: Date = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date(),
+         bestStreakRecord: Int = 0) {
         self.id              = id
         self.name            = name
         self.emoji           = emoji
@@ -41,6 +54,7 @@ struct TrackedHabit: Identifiable, Codable {
         self.isBuiltIn       = isBuiltIn
         self.reminderEnabled = reminderEnabled
         self.reminderTime    = reminderTime
+        self.bestStreakRecord = bestStreakRecord
     }
 
     // MARK: - Custom Codable (handles missing keys in old data)
@@ -48,22 +62,31 @@ struct TrackedHabit: Identifiable, Codable {
     enum CodingKeys: String, CodingKey {
         case id, name, emoji, colorHue, isAutoStreak, streakStartDate
         case checkIns, relapseHistory, isBuiltIn, reminderEnabled, reminderTime
+        case bestStreakRecord
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        id              = try c.decode(UUID.self,   forKey: .id)
-        name            = try c.decode(String.self, forKey: .name)
-        emoji           = try c.decode(String.self, forKey: .emoji)
-        colorHue        = try c.decode(Double.self, forKey: .colorHue)
-        isAutoStreak    = try c.decode(Bool.self,   forKey: .isAutoStreak)
-        streakStartDate = try c.decode(Date.self,   forKey: .streakStartDate)
-        checkIns        = try c.decode([String].self, forKey: .checkIns)
-        relapseHistory  = (try? c.decode([Date].self, forKey: .relapseHistory)) ?? []
+        // Every field falls back to a default so one bad field can't throw away
+        // the habit (and with it the user's whole check-in history).
+        // isBuiltIn decodes first: the built-in habit is identified by id
+        // everywhere, so a failed id must fall back to builtInID — a random
+        // UUID would orphan it and ensureBuiltInHabit() would insert a duplicate.
         isBuiltIn       = (try? c.decode(Bool.self,   forKey: .isBuiltIn)) ?? false
+        id              = (try? c.decode(UUID.self,   forKey: .id)) ?? (isBuiltIn ? Self.builtInID : UUID())
+        name            = (try? c.decode(String.self, forKey: .name)) ?? (isBuiltIn ? "Porn Free" : "Habit")
+        emoji           = (try? c.decode(String.self, forKey: .emoji)) ?? (isBuiltIn ? "🛡️" : "⭐️")
+        colorHue        = (try? c.decode(Double.self, forKey: .colorHue)) ?? 0.38
+        // false is the safe direction: a decode fallback must never re-trigger
+        // the auto-streak migration and resurrect a relapsed streak.
+        isAutoStreak    = (try? c.decode(Bool.self,   forKey: .isAutoStreak)) ?? false
+        streakStartDate = (try? c.decode(Date.self,   forKey: .streakStartDate)) ?? Date()
+        checkIns        = (try? c.decode([String].self, forKey: .checkIns)) ?? []
+        relapseHistory  = (try? c.decode([Date].self, forKey: .relapseHistory)) ?? []
         reminderEnabled = (try? c.decode(Bool.self,   forKey: .reminderEnabled)) ?? false
         let defaultTime = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date()
         reminderTime    = (try? c.decode(Date.self,   forKey: .reminderTime)) ?? defaultTime
+        bestStreakRecord = (try? c.decode(Int.self,  forKey: .bestStreakRecord)) ?? 0
     }
 
     // MARK: Computed
@@ -94,7 +117,9 @@ struct TrackedHabit: Identifiable, Codable {
             }
             return best
         } else {
-            return longestCheckInStreak()
+            // bestStreakRecord preserves the best across relapses, which
+            // remove the two keys anchoring the final run.
+            return max(longestCheckInStreak(), bestStreakRecord)
         }
     }
 
@@ -120,6 +145,11 @@ struct TrackedHabit: Identifiable, Codable {
     /// so it is created once and reused — it is only ever read, never mutated.
     private static let dayKeyFormatter: DateFormatter = {
         let f = DateFormatter()
+        // Pinned so keys are always Gregorian + ASCII digits regardless of the
+        // device locale — a Buddhist-calendar or Arabic-numeral locale would
+        // otherwise write keys that never match again and zero the streak.
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = Calendar(identifier: .gregorian)
         f.dateFormat = "yyyy-MM-dd"
         return f
     }()
@@ -322,10 +352,11 @@ class HabitManager: ObservableObject {
     private let defaults = UserDefaults.standard
     private let key = "trackedHabits_v2"
 
-    static let pornFreeID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+    static let pornFreeID = TrackedHabit.builtInID
 
     private init() {
         load()
+        sanitizeDayKeys()
         ensureBuiltInHabit()
     }
 
@@ -349,15 +380,43 @@ class HabitManager: ObservableObject {
 
     func recordRelapse(habitID: UUID) {
         guard let idx = habits.firstIndex(where: { $0.id == habitID }) else { return }
+        // Removing today's AND yesterday's keys breaks the chain at the
+        // grace-day anchor, so the streak reads 0 immediately — removing only
+        // today would leave consecutiveStreak counting from yesterday. Older
+        // checked days stay: the history grid, "days logged" and longestStreak
+        // are preserved.
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let yesterday = cal.date(byAdding: .day, value: -1, to: today)!
+        let remove: Set<String> = [TrackedHabit.dayKey(for: today), TrackedHabit.dayKey(for: yesterday)]
+        // Freeze the best before removing keys — the removal can shorten the
+        // final run and would otherwise shrink the displayed Longest Streak.
+        habits[idx].bestStreakRecord = max(habits[idx].bestStreakRecord, habits[idx].longestStreak)
+        habits[idx].checkIns.removeAll { remove.contains($0) }
         habits[idx].relapseHistory.append(Date())
         habits[idx].streakStartDate = Date()
         save()
+        Log.debug("Relapse recorded for \(habits[idx].name)")
     }
 
     func setStartDate(_ date: Date, habitID: UUID) {
         guard let idx = habits.firstIndex(where: { $0.id == habitID }) else { return }
-        habits[idx].streakStartDate = Calendar.current.startOfDay(for: min(date, Date()))
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let start = cal.startOfDay(for: min(date, Date()))
+        habits[idx].streakStartDate = start
+        // Backfill day keys start...today inclusive (today too, or the streak
+        // would silently collapse at midnight unless the user checks in),
+        // merged with whatever is already logged.
+        var keys = Set(habits[idx].checkIns)
+        var cursor = start
+        while cursor <= today {
+            keys.insert(TrackedHabit.dayKey(for: cursor))
+            cursor = cal.date(byAdding: .day, value: 1, to: cursor)!
+        }
+        habits[idx].checkIns = keys.sorted()
         save()
+        Log.debug("Backfilled streak from \(start) — \(habits[idx].checkIns.count) days logged")
     }
 
     // MARK: - CRUD
@@ -393,18 +452,74 @@ class HabitManager: ObservableObject {
     // MARK: - Persistence
 
     private func save() {
-        if let data = try? JSONEncoder().encode(habits) {
-            defaults.set(data, forKey: key)
+        do {
+            defaults.set(try JSONEncoder().encode(habits), forKey: key)
+        } catch {
+            Log.error("Failed to encode habits: \(error.localizedDescription)")
         }
     }
 
     private func load() {
-        guard let data = defaults.data(forKey: key),
-              let decoded = try? JSONDecoder().decode([TrackedHabit].self, from: data) else { return }
-        habits = decoded
+        guard let data = defaults.data(forKey: key) else { return }
+        do {
+            habits = try JSONDecoder().decode([TrackedHabit].self, from: data)
+        } catch {
+            Log.error("Habit store decode failed: \(error.localizedDescription)")
+            // Preserve the original blob before ensureBuiltInHabit()'s save()
+            // can overwrite the main key — the user's history is irreplaceable.
+            let backupKey = "trackedHabits_v2_corrupt"
+            if defaults.data(forKey: backupKey) == nil {
+                defaults.set(data, forKey: backupKey)
+            }
+            // Salvage whatever elements still decode individually.
+            if let partial = try? JSONDecoder().decode([FailableDecodable<TrackedHabit>].self, from: data) {
+                habits = partial.compactMap { $0.value }
+                Log.error("Recovered \(habits.count)/\(partial.count) habits from damaged store")
+            }
+        }
+    }
+
+    /// Repairs check-in keys written by the unpinned pre-fix formatter under
+    /// non-Gregorian / non-latin-numeral locales, and dedupes. Idempotent —
+    /// canonical keys short-circuit through the regex, and nothing is saved
+    /// unless a repair actually happened.
+    private func sanitizeDayKeys() {
+        let legacy = DateFormatter()   // device locale — how bad keys were written
+        legacy.dateFormat = "yyyy-MM-dd"
+        var changed = false
+        for idx in habits.indices {
+            var repaired: Set<String> = []
+            for dayKey in habits[idx].checkIns {
+                // [0-9] is ASCII-only; \d would also match Unicode digits.
+                if dayKey.range(of: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", options: .regularExpression) != nil {
+                    repaired.insert(dayKey)
+                } else if let date = legacy.date(from: dayKey) {
+                    repaired.insert(TrackedHabit.dayKey(for: date))
+                    changed = true
+                    Log.debug("Repaired non-canonical check-in key: \(dayKey)")
+                } else {
+                    changed = true
+                    Log.error("Dropping unparseable check-in key: \(dayKey)")
+                }
+            }
+            if repaired.count != habits[idx].checkIns.count { changed = true }
+            habits[idx].checkIns = repaired.sorted()
+        }
+        if changed { save() }
     }
 
     private func ensureBuiltInHabit() {
+        // Pathological double-corruption can leave several habits claiming the
+        // built-in id (which would also break ForEach's Identifiable contract)
+        // — keep the one with the most history.
+        let claimants = habits.filter { $0.id == HabitManager.pornFreeID }
+        if claimants.count > 1,
+           let keep = claimants.max(by: { $0.checkIns.count < $1.checkIns.count }) {
+            habits.removeAll { $0.id == HabitManager.pornFreeID }
+            habits.insert(keep, at: 0)
+            save()
+        }
+
         if !habits.contains(where: { $0.id == HabitManager.pornFreeID }) {
             // First time: no pre-checked days — user starts fresh
             let builtIn = TrackedHabit(
