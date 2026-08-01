@@ -28,6 +28,7 @@ struct TrackedHabit: Identifiable, Codable {
     var reminderEnabled: Bool
     var reminderTime: Date       // only hour & minute are used
     var bestStreakRecord: Int    // best streak ever seen — survives relapse key removal
+    var lastCelebratedMilestone: Int   // highest milestone celebrated this run; reset on relapse
 
     // MARK: Init
 
@@ -42,7 +43,8 @@ struct TrackedHabit: Identifiable, Codable {
          isBuiltIn: Bool = false,
          reminderEnabled: Bool = false,
          reminderTime: Date = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date(),
-         bestStreakRecord: Int = 0) {
+         bestStreakRecord: Int = 0,
+         lastCelebratedMilestone: Int = 0) {
         self.id              = id
         self.name            = name
         self.emoji           = emoji
@@ -55,6 +57,7 @@ struct TrackedHabit: Identifiable, Codable {
         self.reminderEnabled = reminderEnabled
         self.reminderTime    = reminderTime
         self.bestStreakRecord = bestStreakRecord
+        self.lastCelebratedMilestone = lastCelebratedMilestone
     }
 
     // MARK: - Custom Codable (handles missing keys in old data)
@@ -62,7 +65,7 @@ struct TrackedHabit: Identifiable, Codable {
     enum CodingKeys: String, CodingKey {
         case id, name, emoji, colorHue, isAutoStreak, streakStartDate
         case checkIns, relapseHistory, isBuiltIn, reminderEnabled, reminderTime
-        case bestStreakRecord
+        case bestStreakRecord, lastCelebratedMilestone
     }
 
     init(from decoder: Decoder) throws {
@@ -87,6 +90,7 @@ struct TrackedHabit: Identifiable, Codable {
         let defaultTime = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date()
         reminderTime    = (try? c.decode(Date.self,   forKey: .reminderTime)) ?? defaultTime
         bestStreakRecord = (try? c.decode(Int.self,  forKey: .bestStreakRecord)) ?? 0
+        lastCelebratedMilestone = (try? c.decode(Int.self, forKey: .lastCelebratedMilestone)) ?? 0
     }
 
     // MARK: Computed
@@ -395,8 +399,16 @@ class HabitManager: ObservableObject {
         habits[idx].checkIns.removeAll { remove.contains($0) }
         habits[idx].relapseHistory.append(Date())
         habits[idx].streakStartDate = Date()
+        // New run — milestones celebrate again as the user rebuilds.
+        habits[idx].lastCelebratedMilestone = 0
         save()
         Log.debug("Relapse recorded for \(habits[idx].name)")
+    }
+
+    func markMilestoneCelebrated(days: Int, habitID: UUID) {
+        guard let idx = habits.firstIndex(where: { $0.id == habitID }) else { return }
+        habits[idx].lastCelebratedMilestone = max(habits[idx].lastCelebratedMilestone, days)
+        save()
     }
 
     func setStartDate(_ date: Date, habitID: UUID) {

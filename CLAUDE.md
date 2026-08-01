@@ -232,6 +232,17 @@ data and check-in history. A few non-obvious behaviors live here:
   sheet's own Save would clobber the backfill with stale data. The hero
   card also has a one-tap check-in capsule (toggles
   `checkIn`/`undoCheckIn`, mirroring `HabitCard`).
+- **Milestone celebrations fire on crossings, not thresholds.**
+  `celebrateIfMilestoneCrossed` in `StatsView` compares the previous
+  streak (`lastSeenStreak`, seeded in `.onAppear`) to the new one and
+  celebrates the *highest* milestone with `old < days <= new` — so an
+  existing 19-day streak never retro-celebrates "1 Week" on tab open or
+  its next check-in, and a backdate jump celebrates once, not once per
+  badge. `TrackedHabit.lastCelebratedMilestone` makes each milestone
+  fire once per run (blocks undo-then-recheck repeats) and is
+  deliberately reset by `recordRelapse` so rebuilt streaks celebrate
+  again. The overlay (`MilestoneCelebrationView` + `ConfettiBurst`)
+  mounts on the `NavigationStack` in `StatsView.body`.
 - **Persistence is deliberately paranoid.** `dayKeyFormatter` is pinned
   to `en_US_POSIX` + Gregorian (an unpinned formatter under a
   Buddhist-calendar or Arabic-numeral locale writes keys that never

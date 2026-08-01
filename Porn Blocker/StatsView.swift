@@ -9,6 +9,8 @@ struct StatsView: View {
     @State private var selectedEditHabit: TrackedHabit? = nil
     @State private var showRelapseConfirm = false
     @State private var showStartDateSheet = false
+    @State private var lastSeenStreak: Int? = nil
+    @State private var celebrationMilestone: Milestone? = nil
     @State private var appear = false
 
     private var pornFreeHabit: TrackedHabit? {
@@ -54,10 +56,14 @@ struct StatsView: View {
             }
             .onAppear {
                 withAnimation { appear = true }
+                lastSeenStreak = pornFreeHabit?.currentStreak
                 openEditSheetForPendingHabit()
             }
             .onChange(of: habitRouter.pendingHabitID) { _ in
                 openEditSheetForPendingHabit()
+            }
+            .onChange(of: pornFreeHabit?.currentStreak) { newStreak in
+                celebrateIfMilestoneCrossed(newStreak: newStreak)
             }
             .sheet(isPresented: $showAddHabit) { AddHabitView() }
             .sheet(item: $selectedEditHabit) { habit in
@@ -75,12 +81,37 @@ struct StatsView: View {
                 Text(relapseMessage)
             }
         }
+        .overlay {
+            if let milestone = celebrationMilestone {
+                MilestoneCelebrationView(milestone: milestone) {
+                    withAnimation(.easeOut(duration: 0.25)) { celebrationMilestone = nil }
+                }
+                .transition(.opacity)
+            }
+        }
+    }
+
+    /// Celebrate the highest milestone crossed by this specific streak change
+    /// (crossing semantics — an existing 19-day streak must never
+    /// retro-celebrate "1 Week" on tab open or on its next check-in).
+    private func celebrateIfMilestoneCrossed(newStreak: Int?) {
+        guard let newStreak else { return }
+        let old = lastSeenStreak
+        lastSeenStreak = newStreak
+        guard let old, newStreak > old,
+              let habit = pornFreeHabit,
+              let crossed = allMilestones.last(where: { old < $0.days && $0.days <= newStreak }),
+              crossed.days > habit.lastCelebratedMilestone else { return }
+        habitManager.markMilestoneCelebrated(days: crossed.days, habitID: habit.id)
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+            celebrationMilestone = crossed
+        }
     }
 
     private var relapseMessage: String {
         let longest = pornFreeHabit?.longestStreak ?? 0
         if longest > 0 {
-            return "A slip doesn't erase your progress — your history stays. Your longest streak was \(longest) days. You got there before, and you can get back there."
+            return "A slip doesn't erase your progress — your history stays. Your longest streak was \(longest) \(longest == 1 ? "day" : "days"). You got there before, and you can get back there."
         }
         return "Every restart is part of the journey. Your history stays — only the current streak resets."
     }
@@ -131,6 +162,9 @@ struct StatsView: View {
                             )
                             .frame(width: 140, height: 140)
                             .rotationEffect(.degrees(-90))
+                            // Hide at 0: a zero-length trim with a round line
+                            // cap still renders a dot at 12 o'clock.
+                            .opacity(habit.currentStreak > 0 ? 1 : 0)
                             .animation(.spring(response: 1.0, dampingFraction: 0.7), value: habit.currentStreak)
 
                         VStack(spacing: 2) {
@@ -150,7 +184,7 @@ struct StatsView: View {
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
-                        Text("\(habit.checkIns.count) days logged")
+                        Text("\(habit.checkIns.count) \(habit.checkIns.count == 1 ? "day" : "days") logged")
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.65))
                     }
@@ -967,6 +1001,135 @@ struct HabitHistoryGrid: View {
             .padding(.top, 4)
         }
         .padding(.vertical, 6)
+    }
+}
+
+// MARK: - Milestone Celebration
+
+/// Full-tab overlay shown once when a streak milestone is crossed: dimmed
+/// backdrop, confetti burst, and a card popping in with the milestone badge.
+/// Auto-dismisses after a short moment; tapping anywhere dismisses early.
+struct MilestoneCelebrationView: View {
+    let milestone: Milestone
+    let onDismiss: () -> Void
+
+    @State private var appeared = false
+    @State private var dismissed = false
+
+    private var accent: Color { Color(hue: milestone.colorHue, saturation: 0.7, brightness: 0.7) }
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(appeared ? 0.45 : 0)
+                .ignoresSafeArea()
+
+            ConfettiBurst()
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(accent.opacity(0.18))
+                        .frame(width: 96, height: 96)
+                    Circle()
+                        .stroke(accent.opacity(0.4), lineWidth: 3)
+                        .frame(width: 96, height: 96)
+                    Image(systemName: milestone.icon)
+                        .font(.system(size: 40, weight: .semibold))
+                        .foregroundColor(accent)
+                }
+
+                VStack(spacing: 6) {
+                    Text("\(milestone.label) Milestone!")
+                        .font(.title2.bold())
+                        .foregroundColor(.primary)
+                    Text("\(milestone.days) \(milestone.days == 1 ? "day" : "days") porn free — keep going.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .padding(.vertical, 28)
+            .padding(.horizontal, 32)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.25), radius: 24, x: 0, y: 12)
+            )
+            .padding(.horizontal, 40)
+            .scaleEffect(appeared ? 1 : 0.5)
+            .opacity(appeared ? 1 : 0)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { dismiss() }
+        .onAppear {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) { appeared = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.6) { dismiss() }
+        }
+    }
+
+    private func dismiss() {
+        guard !dismissed else { return }
+        dismissed = true
+        onDismiss()
+    }
+}
+
+/// Fire-once confetti: particles burst upward from mid-screen and fall under
+/// gravity, fading out. Purely decorative — never intercepts touches.
+private struct ConfettiBurst: View {
+    struct Particle {
+        let angle: Double      // initial velocity direction (radians)
+        let speed: Double      // points/sec
+        let hue: Double
+        let size: Double
+        let spin: Double       // radians/sec
+        let delay: Double
+    }
+
+    // @State so the burst keeps one identity across parent re-renders —
+    // stored lets would re-randomize and restart the clock mid-flight.
+    @State private var particles: [Particle] = (0..<70).map { _ in
+        Particle(angle: Double.random(in: -Double.pi...0),   // upward half-circle
+                 speed: Double.random(in: 220...520),
+                 hue: Double.random(in: 0...1),
+                 size: Double.random(in: 6...11),
+                 spin: Double.random(in: -6...6),
+                 delay: Double.random(in: 0...0.15))
+    }
+    @State private var start = Date()
+    private let lifetime: Double = 2.0
+
+    var body: some View {
+        TimelineView(.animation) { context in
+            Canvas { graphics, size in
+                let t: Double = context.date.timeIntervalSince(start)
+                guard t > 0, t < lifetime else { return }
+                for p in particles {
+                    draw(p, at: t, in: graphics, canvasSize: size)
+                }
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func draw(_ p: Particle, at t: Double, in graphics: GraphicsContext, canvasSize: CGSize) {
+        let pt: Double = t - p.delay
+        guard pt > 0 else { return }
+        let originX: Double = Double(canvasSize.width) / 2.0
+        let originY: Double = Double(canvasSize.height) * 0.45
+        let gravity: Double = 900.0
+        let x: Double = originX + cos(p.angle) * p.speed * pt
+        let y: Double = originY + sin(p.angle) * p.speed * pt + 0.5 * gravity * pt * pt
+        let fade: Double = max(0.0, 1.0 - pt / 1.6)
+        guard fade > 0, y < Double(canvasSize.height) + 20.0 else { return }
+        var ctx = graphics
+        ctx.translateBy(x: CGFloat(x), y: CGFloat(y))
+        ctx.rotate(by: .radians(p.spin * pt))
+        ctx.opacity = fade
+        let rect = CGRect(x: -p.size / 2.0, y: -p.size / 3.0, width: p.size, height: p.size * 0.66)
+        ctx.fill(Path(rect), with: .color(Color(hue: p.hue, saturation: 0.75, brightness: 0.95)))
     }
 }
 
