@@ -52,6 +52,12 @@
 		BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBC567EF2A2EA0470017E798 /* Assets.xcassets */; };
 		BBC567F32A2EA0470017E798 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBC567F22A2EA0470017E798 /* Preview Assets.xcassets */; };
 		CC2200002200002200002202 /* HabitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1100001100001100001101 /* HabitManager.swift */; };
+		DD1000001000001000001000 /* KeywordMatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1100001100001100001100 /* KeywordMatcherTests.swift */; };
+		DD1200001200001200001200 /* ContentBlockerRuleBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1300001300001300001300 /* ContentBlockerRuleBuilderTests.swift */; };
+		DD1400001400001400001400 /* SafeSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1500001500001500001500 /* SafeSearchTests.swift */; };
+		DD1600001600001600001600 /* HabitLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1700001700001700001700 /* HabitLogicTests.swift */; };
+		DD1800001800001800001800 /* BrowserTabStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1900001900001900001900 /* BrowserTabStoreTests.swift */; };
+		DD1A00001A00001A00001A00 /* BlocklistLookupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +67,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = BB4378B02E1F53C000534EED;
 			remoteInfo = ContentBlocker;
+		};
+		DD0A00000A00000A00000A00 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBC567E02A2EA0460017E798 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BBC567E72A2EA0460017E798;
+			remoteInfo = "Porn Blocker";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -106,6 +119,13 @@
 		BB5500005500005500005500 /* SafeBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeBrowserView.swift; sourceTree = "<group>"; };
 		BB7700007700007700007700 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		BB9900009900009900009900 /* BrowserTabStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTabStore.swift; sourceTree = "<group>"; };
+		DD0100000100000100000100 /* Porn BlockerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Porn BlockerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD1100001100001100001100 /* KeywordMatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordMatcherTests.swift; sourceTree = "<group>"; };
+		DD1300001300001300001300 /* ContentBlockerRuleBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBlockerRuleBuilderTests.swift; sourceTree = "<group>"; };
+		DD1500001500001500001500 /* SafeSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeSearchTests.swift; sourceTree = "<group>"; };
+		DD1700001700001700001700 /* HabitLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitLogicTests.swift; sourceTree = "<group>"; };
+		DD1900001900001900001900 /* BrowserTabStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTabStoreTests.swift; sourceTree = "<group>"; };
+		DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistLookupTests.swift; sourceTree = "<group>"; };
 		BB99A0012E99999900534EED /* RatingRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingRequestManager.swift; sourceTree = "<group>"; };
 		BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordMatcher.swift; sourceTree = "<group>"; };
@@ -158,6 +178,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DD0400000400000400000400 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -166,6 +193,7 @@
 			children = (
 				BBC567EA2A2EA0460017E798 /* Porn Blocker */,
 				BB4378B22E1F53C000534EED /* ContentBlocker */,
+				DD0B00000B00000B00000B00 /* Porn BlockerTests */,
 				BB4380012E60010100534EED /* blockerList.json */,
 				BB4380032E60010100534EED /* Porn Blocker.storekit */,
 				BBC567E92A2EA0460017E798 /* Products */,
@@ -177,8 +205,22 @@
 			children = (
 				BBC567E82A2EA0460017E798 /* Porn Blocker.app */,
 				BB4378B12E1F53C000534EED /* ContentBlocker.appex */,
+				DD0100000100000100000100 /* Porn BlockerTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DD0B00000B00000B00000B00 /* Porn BlockerTests */ = {
+			isa = PBXGroup;
+			children = (
+				DD1100001100001100001100 /* KeywordMatcherTests.swift */,
+				DD1300001300001300001300 /* ContentBlockerRuleBuilderTests.swift */,
+				DD1500001500001500001500 /* SafeSearchTests.swift */,
+				DD1700001700001700001700 /* HabitLogicTests.swift */,
+				DD1900001900001900001900 /* BrowserTabStoreTests.swift */,
+				DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */,
+			);
+			path = "Porn BlockerTests";
 			sourceTree = "<group>";
 		};
 		BBC567EA2A2EA0460017E798 /* Porn Blocker */ = {
@@ -284,6 +326,24 @@
 			productReference = BBC567E82A2EA0460017E798 /* Porn Blocker.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DD0200000200000200000200 /* Porn BlockerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DD0600000600000600000600 /* Build configuration list for PBXNativeTarget "Porn BlockerTests" */;
+			buildPhases = (
+				DD0300000300000300000300 /* Sources */,
+				DD0400000400000400000400 /* Frameworks */,
+				DD0500000500000500000500 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DD0900000900000900000900 /* PBXTargetDependency */,
+			);
+			name = "Porn BlockerTests";
+			productName = "Porn BlockerTests";
+			productReference = DD0100000100000100000100 /* Porn BlockerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -299,6 +359,10 @@
 					};
 					BBC567E72A2EA0460017E798 = {
 						CreatedOnToolsVersion = 14.3;
+					};
+					DD0200000200000200000200 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = BBC567E72A2EA0460017E798;
 					};
 				};
 			};
@@ -317,6 +381,7 @@
 			targets = (
 				BBC567E72A2EA0460017E798 /* Porn Blocker */,
 				BB4378B02E1F53C000534EED /* ContentBlocker */,
+				DD0200000200000200000200 /* Porn BlockerTests */,
 			);
 		};
 /* End PBXProject section */
@@ -338,6 +403,13 @@
 				BB4379382E444A3400534EED /* LaunchScreen.storyboard in Resources */,
 				BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */,
 				BB4380022E60010100534EED /* blockerList.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DD0500000500000500000500 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -397,6 +469,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DD0300000300000300000300 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DD1000001000001000001000 /* KeywordMatcherTests.swift in Sources */,
+				DD1200001200001200001200 /* ContentBlockerRuleBuilderTests.swift in Sources */,
+				DD1400001400001400001400 /* SafeSearchTests.swift in Sources */,
+				DD1600001600001600001600 /* HabitLogicTests.swift in Sources */,
+				DD1800001800001800001800 /* BrowserTabStoreTests.swift in Sources */,
+				DD1A00001A00001A00001A00 /* BlocklistLookupTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -405,9 +490,50 @@
 			target = BB4378B02E1F53C000534EED /* ContentBlocker */;
 			targetProxy = BB4378B82E1F53C000534EED /* PBXContainerItemProxy */;
 		};
+		DD0900000900000900000900 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BBC567E72A2EA0460017E798 /* Porn Blocker */;
+			targetProxy = DD0A00000A00000A00000A00 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		DD0700000700000700000700 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jose.pimentel.Porn-Blocker.Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Porn Blocker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Porn Blocker";
+			};
+			name = Debug;
+		};
+		DD0800000800000800000800 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jose.pimentel.Porn-Blocker.Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Porn Blocker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Porn Blocker";
+			};
+			name = Release;
+		};
 		BB4378BD2E1F53C000534EED /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -677,6 +803,15 @@
 			buildConfigurations = (
 				BBC567F72A2EA0470017E798 /* Debug */,
 				BBC567F82A2EA0470017E798 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DD0600000600000600000600 /* Build configuration list for PBXNativeTarget "Porn BlockerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD0700000700000700000700 /* Debug */,
+				DD0800000800000800000800 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

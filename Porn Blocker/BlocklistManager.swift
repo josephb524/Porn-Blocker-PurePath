@@ -416,7 +416,8 @@ class BlocklistManager: ObservableObject {
     /// Normalizes user-entered text down to a bare host: lowercased, scheme and
     /// `www.` removed, and path / query / fragment / port stripped so that
     /// `https://pornhub.com/videos?x=1` is stored simply as `pornhub.com`.
-    private func cleanURL(_ url: String) -> String {
+    /// Internal (not private) so the unit tests can cover the normalization.
+    func cleanURL(_ url: String) -> String {
         var host = url.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         if let schemeRange = host.range(of: "://") {
             host = String(host[schemeRange.upperBound...])

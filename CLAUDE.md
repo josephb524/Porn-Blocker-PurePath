@@ -473,6 +473,36 @@ custom prompt's `?action=write-review` deep link.
   release builds, so dev tracing never ships. `Log.swift` is in **both**
   targets so the Safari extension can use it too.
 
+## Tests
+
+`Porn BlockerTests` is an **app-hosted** XCTest unit-test target (~50 tests)
+covering the pure-logic invariants: keyword word-boundaries, ruleset
+composition (whitelist-rule-last, 100k cap, keyword exemptions), safe-search
+enforcement + its idempotency loop guard, streak/relapse/backdate semantics
+and the tolerant habit decoder, tab-session persistence, and host matching.
+
+```sh
+xcodebuild test -project "Porn Blocker.xcodeproj" -scheme "Porn Blocker" \
+  -destination 'platform=iOS Simulator,name=iPhone 16' CODE_SIGNING_ALLOWED=NO
+```
+
+CI runs the same command per push (`.github/workflows/tests.yml`).
+
+Non-obvious constraints:
+
+- Tests **must stay app-hosted** (`TEST_HOST`): `loadBundleRules()` reads
+  `Bundle.main`, so the builder tests depend on `blockerList.json` being in
+  the app bundle. Unhosted, `build()` silently falls back to 33 rules and
+  the composition tests break.
+- `HabitManager` tests run on the shared singleton in the test host's
+  sandbox — always on **throwaway custom habits deleted in a defer/tearDown**,
+  never the built-in Porn Free habit.
+- `BlocklistManager.cleanURL` is internal (not private) specifically so the
+  normalization tests can call it.
+- The baseline rule counts (264 core / 50 keyword / 22 cosmetic) are
+  asserted as constants in `ContentBlockerRuleBuilderTests` — update them
+  when the core bundle or keyword lists change.
+
 ## Buddy Chat backend (`worker/`)
 
 A Cloudflare Worker that:
