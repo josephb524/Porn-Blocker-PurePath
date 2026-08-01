@@ -208,6 +208,17 @@ data and check-in history. A few non-obvious behaviors live here:
   ends without a check-in. `isCheckedInToday` still strictly checks
   today's key, so the check-in button correctly empties at midnight —
   giving the user a visual nudge without zeroing the count.
+- **The hero ring is absolute progress, not segment progress.**
+  `ringProgress(streak:)` in `StatsView.swift` is
+  `min(1.0, streak / nextMilestone)` — it counts from **zero** to the next
+  milestone in `allMilestones`, so a 19-day streak fills 19/30 ≈ 63%. It
+  originally measured progress *within* the current milestone band
+  (`(streak - prev) / (next - prev)`, i.e. 12/23 ≈ 52% at 19 days), which
+  contradicted the "Next Goal 11d" label sitting right under it —
+  `nextMilestoneLabel` and the `MilestoneBadge` fill state
+  (`currentStreak >= milestone.days`) both count from zero. Keep all three
+  on the absolute framing. At 365+ days `next` falls back to 365 and the
+  `min(1.0, …)` clamp keeps the ring full.
 - **Reminder identifier convention.** `HabitNotificationManager.schedule`
   registers a repeating `UNCalendarNotificationTrigger` with identifier
   `"habit-<UUID>"` and stamps the same UUID into `userInfo["habitID"]`

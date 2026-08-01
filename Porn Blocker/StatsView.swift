@@ -271,11 +271,9 @@ struct StatsView: View {
     // MARK: - Helpers
 
     private func ringProgress(streak: Int) -> Double {
-        // Cycles through milestones: progress toward next milestone
+        // Absolute progress toward the next milestone, matching the "Next Goal" label
         let next = allMilestones.first(where: { $0.days > streak })?.days ?? 365
-        let prev = allMilestones.last(where:  { $0.days <= streak })?.days ?? 0
-        guard next != prev else { return 1.0 }
-        return min(1.0, Double(streak - prev) / Double(next - prev))
+        return min(1.0, Double(streak) / Double(next))
     }
 
     private func streakStartLabel(_ date: Date) -> String {
