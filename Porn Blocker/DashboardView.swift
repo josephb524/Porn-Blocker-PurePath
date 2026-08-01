@@ -17,6 +17,11 @@ struct DashboardView: View {
     /// off. The count pauses (no live stretch) when off and resumes from the bank
     /// when protection comes back.
     @AppStorage("protectionStretchStart") private var protectionStretchStart: Double = 0
+    /// Main-frame navigations the Safe Browser has blocked. App-group-backed
+    /// so the browser tab's increments appear here live.
+    @AppStorage("blockedAttemptCount", store: UserDefaults(suiteName: "group.com.jose.pimentel.PornBlocker"))
+    private var blockedAttempts = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showPaywall = false
     @State private var showExtensionInstructions = false
     @State private var contentBlockerEnabled = true
@@ -47,6 +52,9 @@ struct DashboardView: View {
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Protection Center")
             .navigationBarTitleDisplayMode(.large)
+            .navigationDestination(isPresented: $showPaywall) {
+                PaywallScreen(isPresented: $showPaywall)
+            }
             .onAppear {
                 startStatusMonitoring()
             }
@@ -90,7 +98,8 @@ struct DashboardView: View {
                     // Outer pulse ring — only mounted (and only ticking) when fully protected.
                     // TimelineView drives it from wall-clock time so it can't get "stuck" on tab
                     // switches the way a state-driven .repeatForever animation can.
-                    if subManager.isSubscribed && contentBlockerEnabled {
+                    // Skipped under Reduce Motion; the static circle + shield remain.
+                    if subManager.isSubscribed && contentBlockerEnabled && !reduceMotion {
                         TimelineView(.animation) { context in
                             let phase = pulsePhase(at: context.date)
                             // Keep the layout footprint fixed at the pulse's max
@@ -162,12 +171,13 @@ struct DashboardView: View {
                 color: Color(hue: 0.6, saturation: 0.7, brightness: 0.75)
             )
 
-            // Total sites in the protection database (StevenBlack list + user additions),
-            // scaled ×10 for display.
+            // Real count of main-frame blocks recorded by the Safe Browser.
+            // (Safari's declarative blocker can't report matches, so this is
+            // the only block event the app can actually observe.)
             QuickStatCard(
-                value: formatCount((blocklistManager.apiBlocklist.count + blocklistManager.customBlocklist.count) * 10),
-                label: "Sites\nBlocked",
-                icon: "globe.badge.chevron.backward",
+                value: formatCount(blockedAttempts),
+                label: "Attempts\nBlocked",
+                icon: "shield.slash.fill",
                 color: Color(hue: 0.08, saturation: 0.8, brightness: 0.85)
             )
         }
@@ -175,39 +185,61 @@ struct DashboardView: View {
     
     // MARK: - Database Status Card
     
+    /// Honest status line — previously "Up to date" was a hardcoded string
+    /// shown even when the list had never downloaded or the refresh failed.
+    private var databaseStatusText: String {
+        if blocklistManager.isLoading { return "Updating…" }
+        if blocklistManager.lastRefreshFailed { return "Update failed" }
+        guard let last = blocklistManager.lastUpdated else { return "Waiting for first update" }
+        return Date().timeIntervalSince(last) < 48 * 3600 ? "Up to date" : "Update available"
+    }
+
+    private var databaseStatusIsHealthy: Bool {
+        !blocklistManager.lastRefreshFailed && blocklistManager.lastUpdated != nil
+    }
+
     private var databaseStatusCard: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .fill(Color.green.opacity(0.12))
+                        .fill((databaseStatusIsHealthy ? Color.green : Color.orange).opacity(0.12))
                         .frame(width: 40, height: 40)
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: databaseStatusIsHealthy ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                         .font(.title3)
-                        .foregroundColor(.green)
+                        .foregroundColor(databaseStatusIsHealthy ? .green : .orange)
                 }
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Protection Database")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                    
-                    Text("Up to date • \(blocklistManager.totalKeywordCount) keywords active")
+
+                    Text("\(databaseStatusText) • \(formatCount(blocklistManager.apiBlocklist.count + blocklistManager.customBlocklist.count)) sites • \(blocklistManager.totalKeywordCount) keywords")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     if let last = blocklistManager.lastUpdated {
                         Text("Updated \(last.formatted(date: .abbreviated, time: .omitted))")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 if blocklistManager.isLoading {
                     ProgressView()
                         .scaleEffect(0.85)
+                } else {
+                    Button {
+                        Task { await blocklistManager.forceRefreshBlocklist() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    .accessibilityLabel("Refresh protection database")
                 }
             }
             .padding(16)
@@ -223,30 +255,44 @@ struct DashboardView: View {
     
     private var actionButton: some View {
         VStack(spacing: 0) {
-            Button(action: { showPaywall = true }) {
-                HStack(spacing: 12) {
-                    Image(systemName: buttonIcon)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-
-                    Text(buttonText)
-                        .font(.title3)
-                        .fontWeight(.bold)
+            if subManager.isSubscribed && contentBlockerEnabled {
+                // Fully protected — a static status banner. (This was a
+                // permanently disabled button before, which read as broken.)
+                actionButtonLabel
+            } else {
+                // Not subscribed → paywall; subscribed but extension off →
+                // setup instructions. (Both paths used to open the paywall.)
+                Button(action: {
+                    if subManager.isSubscribed {
+                        showExtensionInstructions = true
+                    } else {
+                        showPaywall = true
+                    }
+                }) {
+                    actionButtonLabel
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(buttonGradient)
-                        .shadow(color: buttonColor.opacity(0.35), radius: 14, x: 0, y: 6)
-                )
             }
-            .disabled(subManager.isSubscribed)
         }
-        .navigationDestination(isPresented: $showPaywall) {
-            PaywallScreen(isPresented: $showPaywall)
+    }
+
+    private var actionButtonLabel: some View {
+        HStack(spacing: 12) {
+            Image(systemName: buttonIcon)
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            Text(buttonText)
+                .font(.title3)
+                .fontWeight(.bold)
         }
+        .foregroundColor(.white)
+        .frame(maxWidth: .infinity)
+        .frame(height: 56)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(buttonGradient)
+                .shadow(color: buttonColor.opacity(0.35), radius: 14, x: 0, y: 6)
+        )
     }
     
     // MARK: - Quick Action Button
@@ -438,6 +484,10 @@ struct QuickStatCard: View {
                 .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 3)
         )
+        // Read as one element ("Attempts Blocked: 12") instead of VoiceOver
+        // hitting the value and label as disjoint text.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label.replacingOccurrences(of: "\n", with: " ")): \(value)")
     }
 }
 

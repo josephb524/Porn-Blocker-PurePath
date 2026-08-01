@@ -76,9 +76,11 @@ enum ContentBlockerRuleBuilder {
         "baidu.com", "yandex.com", "ask.com", "ecosia.org"
     ]
 
-    /// Max downloaded domains fed into the content blocker — well under Safari's
-    /// 150k-rule ceiling once core / keyword / cosmetic rules are added.
-    private static let maxAPIDomainRules = 35_000
+    /// Max downloaded domains fed into the content blocker — leaves headroom
+    /// under Safari's 150k-rule ceiling once core / keyword / cosmetic rules
+    /// are added. Verify `reloadContentBlocker` still succeeds on a physical
+    /// device before raising further.
+    private static let maxAPIDomainRules = 100_000
     /// Max user-defined custom keywords turned into rules.
     private static let maxCustomKeywordRules = 50
 
@@ -137,6 +139,21 @@ enum ContentBlockerRuleBuilder {
         // 5. CSS cosmetic rules — hide media on pages that partially load.
         let cosmetic = cosmeticRules(strictImageMode: input.strictImageMode, whitelist: input.whitelist)
         rules.append(contentsOf: cosmetic)
+
+        // 6. Whitelist exemption — one trailing `ignore-previous-rules` rule so
+        // whitelisted sites are exempt from *every* rule above, including the
+        // core bundle rules that carry no `unless-domain`. Must stay last:
+        // `ignore-previous-rules` only cancels rules that precede it. The `*`
+        // prefix covers subdomains, matching the Safe Browser's suffix check.
+        if !input.whitelist.isEmpty {
+            rules.append(ContentBlockerRule(
+                trigger: ContentBlockerTrigger(
+                    urlFilter: ".*",
+                    ifDomain: input.whitelist.sorted().map { "*\($0)" }
+                ),
+                action: ContentBlockerAction(type: "ignore-previous-rules")
+            ))
+        }
 
         let keywordCount = KeywordMatcher.predefinedKeywords.count + customKeywordCount
         Log.debug("ContentBlockerRuleBuilder: \(rules.count) rules — core \(coreCount), custom domains \(customDomainCount), API domains \(apiDomainCount), keyword \(keywordCount), cosmetic \(cosmetic.count)")

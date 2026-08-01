@@ -42,21 +42,25 @@ struct PaywallScreen: View {
 
                 planSelector
                     .padding(.horizontal, 24)
-                    .padding(.top, 24)
+                    .padding(.top, 14)
 
                 ctaSection
                     .padding(.horizontal, 24)
-                    .padding(.top, 20)
+                    .padding(.top, 14)
 
                 legalSection
                     .padding(.horizontal, 24)
-                    .padding(.top, 20)
-                    .padding(.bottom, 32)
+                    .padding(.top, 12)
+                    .padding(.bottom, 24)
             }
         }
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        // The toolbar sits over the dark header gradient. Without declaring
+        // the color scheme, iOS 26's glass toolbar buttons pick a dark label
+        // that's illegible here — `.foregroundColor(.white)` alone is ignored.
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button("Later") { isPresented = false }
@@ -99,27 +103,27 @@ struct PaywallScreen: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .frame(height: 260)
+            .frame(height: 170)
 
             ZStack {
                 Circle()
                     .fill(Color.white.opacity(0.07))
-                    .frame(width: 220, height: 220)
-                    .offset(x: -100, y: 40)
+                    .frame(width: 180, height: 180)
+                    .offset(x: -100, y: 30)
                 Circle()
                     .fill(Color.white.opacity(0.05))
-                    .frame(width: 160, height: 160)
-                    .offset(x: 120, y: -30)
+                    .frame(width: 130, height: 130)
+                    .offset(x: 120, y: -20)
             }
 
-            VStack(spacing: 10) {
+            VStack(spacing: 6) {
                 Image(systemName: "checkmark.shield.fill")
-                    .font(.system(size: 56))
+                    .font(.system(size: 36))
                     .foregroundColor(.white)
                     .shadow(color: .black.opacity(0.15), radius: 8)
 
                 Text("Porn Blocker Premium")
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
 
@@ -127,27 +131,27 @@ struct PaywallScreen: View {
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.85))
             }
-            .padding(.bottom, 32)
+            .padding(.bottom, 16)
         }
     }
 
     // MARK: - Features
 
     private var featuresSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
-                HStack(spacing: 14) {
+                HStack(spacing: 12) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 8)
                             .fill(feature.color.opacity(0.12))
-                            .frame(width: 42, height: 42)
+                            .frame(width: 30, height: 30)
                         Image(systemName: feature.icon)
-                            .font(.system(size: 18, weight: .medium))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundColor(feature.color)
                     }
 
                     Text(feature.text)
-                        .font(.body)
+                        .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
 
@@ -155,10 +159,10 @@ struct PaywallScreen: View {
 
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
-                        .font(.body)
+                        .font(.subheadline)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
                         .fill(Color(.systemBackground))

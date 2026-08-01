@@ -47,37 +47,24 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
         let (isSubscribed, isExpired) = checkSubscriptionStatus()
         
         if isSubscribed && !isExpired {
-            // User is subscribed, provide blocking rules
+            // User is subscribed, provide blocking rules.
+            //
+            // The dynamic file can exceed 100k rules (several MB of JSON) —
+            // fully parsing it here just to validate blows the extension's
+            // tight memory budget. The main app already round-trip-validates
+            // the JSON in `ContentBlockerRuleBuilder.write` before writing, so
+            // a cheap existence + size check is enough; `NSItemProvider` stays
+            // file-backed and never loads the data into memory.
             if let dynamicRulesURL = getDynamicRulesURL(),
-               FileManager.default.fileExists(atPath: dynamicRulesURL.path) {
-                // Try to use dynamic rules (includes core static rules + custom keywords and websites)
-                do {
-                    let dynamicRulesData = try Data(contentsOf: dynamicRulesURL)
-                    let parsedRules = try JSONSerialization.jsonObject(with: dynamicRulesData, options: [])
-                    
-                    // Validate that we have valid rules
-                    if let rulesArray = parsedRules as? [[String: Any]], !rulesArray.isEmpty {
-                        guard let attachment = NSItemProvider(contentsOf: dynamicRulesURL) else {
-                            Log.debug("ContentBlocker: Failed to create attachment from dynamic rules")
-                            fallbackToStaticRules(context: context)
-                            return
-                        }
-                        
-                        let item = NSExtensionItem()
-                        item.attachments = [attachment]
-                        Log.debug("ContentBlocker: ✅ Using dynamic rules (\(rulesArray.count) rules) with CORE static rules + custom content")
-                        context.completeRequest(returningItems: [item], completionHandler: nil)
-                    } else {
-                        Log.debug("ContentBlocker: Dynamic rules are empty or invalid, falling back to static rules")
-                        fallbackToStaticRules(context: context)
-                    }
-                } catch {
-                    Log.debug("ContentBlocker: Error parsing dynamic rules: \(error). Falling back to static rules")
-                    fallbackToStaticRules(context: context)
-                }
+               isPlausibleRulesFile(at: dynamicRulesURL),
+               let attachment = NSItemProvider(contentsOf: dynamicRulesURL) {
+                let item = NSExtensionItem()
+                item.attachments = [attachment]
+                Log.debug("ContentBlocker: ✅ Using dynamic rules with CORE static rules + custom content")
+                context.completeRequest(returningItems: [item], completionHandler: nil)
             } else {
                 // Fallback to static rules from bundle
-                Log.debug("ContentBlocker: Dynamic rules not found, using CORE static bundle rules")
+                Log.debug("ContentBlocker: Dynamic rules missing or implausible, using CORE static bundle rules")
                 fallbackToStaticRules(context: context)
             }
         } else {
@@ -144,6 +131,17 @@ class ContentBlockerRequestHandler: NSObject, NSExtensionRequestHandling {
         return (isSubscribed, isExpired)
     }
     
+    /// Cheap sanity check for the dynamic rules file: it exists and is big
+    /// enough to plausibly hold a ruleset (the smallest valid ruleset the main
+    /// app ever writes — the single no-op rule — is ~70 bytes).
+    private func isPlausibleRulesFile(at url: URL) -> Bool {
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let size = attributes[.size] as? NSNumber else {
+            return false
+        }
+        return size.intValue > 50
+    }
+
     private func getDynamicRulesURL() -> URL? {
         guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else {
             Log.debug("ContentBlocker: Failed to access shared container for dynamic rules")

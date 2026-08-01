@@ -6,8 +6,7 @@ struct BlockerSettingsView: View {
     @State private var showKeywordEditor = false
     @State private var showWebsiteEditor = false
     @State private var showWhitelistEditor = false
-    @State private var keywordsEnabled = true
-    @State private var websitesEnabled = true    
+
     var body: some View {
         List {
             // MARK: Built-in Protection
@@ -77,7 +76,7 @@ struct BlockerSettingsView: View {
                             .foregroundColor(.secondary)
                     }
                     Spacer()
-                    Toggle("", isOn: $keywordsEnabled)
+                    Toggle("", isOn: $blocklistManager.customKeywordsEnabled)
                 }
                 
                 Button(action: { showKeywordEditor = true }) {
@@ -123,7 +122,7 @@ struct BlockerSettingsView: View {
                             .foregroundColor(.secondary)
                     }
                     Spacer()
-                    Toggle("", isOn: $websitesEnabled)
+                    Toggle("", isOn: $blocklistManager.customWebsitesEnabled)
                 }
                 
                 Button(action: { showWebsiteEditor = true }) {
@@ -293,8 +292,6 @@ struct BlockerSettingsView: View {
         .sheet(isPresented: $showKeywordEditor) { KeywordEditorView() }
         .sheet(isPresented: $showWebsiteEditor) { WebsiteEditorView() }
         .sheet(isPresented: $showWhitelistEditor) { WhitelistEditorView() }
-        .onChange(of: keywordsEnabled) { _ in blocklistManager.updateContentBlocker() }
-        .onChange(of: websitesEnabled) { _ in blocklistManager.updateContentBlocker() }
     }
 }
 

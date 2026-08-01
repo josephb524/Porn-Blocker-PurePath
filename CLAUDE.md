@@ -74,7 +74,86 @@ in `project.pbxproj`.
    each navigation against `BlocklistManager`'s domain sets and
    `KeywordMatcher`.
 
-Both engines go through `KeywordMatcher` so they block identically.
+Both engines go through `KeywordMatcher` so they block identically. The
+user's custom keyword / custom website toggles
+(`BlocklistManager.customKeywordsEnabled` / `customWebsitesEnabled`,
+persisted) are honored by **both** engines — keep that parity when touching
+either.
+
+Safari ruleset invariants (`ContentBlockerRuleBuilder.build`):
+
+- The whitelist is applied as a single trailing `ignore-previous-rules`
+  rule (`if-domain: ["*host"]`) appended **last** — it must stay last or it
+  stops exempting the rules above it, including the 264 core bundle rules
+  that carry no `unless-domain`.
+- `maxAPIDomainRules = 100_000` (of ~173k downloaded; evenly sampled).
+  Verified compiling in the simulator; re-verify on the oldest physical
+  device before raising further.
+- `ContentBlocker/blockerList.json` is bundled in **both** targets — the
+  main app needs it so the dynamic ruleset gets all 264 core rules instead
+  of the 33-rule `essentialStaticRules()` fallback.
+- `ContentBlockerRequestHandler` validates the dynamic file with a cheap
+  existence + size check only. The full `JSONSerialization` parse was
+  removed deliberately — at 100k rules it blew the extension's memory
+  budget, and `ContentBlockerRuleBuilder.write` already round-trip
+  validates before writing. Don't reintroduce the parse.
+
+Safe Browser specifics:
+
+- **Safe-search enforcement** (`Coordinator.safeSearchEnforcedURL`):
+  main-frame GET navigations to google/bing/duckduckgo/yahoo/ecosia search
+  pages are cancelled and reloaded with the strict parameter
+  (`safe=active`, `adlt=strict`, `kp=1`, `vm=r`, `safesearch=2`). The
+  rewrite is idempotent — nil on a compliant URL is the loop guard. The
+  Safari declarative engine cannot rewrite URLs, so this exists only here.
+- **Blocked-attempt counter**: main-frame blocks call
+  `BlocklistManager.recordBlockedAttempt()` → app-group key
+  `blockedAttemptCount`, surfaced live by the Dashboard's "Attempts
+  Blocked" card via `@AppStorage`. Subframe blocks are deliberately not
+  counted (one page would inflate the count by dozens). Safari's
+  declarative blocker can't report matches, so this is Safe Browser only.
+- Domain lookups use `BlocklistManager.hostMatches(_:anyDomainIn:)` — an
+  O(labels) parent-suffix walk. Never reintroduce
+  `Set.contains(where: hasSuffix)` scans; the API set has ~173k entries.
+
+#### Safe Browser tabs & session restore
+
+`BrowserTabStore.swift` holds `BrowserTab` (id, urlString, title,
+`interactionState` blob) and `actor BrowserTabStore`, which persists a
+`TabSessionSnapshot` to `Documents/safe_browser_tabs.json` (atomic write,
+I/O on the actor). `SafeBrowserViewModel` is the tab manager:
+
+- **One live `WKWebView` per activated tab**, created lazily on first
+  activation; restored-but-untouched tabs hold only their serialized blob.
+  LRU cap of 4 live webviews (`maxLiveWebViews`); eviction banks
+  `interactionState` back into the model and invalidates that tab's KVO.
+- **Hydration**: if a tab has `interactionState`, it is assigned **instead
+  of** calling `load()` — the restore is async and issues its own
+  navigation, so a simultaneous load races it. A next-runloop
+  `url == nil` check falls back to loading `urlString` (corrupt blob).
+- **Saves** fire on `UIApplication.willResignActiveNotification` (observed
+  in the view model — scenePhase on the view is unreliable when Safe
+  Browse isn't the visible tab) plus a 2s debounce after tab
+  create/close/switch. `hasRestored` guards all saves so a fast background
+  at launch can't clobber the file with an empty session.
+- The shared `Coordinator` is delegate for **all** webviews; every push of
+  visible state (`isLoading`, `currentURL`, progress, canGo*, overlays) is
+  identity-guarded with `webView === viewModel.activeWebView`. Per-tab
+  data (title/urlString KVO into the tab model) is deliberately unguarded.
+  `recordBlockedAttempt()` is also unguarded — background-tab blocks are
+  real blocks.
+- `webViewWebContentProcessDidTerminate` reloads — iOS reclaims background
+  WebContent processes and the tab would otherwise stay blank.
+- The `webView(for:coordinator:)` factory is called from `updateUIView`
+  (a render pass) and must not mutate `@Published` state synchronously.
+
+Browser chrome: address pill (green badge + bold-host/gray-path styled URL,
+in-pill spinner while loading, tap to edit), **horizontal swipe on the pill
+switches tabs** (`activateAdjacentTab`, clamped), boxed tab-count button →
+`TabSwitcherView` (list/grid layouts, grid default via
+`tabSwitcherGridLayout`, tab search, monogram favicons with a hand-rolled
+stable hash — Swift's `hashValue` is per-run seeded), blue `+` = new tab,
+second row = back/forward + ellipsis menu (Reload/Stop, Close Tab).
 
 ### Subscription
 
@@ -102,8 +181,9 @@ to `UserDefaults` if it is missing.
 
 #### Subscription products
 
-Product IDs must match in **three** places: `SubscriptionManager.swift`,
-`worker/src/verify.ts` (`VALID_PRODUCT_IDS`), **and** App Store Connect.
+Product IDs must match in **four** places: `SubscriptionManager.swift`,
+`worker/src/verify.ts` (`VALID_PRODUCT_IDS`), App Store Connect, **and**
+`Porn Blocker.storekit` (the local StoreKit test config — see below).
 
 - `pornBlocker` — yearly
 - `monthlyPornBlocker` — monthly
@@ -111,6 +191,20 @@ Product IDs must match in **three** places: `SubscriptionManager.swift`,
 Both declared in `SubscriptionManager` as `nonisolated static let` so the
 detached transaction listener can reference them without Swift 6 isolation
 warnings.
+
+#### Simulator subscription testing (`Porn Blocker.storekit`)
+
+`Porn Blocker.storekit` defines both products locally so subscription-gated
+features (Safe Browser, Buddy chat, whitelist, the full Safari ruleset) can
+be exercised in the simulator without sandbox accounts.
+
+It is deliberately **not** referenced by the shared scheme, so normal runs
+use real StoreKit. To enable it: Product → Scheme → Edit Scheme → Run →
+Options → StoreKit Configuration → `Porn Blocker.storekit`.
+
+The config only applies when Xcode launches the app through the scheme's
+`LaunchAction`. `xcrun simctl launch` ignores it entirely and the app will
+report no products — build/install/launch from Xcode when testing purchases.
 
 #### Paywall layout (App Store 3.1.2(c))
 
@@ -125,6 +219,12 @@ re-reading the rejection notice:
   under the CTA repeats the price as `.title3.bold()`. Any new pricing
   element you add (intro pricing, calculated per-month price, savings
   badge) must render *smaller and subordinate* to `displayPrice`.
+- **The layout is deliberately compact** (170pt header, tight feature
+  rows) so both plan prices, the CTA, and the full disclosure sit above
+  the fold with no scrolling — which *helps* 3.1.2(c). Don't re-inflate.
+- **`.toolbarColorScheme(.dark, for: .navigationBar)` is load-bearing** —
+  iOS 26's glass toolbar buttons ignore `.foregroundColor(.white)` and
+  render dark labels over the header gradient without it.
 - **CTA button must state that a subscription follows the trial.** When a
   trial is available, the button shows two lines: primary "Start Free
   Trial & Subscribe" (`.headline`) and secondary "Then $X.XX per year,
@@ -159,6 +259,36 @@ re-reading the rejection notice:
 - swipe down on the message list or empty-state scroll view (`.scrollDismissesKeyboard(.interactively)`)
 
 Deliberately **no** `Done` button in `ToolbarItemGroup(placement: .keyboard)` — on iOS 26 it renders as a floating capsule that overlaps the send button; don't re-add it.
+
+### Onboarding
+
+`OnboardingView.swift`, mounted by `ContentView`'s conditional swap on
+`@AppStorage("hasSeenOnboarding")` (no fullScreenCover — avoids a tab-bar
+flash and delays singleton init until the flow completes). Five
+button-driven steps: Welcome → How It Works → streak start date → daily
+reminder → paywall. Non-obvious rules:
+
+- **Side effects fire only on explicit CTA taps** — Skip and Back are true
+  no-ops, protecting updaters' existing streaks (`setStartDate` unions day
+  keys; the reminder path goes through `updateHabit` →
+  `HabitNotificationManager.schedule`, which itself requests notification
+  permission — don't add a separate auth call).
+- The paywall page is the untouched `PaywallScreen` in a `NavigationStack`
+  wrapper with **zero onboarding chrome** over it (3.1.2(c)). Completion is
+  detected via its `isPresented` binding: every flip on the
+  purchase/restore paths happens after `isSubscribed` is already true, so
+  branching on `isSubscribed` in the `onChange` is race-free. Subscribed →
+  `SafariExtensionInstructionsView` sheet whose `onDismiss` completes the
+  flow; "Later" completes directly. Already-subscribed users skip the
+  paywall page entirely.
+- `hasSeenOnboarding` flips **only** in `completeOnboarding()` — never in
+  `onDisappear` (would fire on the swap) and never before the extension
+  sheet dismisses (would unmount the sheet). Kill mid-flow → flow restarts
+  next launch; that's intentional and safe because the side effects are
+  idempotent.
+- Cold-launch notification taps survive onboarding:
+  `HabitNotificationRouter.pendingHabitID` persists until `StatsView`
+  consumes it after `MainTabView` finally mounts.
 
 ### Dashboard "Days Protected"
 
@@ -489,7 +619,10 @@ send genuine Apple-signed JWS.
   only by the custom prompt's write-review deep link — the native
   `SKStoreReviewController` resolves the app by bundle ID instead.
 - **App group** in `BlocklistManager.swift` and `ContentBlocker*.swift`:
-  `group.com.jose.pimentel.PornBlocker`.
+  `group.com.jose.pimentel.PornBlocker`. Also holds the
+  `blockedAttemptCount` counter the Dashboard stat card observes.
+- **Browser session file**: `Documents/safe_browser_tabs.json`
+  (`BrowserTabStore`). Corrupt/missing → fresh single-tab session.
 - **Worker endpoint** in `BuddyChatService.swift` — must be updated after
   every `wrangler deploy`.
 - **Paywall legal URLs** in `PaywallScreen.swift`:

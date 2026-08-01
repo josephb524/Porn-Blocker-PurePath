@@ -27,10 +27,28 @@ class BlocklistManager: ObservableObject {
     }
     @Published var isLoading = false
     @Published var lastUpdated: Date?
+    /// Whether the most recent domain-list download attempt failed.
+    @Published var lastRefreshFailed = false
 
     @Published var strictImageMode: Bool {
         didSet {
             userDefaults.set(strictImageMode, forKey: "strictImageMode")
+            updateContentBlocker()
+        }
+    }
+    /// Whether the user's custom keyword list is applied. Honored by both
+    /// blocking engines so they stay in sync.
+    @Published var customKeywordsEnabled: Bool {
+        didSet {
+            userDefaults.set(customKeywordsEnabled, forKey: "customKeywordsEnabled")
+            updateContentBlocker()
+        }
+    }
+    /// Whether the user's custom website list is applied. Honored by both
+    /// blocking engines so they stay in sync.
+    @Published var customWebsitesEnabled: Bool {
+        didSet {
+            userDefaults.set(customWebsitesEnabled, forKey: "customWebsitesEnabled")
             updateContentBlocker()
         }
     }
@@ -74,6 +92,9 @@ class BlocklistManager: ObservableObject {
     init() {
         self.isEnabled = userDefaults.bool(forKey: "isEnabled")
         self.strictImageMode = userDefaults.bool(forKey: "strictImageMode")
+        // `bool(forKey:)` defaults to false — these two must default to true.
+        self.customKeywordsEnabled = userDefaults.object(forKey: "customKeywordsEnabled") as? Bool ?? true
+        self.customWebsitesEnabled = userDefaults.object(forKey: "customWebsitesEnabled") as? Bool ?? true
         loadLocalData()
 
         // React to subscription changes without SubscriptionManager needing a
@@ -118,7 +139,11 @@ class BlocklistManager: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        guard let domains = await repository.downloadDomains() else { return }
+        guard let domains = await repository.downloadDomains() else {
+            lastRefreshFailed = true
+            return
+        }
+        lastRefreshFailed = false
         await applyAPIDomains(domains)
         lastUpdated = Date()
         await repository.saveCache(domains)
@@ -128,6 +153,14 @@ class BlocklistManager: ObservableObject {
     }
 
     func forceRefreshBlocklist() async {
+        await refreshBlocklist()
+    }
+
+    /// Refreshes the domain list if the 24h cache window has lapsed. Called on
+    /// app foreground so protection doesn't go stale between cold launches.
+    func refreshIfStale() async {
+        guard !isLoading,
+              await repository.needsRefresh(haveCachedDomains: !apiBlocklist.isEmpty) else { return }
         await refreshBlocklist()
     }
 
@@ -158,6 +191,28 @@ class BlocklistManager: ObservableObject {
         return ContentBlockerRuleBuilder.searchEngineDomains.contains { domain in
             cleanHost == domain || cleanHost.hasSuffix(".\(domain)")
         }
+    }
+
+    /// Whether `host` equals — or is a subdomain of — any domain in `set`.
+    /// Walks the host's parent suffixes (O(labels)) instead of scanning the
+    /// whole set, which matters against the ~300k-entry downloaded list.
+    func hostMatches(_ host: String, anyDomainIn set: Set<String>) -> Bool {
+        guard !set.isEmpty else { return false }
+        if set.contains(host) { return true }
+        var labels = host.split(separator: ".")
+        while labels.count > 2 {
+            labels.removeFirst()
+            if set.contains(labels.joined(separator: ".")) { return true }
+        }
+        return false
+    }
+
+    /// Increments the count of main-frame navigations the Safe Browser has
+    /// blocked. Lives in app-group UserDefaults so the Dashboard's
+    /// `@AppStorage` stat card observes it live.
+    func recordBlockedAttempt() {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
+        defaults.set(defaults.integer(forKey: "blockedAttemptCount") + 1, forKey: "blockedAttemptCount")
     }
 
     // MARK: - Custom Blocklist
@@ -233,8 +288,8 @@ class BlocklistManager: ObservableObject {
         let rules: [ContentBlockerRule]
         if subscribed {
             let input = ContentBlockerRuleBuilder.Input(
-                customDomains: customBlocklist,
-                customKeywords: keywordBlocklist,
+                customDomains: customWebsitesEnabled ? customBlocklist : [],
+                customKeywords: customKeywordsEnabled ? keywordBlocklist : [],
                 whitelist: whitelistSet,
                 apiDomains: apiBlocklist,
                 strictImageMode: strictImageMode

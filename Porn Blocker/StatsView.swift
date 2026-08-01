@@ -52,6 +52,7 @@ struct StatsView: View {
                             .foregroundColor(Color(hue: 0.38, saturation: 0.65, brightness: 0.5))
                             .font(.title3)
                     }
+                    .accessibilityLabel("Add habit")
                 }
             }
             .onAppear {
@@ -258,6 +259,7 @@ struct StatsView: View {
                                 .background(Color.white.opacity(0.12))
                                 .clipShape(Circle())
                         }
+                        .accessibilityLabel("Edit habit settings")
                         .padding(12)
                     }
                     Spacer()
@@ -1013,6 +1015,7 @@ struct MilestoneCelebrationView: View {
     let milestone: Milestone
     let onDismiss: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
     @State private var dismissed = false
 
@@ -1023,8 +1026,11 @@ struct MilestoneCelebrationView: View {
             Color.black.opacity(appeared ? 0.45 : 0)
                 .ignoresSafeArea()
 
-            ConfettiBurst()
-                .ignoresSafeArea()
+            // Decoration only — the celebration card itself always shows.
+            if !reduceMotion {
+                ConfettiBurst()
+                    .ignoresSafeArea()
+            }
 
             VStack(spacing: 16) {
                 ZStack {
