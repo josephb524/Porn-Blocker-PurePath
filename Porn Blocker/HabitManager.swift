@@ -294,8 +294,9 @@ final class HabitNotificationRouter: ObservableObject {
     static let shared = HabitNotificationRouter()
 
     /// Set by the notification delegate when a habit reminder is tapped.
-    /// `MainTabView` reacts by switching to the Streaks tab; `StatsView`
-    /// reacts by opening the edit sheet for that habit, then clears it.
+    /// `MainTabView` is the sole consumer: it switches to the Streaks tab and
+    /// clears this. The tap deliberately does *not* open the habit's edit
+    /// sheet — the user lands on the Streaks tab itself.
     @Published var pendingHabitID: UUID?
 
     private init() {}

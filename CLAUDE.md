@@ -322,8 +322,8 @@ reminder → paywall. Non-obvious rules:
   next launch; that's intentional and safe because the side effects are
   idempotent.
 - Cold-launch notification taps survive onboarding:
-  `HabitNotificationRouter.pendingHabitID` persists until `StatsView`
-  consumes it after `MainTabView` finally mounts.
+  `HabitNotificationRouter.pendingHabitID` persists until `MainTabView`
+  finally mounts and consumes it in `.onAppear`.
 
 ### Dashboard "Days Protected"
 
@@ -453,7 +453,7 @@ data and check-in history. A few non-obvious behaviors live here:
   so a user's first reminder was never queued and silently missed its
   first day. Don't reintroduce the early return.
 
-**Tap routing** (notification → Streaks tab → edit sheet for that habit):
+**Tap routing** (notification → Streaks tab, and nothing more):
 
 1. `AppDelegate` (in `Porn_BlockerApp.swift`, via
    `@UIApplicationDelegateAdaptor`) installs `NotificationDelegate.shared`
@@ -463,12 +463,17 @@ data and check-in history. A few non-obvious behaviors live here:
    back to the identifier prefix for older scheduled notifications) and
    stores it on `HabitNotificationRouter.shared.pendingHabitID` — a
    `@MainActor ObservableObject` singleton.
-3. `MainTabView` observes the router and switches `selectedTab = 3`
-   (Streaks) on cold-launch `.onAppear` or warm `.onChange`.
-4. `StatsView` observes the same router, finds the habit by ID, sets
-   `selectedEditHabit` (opening `EditHabitView` as a sheet — the same
-   surface used by the gear button), and calls `router.clear()` so it
-   isn't replayed.
+3. `MainTabView` is the **sole** consumer: `showStreaksForPendingHabit()`
+   switches `selectedTab = 3` (Streaks) and calls `router.clear()`, driven
+   by cold-launch `.onAppear` or warm `.onChange`.
+
+The tap deliberately lands on the Streaks tab itself — it does **not**
+open `EditHabitView` for that habit. `StatsView` used to consume the
+router and present that sheet; it no longer references the router at all.
+Clearing in `MainTabView` (rather than `StatsView`) also means a reminder
+for a since-deleted habit still routes and still gets consumed — the old
+lookup-guarded clear left a stale ID that suppressed the next tap on that
+same habit.
 
 ### Rating prompts
 

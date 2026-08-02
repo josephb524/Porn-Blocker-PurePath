@@ -68,16 +68,23 @@ struct MainTabView: View {
         // Cold launch — the delegate may have already routed a habit ID
         // before the view subscribed below.
         .onAppear {
-            if habitRouter.pendingHabitID != nil {
-                selectedTab = 3
-            }
+            showStreaksForPendingHabit()
         }
         // Warm tap — router updates while the app is running.
-        .onChange(of: habitRouter.pendingHabitID) { newValue in
-            if newValue != nil {
-                selectedTab = 3
-            }
+        .onChange(of: habitRouter.pendingHabitID) { _ in
+            showStreaksForPendingHabit()
         }
+    }
+
+    /// A tapped habit reminder lands the user on the Streaks tab — nothing more.
+    /// Clearing here (rather than in `StatsView`) keeps the whole hop in one
+    /// place and means a reminder for a since-deleted habit still routes, and
+    /// still gets consumed instead of leaving a stale ID that would suppress the
+    /// next tap on that same habit.
+    private func showStreaksForPendingHabit() {
+        guard habitRouter.pendingHabitID != nil else { return }
+        selectedTab = 3
+        habitRouter.clear()
     }
 }
 

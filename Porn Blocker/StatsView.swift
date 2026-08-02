@@ -4,7 +4,6 @@ import SwiftUI
 
 struct StatsView: View {
     @StateObject private var habitManager = HabitManager.shared
-    @StateObject private var habitRouter = HabitNotificationRouter.shared
     @State private var showAddHabit = false
     @State private var selectedEditHabit: TrackedHabit? = nil
     @State private var showRelapseConfirm = false
@@ -58,10 +57,6 @@ struct StatsView: View {
             .onAppear {
                 withAnimation { appear = true }
                 lastSeenStreak = pornFreeHabit?.currentStreak
-                openEditSheetForPendingHabit()
-            }
-            .onChange(of: habitRouter.pendingHabitID) { _ in
-                openEditSheetForPendingHabit()
             }
             .onChange(of: pornFreeHabit?.currentStreak) { newStreak in
                 celebrateIfMilestoneCrossed(newStreak: newStreak)
@@ -115,16 +110,6 @@ struct StatsView: View {
             return "A slip doesn't erase your progress — your history stays. Your longest streak was \(longest) \(longest == 1 ? "day" : "days"). You got there before, and you can get back there."
         }
         return "Every restart is part of the journey. Your history stays — only the current streak resets."
-    }
-
-    /// If a habit reminder was tapped, open that habit's edit sheet (where
-    /// the user can mark today done via the history grid) and clear the
-    /// pending ID so it isn't re-handled on the next view event.
-    private func openEditSheetForPendingHabit() {
-        guard let id = habitRouter.pendingHabitID,
-              let habit = habitManager.habits.first(where: { $0.id == id }) else { return }
-        selectedEditHabit = habit
-        habitRouter.clear()
     }
 
     // MARK: - Porn Free Hero Card
