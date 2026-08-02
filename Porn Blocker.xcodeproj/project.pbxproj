@@ -59,6 +59,7 @@
 		DD1800001800001800001800 /* BrowserTabStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1900001900001900001900 /* BrowserTabStoreTests.swift */; };
 		DD1A00001A00001A00001A00 /* BlocklistLookupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */; };
 		DD1C00001C00001C00001C00 /* SubscriptionCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */; };
+		DD1E00001E00001E00001E00 /* NavigationPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +129,7 @@
 		DD1900001900001900001900 /* BrowserTabStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTabStoreTests.swift; sourceTree = "<group>"; };
 		DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistLookupTests.swift; sourceTree = "<group>"; };
 		DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionCacheTests.swift; sourceTree = "<group>"; };
+		DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicyTests.swift; sourceTree = "<group>"; };
 		BB99A0012E99999900534EED /* RatingRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingRequestManager.swift; sourceTree = "<group>"; };
 		BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordMatcher.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 				DD1900001900001900001900 /* BrowserTabStoreTests.swift */,
 				DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */,
 				DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */,
+				DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */,
 			);
 			path = "Porn BlockerTests";
 			sourceTree = "<group>";
@@ -483,6 +486,7 @@
 				DD1800001800001800001800 /* BrowserTabStoreTests.swift in Sources */,
 				DD1A00001A00001A00001A00 /* BlocklistLookupTests.swift in Sources */,
 				DD1C00001C00001C00001C00 /* SubscriptionCacheTests.swift in Sources */,
+				DD1E00001E00001E00001E00 /* NavigationPolicyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

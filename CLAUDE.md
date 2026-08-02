@@ -112,6 +112,39 @@ Safe Browser specifics:
   Blocked" card via `@AppStorage`. Subframe blocks are deliberately not
   counted (one page would inflate the count by dozens). Safari's
   declarative blocker can't report matches, so this is Safe Browser only.
+- **Universal-link containment.** iOS honors universal links for
+  *user-activated* navigations, so anything Google-owned inside the
+  webview could launch the **Google app** carrying the user's search — a
+  full escape from every filter. Programmatic `webView.load` never hands
+  off, which is the lever both halves of the fix pull. Scoped to
+  `Coordinator.isAppHandoffHost` (`google.com`, `goo.gl`, `g.co`);
+  YouTube/Reddit are knowingly not covered.
+  - **Live navigations** (`Coordinator.shouldLoadInPlace`) — cancelled
+    and re-issued with `load`. Accepts `.linkActivated` and
+    `.formSubmitted` **GET only** (POST would submit an empty form —
+    WebKit doesn't expose `httpBody` on the navigation action).
+    `.other` is excluded because that's what the re-issued load comes
+    back as: it is the loop guard. `.backForward` / `.reload` are
+    excluded because cancelling them and calling `load` corrupts the
+    back stack. A fragment-only comparison keeps in-page anchors from
+    becoming full reloads. Every `.allow` path in `decidePolicyFor`
+    funnels through `allowOrLoadInPlace()` — the whitelist branch
+    included, or whitelisting google.com reopens the hole.
+  - **Tab hydration** (`SafeBrowserViewModel.webView(for:coordinator:)`)
+    — a restored tab whose URL is a hand-off host **skips its
+    `interactionState` blob** and takes a plain `load` instead. WebKit
+    replays a restored session with a navigation of its own, and iOS
+    handed *that* off: closing the app on a Google search and reopening
+    the tab launched the Google app with no user interaction at all.
+    Restricting `shouldLoadInPlace` to user-activated types cannot catch
+    this, and it's unconfirmed whether the delegate is even consulted on
+    that path. The cost is that restored Google tabs lose their
+    back/forward stack; every other tab keeps full restore.
+  - `decidePolicyFor` logs `[SafeBrowser] nav type=…` for main-frame
+    navigations and hydration logs `[SafeBrowser] hydrate: …`. If a
+    hand-off ever recurs, whether those lines appear as the other app
+    takes over is what distinguishes "WebKit asked us and we allowed it"
+    from "WebKit never asked".
 - Domain lookups use `BlocklistManager.hostMatches(_:anyDomainIn:)` — an
   O(labels) parent-suffix walk. Never reintroduce
   `Set.contains(where: hasSuffix)` scans; the API set has ~173k entries.

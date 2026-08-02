@@ -1001,15 +1001,41 @@ struct SafeWebView: UIViewRepresentable {
             let manager = BlocklistManager.shared
             let isMainFrame = navigationAction.targetFrame?.isMainFrame ?? false
 
+            // Main-frame only, to stay quiet. Whether this line appears at the
+            // moment another app takes over is the fastest way to tell if
+            // WebKit consulted us before handing the URL off.
+            if isMainFrame {
+                Log.debug("[SafeBrowser] nav type=\(navigationAction.navigationType.rawValue) \(url.absoluteString)")
+            }
+
+            // Every "allow" decision goes through this — including the
+            // whitelist branch, which a user who whitelists google.com would
+            // otherwise escape through.
+            func allowOrLoadInPlace() {
+                guard Coordinator.shouldLoadInPlace(
+                    url: url,
+                    currentURL: webView.url,
+                    navigationType: navigationAction.navigationType,
+                    httpMethod: navigationAction.request.httpMethod
+                ) else {
+                    decisionHandler(.allow)
+                    return
+                }
+                Log.debug("[SafeBrowser] keeping Google link in-app: \(host)")
+                decisionHandler(.cancel)
+                let request = navigationAction.request
+                DispatchQueue.main.async { webView.load(request) }
+            }
+
             // Only block if the user has an active subscription
             guard SubscriptionManager.shared.isSubscribed else {
-                decisionHandler(.allow)
+                allowOrLoadInPlace()
                 return
             }
 
             // 1. Whitelist Check (Highest Priority)
             if manager.hostMatches(host, anyDomainIn: manager.whitelistSet) {
-                decisionHandler(.allow)
+                allowOrLoadInPlace()
                 return
             }
 
@@ -1065,8 +1091,75 @@ struct SafeWebView: UIViewRepresentable {
                 // Always cancel the restricted request
                 decisionHandler(.cancel)
             } else {
-                decisionHandler(.allow)
+                allowOrLoadInPlace()
             }
+        }
+
+        /// Domains the Google app claims as universal links.
+        private static let googleHandoffDomains: Set<String> = [
+            "google.com", "goo.gl", "g.co"
+        ]
+
+        /// Whether `host` is a domain the Google app claims as a universal link
+        /// — i.e. one iOS will yank out of Safe Browse and into the Google app.
+        /// Shared by `shouldLoadInPlace` and the tab-hydration gate in
+        /// `SafeBrowserViewModel.webView(for:coordinator:)`, which must agree.
+        static func isAppHandoffHost(_ host: String) -> Bool {
+            let host = host.lowercased()
+            return googleHandoffDomains.contains { host == $0 || host.hasSuffix(".\($0)") }
+        }
+
+        /// Whether a user-driven navigation must be re-issued programmatically
+        /// instead of allowed. iOS honors universal links only for
+        /// *user-activated* navigations, so a tap on a Google link inside the
+        /// webview launches the Google app — carrying the user's search out of
+        /// Safe Browse and past every filter. Cancelling it and calling
+        /// `webView.load` keeps it here: programmatic loads never hand off.
+        ///
+        /// Deliberately scoped to Google. Re-issuing *every* link tap would
+        /// drop the referrer header on ordinary sites for no safety gain.
+        static func shouldLoadInPlace(url: URL,
+                                      currentURL: URL?,
+                                      navigationType: WKNavigationType,
+                                      httpMethod: String?) -> Bool {
+            // Link taps, plus GET form submissions — submitting Google's search
+            // box carries a user gesture and hands off just like a tap. POST is
+            // excluded: WebKit doesn't expose `httpBody` on the navigation
+            // action, so re-issuing one would submit an empty form.
+            //
+            // `.other` (what the re-issued load itself comes back as) is the
+            // loop guard; `.backForward` and `.reload` stay out because
+            // cancelling them and calling `load` would corrupt the back stack.
+            switch navigationType {
+            case .linkActivated:
+                break
+            case .formSubmitted where (httpMethod ?? "GET").uppercased() == "GET":
+                break
+            default:
+                return false
+            }
+
+            guard let scheme = url.scheme?.lowercased(),
+                  scheme == "http" || scheme == "https" else { return false }
+
+            guard let host = url.host, isAppHandoffHost(host) else { return false }
+
+            // In-page anchor: a reload would throw away scroll position, and
+            // iOS doesn't hand off same-document navigations anyway.
+            if let currentURL, differsOnlyByFragment(url, currentURL) { return false }
+
+            return true
+        }
+
+        /// True when two URLs are identical apart from their fragment.
+        private static func differsOnlyByFragment(_ lhs: URL, _ rhs: URL) -> Bool {
+            guard var a = URLComponents(url: lhs, resolvingAgainstBaseURL: false),
+                  var b = URLComponents(url: rhs, resolvingAgainstBaseURL: false) else {
+                return false
+            }
+            a.fragment = nil
+            b.fragment = nil
+            return a == b
         }
 
         /// Returns `url` with the search engine's strict safe-search parameter
@@ -1286,8 +1379,18 @@ class SafeBrowserViewModel: ObservableObject {
         // Hydrate. A persisted blob restores the full back/forward history;
         // its restore is asynchronous and issues its own navigation, so a
         // simultaneous load() would race it.
+        //
+        // Google tabs deliberately skip the blob. WebKit replays the session
+        // with a navigation of its own, and iOS hands that off to the Google
+        // app — the tab reopens *outside* Safe Browse with the user's search
+        // intact. A plain load() never hands off, so restored Google tabs
+        // trade their back/forward stack for staying inside the blocker.
         let tab = tabs.first { $0.id == tabID }
-        if let state = tab?.interactionState {
+        let handsOff = URL(string: tab?.urlString ?? "")
+            .flatMap { $0.host }
+            .map(SafeWebView.Coordinator.isAppHandoffHost) ?? false
+
+        if let state = tab?.interactionState, !handsOff {
             webView.interactionState = state
             let fallback = tab?.urlString
             DispatchQueue.main.async { [weak webView] in
@@ -1298,6 +1401,7 @@ class SafeBrowserViewModel: ObservableObject {
                 }
             }
         } else if let url = URL(string: tab?.urlString ?? "https://www.google.com") {
+            Log.debug("[SafeBrowser] hydrate: plain load\(handsOff ? " (handoff host)" : "") \(url)")
             webView.load(URLRequest(url: url))
         }
         return webView
