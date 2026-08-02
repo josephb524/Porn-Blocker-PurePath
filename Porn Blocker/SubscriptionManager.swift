@@ -14,6 +14,11 @@ final class SubscriptionManager: ObservableObject {
         }
     }
     @Published private(set) var expiryDate: Date? = nil
+    /// `false` until the first `checkSubscriptionStatus()` completes — i.e. until
+    /// StoreKit has actually been asked. Distinguishes "not subscribed" from
+    /// "don't know yet" so the UI can avoid flashing an alarm state, and so the
+    /// content blocker is never downgraded on a status we haven't resolved.
+    @Published private(set) var hasResolvedStatus = false
     /// Available subscription products, cheapest first.
     @Published private(set) var products: [Product] = []
     @Published private(set) var isLoading = false
@@ -42,11 +47,58 @@ final class SubscriptionManager: ObservableObject {
     private var expirationCheckTimer: Timer?
 
     private init() {
+        // Seed from the last *resolved* status before anything reads us —
+        // StoreKit's answer is async, and without this every launch renders at
+        // least one frame as "not subscribed".
+        seedFromCache()
         updateListenerTask = listenForTransactions()
         startExpirationTimer()
-        Task {
-            await loadProducts()
-            await checkSubscriptionStatus()
+        // Entitlements are on-device and resolve fast; products need the network
+        // and are only needed by the paywall. Running them in separate tasks
+        // keeps the status check from queueing behind an App Store round-trip.
+        Task { await checkSubscriptionStatus() }
+        Task { await loadProducts() }
+    }
+
+    // MARK: - Status Cache
+
+    /// Keys are owned solely by this type. Deliberately **not** the app-group
+    /// keys `BlocklistManager` mirrors for the extension — those are written
+    /// before StoreKit resolves and would seed a stale `false`.
+    private static let cachedActiveKey = "cachedSubscriptionActive"
+    private static let cachedExpiryKey = "cachedSubscriptionExpiry"
+
+    /// Whether a cached status should be trusted as still active. Requires a
+    /// known expiry in the future, so an optimistic `true` can never outlive the
+    /// subscription it was cached from.
+    nonisolated static func cachedStatusIsActive(flag: Bool, expiry: TimeInterval?, now: Date) -> Bool {
+        guard flag, let expiry else { return false }
+        return expiry > now.timeIntervalSince1970
+    }
+
+    private func seedFromCache() {
+        let defaults = UserDefaults.standard
+        let flag = defaults.bool(forKey: Self.cachedActiveKey)
+        let expiry = defaults.object(forKey: Self.cachedExpiryKey) as? TimeInterval
+        guard Self.cachedStatusIsActive(flag: flag, expiry: expiry, now: Date()) else { return }
+        isSubscribed = true
+        expiryDate = expiry.map(Date.init(timeIntervalSince1970:))
+        Log.debug("💾 Seeded subscription status from cache (expiry: \(expiryDate?.description ?? "none"))")
+    }
+
+    /// Records a status we actually got from StoreKit — the flag and the cache
+    /// move together so they can't drift. Never called from `init`; every caller
+    /// invokes it *before* posting `.subscriptionStatusChanged` so observers
+    /// already see a resolved status.
+    private func markStatusResolved() {
+        hasResolvedStatus = true
+
+        let defaults = UserDefaults.standard
+        defaults.set(isSubscribed, forKey: Self.cachedActiveKey)
+        if let expiry = expiryDate?.timeIntervalSince1970 {
+            defaults.set(expiry, forKey: Self.cachedExpiryKey)
+        } else {
+            defaults.removeObject(forKey: Self.cachedExpiryKey)
         }
     }
 
@@ -221,6 +273,8 @@ final class SubscriptionManager: ObservableObject {
             Log.debug("🎉 Subscription activated!")
         }
 
+        markStatusResolved()
+
         // Let observers (BlocklistManager) re-sync the extension. Posted even
         // when `isSubscribed` is unchanged so a renewed expiry date propagates.
         NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)
@@ -244,6 +298,8 @@ final class SubscriptionManager: ObservableObject {
         } else {
             Log.debug("📱 No active subscription found")
         }
+
+        markStatusResolved()
 
         // Let observers (BlocklistManager) re-sync the extension.
         NotificationCenter.default.post(name: .subscriptionStatusChanged, object: nil)

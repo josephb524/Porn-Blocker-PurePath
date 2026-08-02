@@ -179,6 +179,41 @@ The app mirrors subscription status into the shared container as both a JSON
 file and app-group `UserDefaults`; the extension reads the file and falls back
 to `UserDefaults` if it is missing.
 
+#### Launch-time status resolution
+
+StoreKit's answer is async, so `isSubscribed` used to be a hardcoded `false`
+for the first second of every launch. That flashed a red "Protection Inactive"
+dashboard at paying users **and** — because `BlocklistManager.init()` runs in
+that window — wrote `isSubscribed: false` to the shared container and rebuilt
+the Safari ruleset as `noopRules()`, genuinely disarming the blocker. Three
+pieces prevent that; keep all three:
+
+- **Seed from cache.** `SubscriptionManager` persists the last *resolved*
+  status to `UserDefaults.standard` (`cachedSubscriptionActive` /
+  `cachedSubscriptionExpiry`, written only by `markStatusResolved()`) and
+  `seedFromCache()` restores it synchronously in `init()`. The seed is gated by
+  `cachedStatusIsActive(flag:expiry:now:)` — a `nonisolated static` pure
+  function requiring a **present, future** expiry, so an optimistic `true`
+  can't outlive the subscription it came from. These keys are deliberately
+  **not** the app-group keys `BlocklistManager` mirrors; those get written
+  before StoreKit resolves and would seed a stale value. `signedTransactionJWS`
+  is never seeded — it must stay a real Apple-signed value.
+- **`hasResolvedStatus`.** `false` until StoreKit has actually been asked.
+  `markStatusResolved()` sets it and writes the cache together (called from
+  both `updateSubscriptionStatus(from:)` and `setSubscriptionExpired()`,
+  always *before* they post `.subscriptionStatusChanged`, so observers see a
+  resolved status). `DashboardView.statusUnknown` uses it to show a neutral
+  "Checking Protection…" card instead of the red alarm on a cache miss
+  (fresh install / reinstall), and `BlocklistManager` guards **both** downgrade
+  paths on it — `saveSubscriptionStatusToSharedStorage()` and
+  `rebuildContentBlocker()` return early rather than writing `false` / the
+  no-op ruleset. Safe because the check posts `.subscriptionStatusChanged` on
+  *both* branches, so the real write always follows.
+- **`init()` runs the two startup tasks separately.** `checkSubscriptionStatus()`
+  reads on-device entitlements; `loadProducts()` is a network round-trip only
+  the paywall needs. They used to be `await`ed in sequence, which queued the
+  status check behind the App Store. Don't re-serialize them.
+
 #### Subscription products
 
 Product IDs must match in **four** places: `SubscriptionManager.swift`,
@@ -479,7 +514,8 @@ custom prompt's `?action=write-review` deep link.
 covering the pure-logic invariants: keyword word-boundaries, ruleset
 composition (whitelist-rule-last, 100k cap, keyword exemptions), safe-search
 enforcement + its idempotency loop guard, streak/relapse/backdate semantics
-and the tolerant habit decoder, tab-session persistence, and host matching.
+and the tolerant habit decoder, tab-session persistence, host matching, and the
+subscription-cache seed rule.
 
 ```sh
 xcodebuild test -project "Porn Blocker.xcodeproj" -scheme "Porn Blocker" \

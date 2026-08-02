@@ -285,6 +285,15 @@ class BlocklistManager: ObservableObject {
     /// Builds the ruleset, writes it off the main actor, then reloads Safari.
     private func rebuildContentBlocker() async {
         let subscribed = SubscriptionManager.shared.isSubscribed
+
+        // Never disarm Safari on a status we haven't resolved yet — at launch
+        // this runs before StoreKit answers, and writing the no-op ruleset would
+        // leave a subscriber genuinely unprotected until the real answer lands.
+        guard subscribed || SubscriptionManager.shared.hasResolvedStatus else {
+            Log.debug("BlocklistManager: subscription status unresolved — keeping the existing ruleset")
+            return
+        }
+
         let rules: [ContentBlockerRule]
         if subscribed {
             let input = ContentBlockerRuleBuilder.Input(
@@ -359,6 +368,15 @@ class BlocklistManager: ObservableObject {
     func saveSubscriptionStatusToSharedStorage() {
         let isSubscribed = SubscriptionManager.shared.isSubscribed
         let expiryTimestamp = SubscriptionManager.shared.expiryDate?.timeIntervalSince1970
+
+        // At launch this runs before StoreKit has answered. Writing the
+        // unresolved `false` would clobber the extension's last-known-good
+        // mirror; the `.subscriptionStatusChanged` observer rewrites it a moment
+        // later with a real answer (posted on both branches of the check).
+        guard isSubscribed || SubscriptionManager.shared.hasResolvedStatus else {
+            Log.debug("BlocklistManager: subscription status unresolved — keeping the existing shared mirror")
+            return
+        }
 
         // Robust secondary source the extension falls back to if the JSON file
         // below is ever missing or corrupt.

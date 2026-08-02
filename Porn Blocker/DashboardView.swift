@@ -27,6 +27,14 @@ struct DashboardView: View {
     @State private var contentBlockerEnabled = true
     @State private var statusCheckTimer: Timer?
 
+    /// StoreKit hasn't answered yet and we had no cached status to seed from
+    /// (fresh install, or a reinstall before the first entitlement check). Renders
+    /// a neutral "checking" card rather than the red alarm — a paying user should
+    /// never be told their protection is off just because the check is in flight.
+    private var statusUnknown: Bool {
+        !subManager.isSubscribed && !subManager.hasResolvedStatus
+    }
+
     /// Cumulative whole days protection has actually been active — banked time plus
     /// any live stretch in progress. Pauses while protection is off.
     private var daysProtected: Int {
@@ -83,9 +91,7 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(
                     LinearGradient(
-                        colors: subManager.isSubscribed && contentBlockerEnabled
-                            ? [Color(hue: 0.38, saturation: 0.65, brightness: 0.45), Color(hue: 0.42, saturation: 0.7, brightness: 0.35)]
-                            : [Color.red, Color(white: 0.25)], // Reverting to previous red logic
+                        colors: heroGradientColors,
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -138,8 +144,9 @@ struct DashboardView: View {
                         .padding(.horizontal, 12)
                 }
                 
-                // Quick Action (if needed)
-                if !subManager.isSubscribed || !contentBlockerEnabled {
+                // Quick Action (if needed). Suppressed while the status is
+                // unknown — never invite a paying user to buy again.
+                if !statusUnknown && (!subManager.isSubscribed || !contentBlockerEnabled) {
                     quickActionButton
                 }
             }
@@ -255,9 +262,11 @@ struct DashboardView: View {
     
     private var actionButton: some View {
         VStack(spacing: 0) {
-            if subManager.isSubscribed && contentBlockerEnabled {
+            if statusUnknown || (subManager.isSubscribed && contentBlockerEnabled) {
                 // Fully protected — a static status banner. (This was a
                 // permanently disabled button before, which read as broken.)
+                // Also used while the status is still unknown: a neutral,
+                // non-tappable placeholder rather than a paywall CTA.
                 actionButtonLabel
             } else {
                 // Not subscribed → paywall; subscribed but extension off →
@@ -325,31 +334,44 @@ struct DashboardView: View {
     
     // MARK: - Computed Properties
     
+    private var heroGradientColors: [Color] {
+        if statusUnknown { return [Color(white: 0.45), Color(white: 0.25)] }
+        if subManager.isSubscribed && contentBlockerEnabled {
+            return [Color(hue: 0.38, saturation: 0.65, brightness: 0.45), Color(hue: 0.42, saturation: 0.7, brightness: 0.35)]
+        }
+        return [Color.red, Color(white: 0.25)]
+    }
+
     private var statusColor: Color {
+        if statusUnknown             { return .gray }
         if !subManager.isSubscribed { return .red }
         if !contentBlockerEnabled    { return .orange }
         return Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
     }
-    
+
     private var statusIcon: String {
+        if statusUnknown             { return "shield" }
         if !subManager.isSubscribed  { return "exclamationmark.shield.fill" }
         if !contentBlockerEnabled    { return "gear.badge" }
         return "checkmark.shield.fill"
     }
-    
+
     private var statusTitle: String {
+        if statusUnknown             { return "Checking Protection…" }
         if !subManager.isSubscribed  { return "Protection Inactive" }
         if !contentBlockerEnabled    { return "Setup Required" }
         return "Fully Protected"
     }
-    
+
     private var statusSubtitle: String {
+        if statusUnknown             { return "Confirming your subscription status" }
         if !subManager.isSubscribed  { return "Subscribe to activate comprehensive browser protection" }
         if !contentBlockerEnabled    { return "Enable Safari extension to complete setup" }
         return "Your browser is shielded from inappropriate content"
     }
-    
+
     private var buttonColor: Color {
+        if statusUnknown                                    { return .gray }
         if subManager.isSubscribed && contentBlockerEnabled { return Color(hue: 0.38, saturation: 0.65, brightness: 0.5) }
         if subManager.isSubscribed                          { return .orange }
         return .red
@@ -364,12 +386,14 @@ struct DashboardView: View {
     }
     
     private var buttonIcon: String {
+        if statusUnknown                                    { return "shield" }
         if subManager.isSubscribed && contentBlockerEnabled { return "checkmark.circle.fill" }
         if subManager.isSubscribed                          { return "gear.circle.fill" }
         return "shield.fill"
     }
-    
+
     private var buttonText: String {
+        if statusUnknown                                    { return "CHECKING…" }
         if subManager.isSubscribed && contentBlockerEnabled { return "PROTECTION ACTIVE" }
         if subManager.isSubscribed                          { return "COMPLETE SETUP" }
         return "ACTIVATE PROTECTION"
