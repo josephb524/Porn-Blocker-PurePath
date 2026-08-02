@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>App Store screenshots</title>
+<style>
+  :root{
+    --brand:#2D8044;
+    --ink:#0B0B0D;
+    --g6:#F2F2F7; --g5:#E5E5EA; --g4:#D1D1D6; --g3:#C7C7CC;
+    --sec:rgba(60,60,67,.60);
+    --blue:#007AFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#111;}
+  body{font-family:system-ui,-apple-system,"SF Pro Text",sans-serif;-webkit-font-smoothing:antialiased;}
+  .rnd{font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;}
+
+  /* ---------- panel shell ---------- */
+  .panel{
+    position:relative;width:1290px;height:2796px;overflow:hidden;isolation:isolate;
+  }
+  .panel .bg{position:absolute;inset:0;z-index:0}
+  .glow{
+    position:absolute;left:50%;top:52%;width:1500px;height:1500px;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.20) 0%,rgba(255,255,255,.07) 38%,rgba(255,255,255,0) 68%);
+    z-index:1;pointer-events:none;
+  }
+  .orb{position:absolute;border-radius:50%;z-index:1;pointer-events:none}
+  .grain{
+    position:absolute;inset:0;z-index:6;pointer-events:none;opacity:.5;
+    background:
+      radial-gradient(circle at 18% 12%,rgba(255,255,255,.10),transparent 45%),
+      radial-gradient(circle at 84% 88%,rgba(0,0,0,.22),transparent 55%);
+  }
+
+  /* ---------- copy ---------- */
+  .copy{position:absolute;left:0;right:0;top:132px;z-index:5;padding:0 96px;text-align:center}
+  .eyebrow{
+    display:inline-block;margin-bottom:34px;padding:15px 34px;border-radius:999px;
+    background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.28);
+    color:#fff;font-size:33px;font-weight:650;letter-spacing:.6px;
+    box-shadow:0 10px 26px rgba(0,0,0,.18), inset 0 1.5px 0 rgba(255,255,255,.4);
+  }
+  h1{
+    color:#fff;font-size:97px;line-height:1.05;font-weight:800;letter-spacing:-3px;
+    text-shadow:0 8px 34px rgba(0,0,0,.30);
+  }
+  h1.sm{font-size:92px;letter-spacing:-2.8px}
+  .sub{
+    margin-top:32px;color:rgba(255,255,255,.80);font-size:43px;line-height:1.36;
+    font-weight:480;letter-spacing:-.4px;max-width:960px;margin-left:auto;margin-right:auto;
+    text-shadow:0 3px 16px rgba(0,0,0,.24);
+  }
+
+  /* ---------- 3D stage ---------- */
+  .stage{position:absolute;left:0;right:0;top:0;bottom:0;z-index:4;perspective:1750px;perspective-origin:50% 34%}
+  .device{
+    position:absolute;left:50%;margin-left:-215px;top:742px;
+    width:430px;height:932px;border-radius:66px;
+    background:linear-gradient(155deg,#4a4a50,#0d0d10 42%,#000);
+    padding:13px;
+    transform-origin:50% 0%;
+    transform-style:preserve-3d;
+    box-shadow:
+      0 6px 0 rgba(255,255,255,.10) inset,
+      -26px 48px 120px rgba(0,0,0,.55),
+      -10px 20px 46px rgba(0,0,0,.42),
+      0 0 0 2px rgba(255,255,255,.13);
+  }
+  .device.tilt{transform:scale(1.95) rotateY(-19deg) rotateX(7deg) rotateZ(-2.2deg)}
+  .device.flat{transform:scale(1.95) rotateY(-7deg) rotateX(3deg)}
+  /* rim light on the edge facing the viewer */
+  .device::before{
+    content:"";position:absolute;left:0;top:34px;bottom:34px;width:5px;border-radius:5px;z-index:41;
+    background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));
+  }
+  .device::after{ /* screen specular */
+    content:"";position:absolute;inset:13px;border-radius:54px;pointer-events:none;z-index:40;
+    background:linear-gradient(118deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,.05) 22%,rgba(255,255,255,0) 46%);
+  }
+  .screen{
+    position:relative;width:100%;height:100%;border-radius:54px;overflow:hidden;
+    background:var(--g6);color:#000;font-size:16px;
+  }
+  .shadowpad{
+    position:absolute;left:50%;top:2470px;width:1080px;height:170px;z-index:3;
+    transform:translateX(-50%);
+    background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.40),rgba(0,0,0,0) 68%);
+    filter:blur(14px);
+  }
+
+  /* ---------- floating glass cards ---------- */
+  .fcard{
+    position:absolute;z-index:5;border-radius:34px;
+    background:linear-gradient(150deg,#ffffff,#f4f6f8);
+    box-shadow:
+      0 34px 70px rgba(0,0,0,.34),
+      0 10px 22px rgba(0,0,0,.20),
+      inset 0 2px 0 #fff;
+    padding:30px 36px;
+  }
+  .fcard.dark{
+    background:linear-gradient(150deg,rgba(20,42,32,.96),rgba(10,26,26,.96));
+    box-shadow:0 34px 70px rgba(0,0,0,.42),0 10px 22px rgba(0,0,0,.26),inset 0 2px 0 rgba(255,255,255,.18);
+  }
+  .fc-row{display:flex;align-items:center;gap:22px}
+  .fc-ico{
+    width:78px;height:78px;border-radius:24px;display:grid;place-items:center;flex:none;
+    box-shadow:0 12px 24px rgba(0,0,0,.20), inset 0 2px 0 rgba(255,255,255,.55);
+  }
+  .fc-ico svg{width:42px;height:42px}
+  .fc-val{font-size:52px;font-weight:800;letter-spacing:-1.6px;color:#0d1a12;line-height:1}
+  .fc-lab{font-size:26px;font-weight:600;color:rgba(20,40,28,.58);margin-top:8px;letter-spacing:-.2px}
+  .fcard.dark .fc-val{color:#fff}
+  .fcard.dark .fc-lab{color:rgba(255,255,255,.62)}
+
+  /* ---------- generic iOS screen bits ---------- */
+  .statusbar{display:flex;align-items:center;justify-content:space-between;padding:16px 30px 0;font-size:15px;font-weight:640;letter-spacing:-.2px}
+  .sb-r{display:flex;align-items:center;gap:6px}
+  .sb-r svg{width:17px;height:17px}
+  .navlarge{padding:12px 20px 4px;font-size:34px;font-weight:800;letter-spacing:-1px}
+  .navrow{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 4px}
+  .navrow .navlarge{padding:0}
+  .navinline{text-align:center;font-size:17px;font-weight:650;padding:14px 0 10px;border-bottom:.5px solid rgba(60,60,67,.22)}
+  .body{padding:0 20px}
+
+  .card{background:#fff;border-radius:16px;box-shadow:0 3px 8px rgba(0,0,0,.05)}
+  .muted{color:var(--sec)}
+
+  /* hero protection card */
+  .hero{
+    border-radius:24px;padding:26px 20px;text-align:center;color:#fff;
+    background:linear-gradient(135deg,#28733D,#1B593B);
+    box-shadow:0 8px 20px rgba(45,128,68,.40);
+  }
+  .hero .ring{position:relative;width:100px;height:100px;margin:0 auto 18px;border-radius:50%;background:rgba(255,255,255,.15);display:grid;place-items:center}
+  .hero .ring::before{content:"";position:absolute;width:132px;height:132px;border-radius:50%;border:2px solid rgba(255,255,255,.22)}
+  .hero .ring svg{width:46px;height:46px}
+  .hero h3{font-size:22px;font-weight:700;letter-spacing:-.4px}
+  .hero p{font-size:15px;color:rgba(255,255,255,.85);margin-top:8px;line-height:1.3;padding:0 12px}
+
+  .stats{display:flex;gap:12px;margin-top:20px}
+  .qs{flex:1;background:#fff;border-radius:16px;box-shadow:0 3px 8px rgba(0,0,0,.05);padding:16px 6px;text-align:center}
+  .qs svg{width:22px;height:22px}
+  .qs .v{font-size:26px;font-weight:800;letter-spacing:-.8px;margin-top:8px}
+  .qs .l{font-size:11px;font-weight:520;color:var(--sec);margin-top:8px;line-height:1.25}
+
+  .dbcard{display:flex;align-items:center;gap:12px;padding:16px;margin-top:20px}
+  .dbdot{width:40px;height:40px;border-radius:50%;background:rgba(52,199,89,.12);display:grid;place-items:center;flex:none}
+  .dbdot svg{width:21px;height:21px;color:#34C759}
+  .dbcard .t{font-size:15px;font-weight:640;letter-spacing:-.2px}
+  .dbcard .s{font-size:12px;color:var(--sec);margin-top:2px}
+  .dbcard .u{font-size:11px;color:var(--sec);margin-top:2px}
+
+  .cta{
+    margin-top:20px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:12px;
+    background:linear-gradient(135deg,#2D8044,rgba(45,128,68,.80));color:#fff;
+    box-shadow:0 6px 14px rgba(45,128,68,.35);font-size:20px;font-weight:750;letter-spacing:-.3px;
+  }
+  .cta svg{width:24px;height:24px}
+
+  /* streak hero */
+  .shero{
+    position:relative;border-radius:22px;padding:28px 20px;color:#fff;overflow:hidden;
+    background:linear-gradient(135deg,#1D6130,#1D3B47);
+    box-shadow:0 8px 16px rgba(38,76,49,.30);
+  }
+  .shero .o1{position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);right:-60px;top:-60px}
+  .shero .o2{position:absolute;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04);left:-70px;bottom:-40px}
+  .shero .gear{position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center}
+  .shero .gear svg{width:16px;height:16px;color:rgba(255,255,255,.7)}
+  .sring{position:relative;width:140px;height:140px;margin:0 auto;display:grid;place-items:center}
+  .sring svg{position:absolute;inset:0;width:140px;height:140px;transform:rotate(-90deg)}
+  .sring .n{font-size:48px;font-weight:800;line-height:1;letter-spacing:-1.5px}
+  .sring .d{font-size:11px;font-weight:640;color:rgba(255,255,255,.7);letter-spacing:2px;margin-top:2px}
+  .slabel{text-align:center;margin-top:16px}
+  .slabel .a{font-size:20px;font-weight:750;letter-spacing:-.3px}
+  .slabel .b{font-size:15px;color:rgba(255,255,255,.65);margin-top:4px}
+  .srow{display:flex;margin-top:16px}
+  .srow .c{flex:1;text-align:center}
+  .srow .v{font-size:18px;font-weight:800;letter-spacing:-.4px}
+  .srow .k{font-size:11px;color:rgba(255,255,255,.6);margin-top:3px;letter-spacing:.5px}
+  .srow .sep{width:1px;height:30px;background:rgba(255,255,255,.2);align-self:center}
+  .checkin{
+    margin-top:16px;background:#fff;border-radius:999px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;
+    color:#185228;font-size:15px;font-weight:640;
+  }
+  .checkin svg{width:19px;height:19px}
+  .sfoot{text-align:center;margin-top:16px;font-size:12px;color:rgba(255,255,255,.55);text-decoration:underline}
+
+  .sect{font-size:17px;font-weight:700;letter-spacing:-.3px;margin:20px 4px 12px}
+  .mrow{display:flex;gap:12px}
+  .mb{width:68px;text-align:center}
+  .mb .cir{width:58px;height:58px;border-radius:50%;margin:0 auto;display:grid;place-items:center}
+  .mb .cir svg{width:23px;height:23px}
+  .mb .lb{font-size:11px;margin-top:6px}
+  .mb.on .lb{font-weight:640;color:#000}
+  .mb.off{transform:scale(.93)}
+  .mb.off .cir{background:var(--g6)}
+  .mb.off .cir svg{color:var(--g4)}
+  .mb.off .lb{color:var(--sec)}
+
+  /* browser */
+  .bbar{background:#fff;padding:8px 14px 4px;border-bottom:.5px solid rgba(60,60,67,.29)}
+  .brow{display:flex;align-items:center;gap:10px}
+  .pill{flex:1;background:var(--g6);border-radius:999px;padding:11px 12px;display:flex;align-items:center;gap:8px;min-width:0}
+  .pbadge{width:22px;height:22px;border-radius:50%;background:#3F8C55;display:grid;place-items:center;flex:none}
+  .pbadge svg{width:11px;height:11px;color:#fff}
+  .purl{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .purl b{font-weight:640}
+  .purl span{color:var(--sec)}
+  .tabbtn{width:42px;height:42px;border-radius:50%;background:var(--g6);display:grid;place-items:center;flex:none}
+  .tabbtn i{width:20px;height:20px;border:1.8px solid #000;border-radius:5px;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:800}
+  .plusbtn{width:44px;height:44px;border-radius:50%;background:var(--blue);display:grid;place-items:center;flex:none}
+  .plusbtn svg{width:20px;height:20px;color:#fff}
+  .brow2{display:flex;align-items:center;gap:20px;padding:6px 6px 2px}
+  .brow2 svg{width:18px;height:18px}
+  .brow2 .hint{flex:1;text-align:center;font-size:12px;color:var(--sec)}
+
+  .tabhead{text-align:center;padding:14px 0 2px}
+  .tabhead .t{font-size:17px;font-weight:700}
+  .tabhead .s{font-size:12px;color:var(--sec);margin-top:1px}
+  .searchf{margin:12px 16px;background:var(--g5);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;color:var(--sec);font-size:15px}
+  .searchf svg{width:16px;height:16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:4px 16px 16px}
+  .gcard{background:#fff;border-radius:20px;box-shadow:0 3px 6px rgba(0,0,0,.05);overflow:hidden;position:relative}
+  .gcard.act{box-shadow:0 3px 6px rgba(0,0,0,.05),0 0 0 2px var(--blue)}
+  .gprev{height:112px;padding:26px 16px 8px}
+  .skel{height:8px;border-radius:3px;background:var(--g5);margin-bottom:7px}
+  .gx{position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:50%;background:var(--g5);display:grid;place-items:center;color:var(--sec);font-size:12px;font-weight:700}
+  .gfoot{display:flex;align-items:center;gap:8px;padding:12px}
+  .mono{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800;flex:none}
+  .gfoot .tt{font-size:15px;font-weight:640;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gfoot .hh{font-size:11px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* chat */
+  /* justify-end + overflow:hidden clips the OLDEST messages, so a conversation
+     longer than the canvas reads as scrollback instead of spilling over the nav bar */
+  .msgs{position:absolute;left:0;right:0;top:82px;bottom:150px;padding:14px 16px;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;overflow:hidden}
+  .b-a,.b-u{max-width:82%;border-radius:18px;padding:10px 14px;font-size:16px;line-height:1.35;letter-spacing:-.2px}
+  .b-a{background:#fff;border:1px solid var(--g5);align-self:flex-start}
+  .b-u{background:var(--brand);color:#fff;align-self:flex-end}
+  .acts{display:flex;gap:16px;align-items:center;color:var(--sec);padding:0 4px;margin-top:-4px}
+  .acts svg{width:15px;height:15px}
+  .composer{position:absolute;left:0;right:0;bottom:84px;background:var(--g6);padding:10px 12px;display:flex;align-items:center;gap:8px}
+  .tfield{flex:1;background:#fff;border:1px solid var(--g4);border-radius:22px;padding:10px 14px;font-size:16px;color:var(--sec)}
+  .send{width:38px;height:38px;border-radius:50%;background:var(--brand);display:grid;place-items:center;flex:none}
+  .send svg{width:18px;height:18px;color:#fff}
+  .esphere{width:96px;height:96px;border-radius:50%;background:rgba(45,128,68,.15);display:grid;place-items:center;margin:0 auto}
+  .esphere svg{width:42px;height:42px;color:var(--brand)}
+  .prompt{background:#fff;border-radius:14px;box-shadow:0 2px 4px rgba(0,0,0,.04);padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:-.2px}
+  .prompt svg{width:15px;height:15px;color:var(--sec);flex:none;margin-left:auto}
+
+  /* tabbar */
+  .tabbar{
+    position:absolute;left:0;right:0;bottom:0;height:84px;padding:10px 8px 0;
+    background:rgba(249,249,249,.94);border-top:.5px solid rgba(60,60,67,.22);
+    display:flex;align-items:flex-start;
+  }
+  .tb{flex:1;text-align:center;color:#8E8E93}
+  .tb.on{color:var(--brand)}
+  .tb svg{width:25px;height:25px}
+  .tb span{display:block;font-size:10px;font-weight:520;margin-top:3px;letter-spacing:-.1px}
+  .homebar{position:absolute;left:50%;transform:translateX(-50%);bottom:9px;width:140px;height:5px;border-radius:3px;background:#000;opacity:.28}
+
+  /* step chips for panel 6 */
+  .steps{position:absolute;z-index:5;left:96px;right:96px;top:820px;display:flex;flex-direction:column;gap:34px}
+  .step{
+    display:flex;align-items:center;gap:32px;padding:38px 42px;border-radius:38px;
+    background:linear-gradient(150deg,rgba(255,255,255,.99),rgba(240,246,242,.97));
+    box-shadow:0 30px 62px rgba(0,0,0,.30),0 8px 18px rgba(0,0,0,.16),inset 0 2px 0 #fff;
+  }
+  .step .n{
+    width:96px;height:96px;border-radius:30px;flex:none;display:grid;place-items:center;
+    background:linear-gradient(150deg,#37A05A,#1C6A3C);color:#fff;font-size:46px;font-weight:800;
+    box-shadow:0 14px 26px rgba(28,106,60,.42),inset 0 2px 0 rgba(255,255,255,.4);
+  }
+  .step .t{font-size:44px;font-weight:750;letter-spacing:-1.2px;color:#0d1a12}
+  .step .d{font-size:30px;font-weight:480;color:rgba(20,40,28,.58);margin-top:8px;letter-spacing:-.3px;line-height:1.3}
+
+  /* proof panel */
+  .proof{position:absolute;z-index:5;left:0;right:0;top:800px;padding:0 92px;display:flex;flex-direction:column;gap:36px}
+  .pbig{
+    border-radius:44px;padding:56px 56px;text-align:center;
+    background:linear-gradient(150deg,rgba(255,255,255,.99),rgba(238,246,241,.97));
+    box-shadow:0 36px 74px rgba(0,0,0,.32),0 10px 22px rgba(0,0,0,.18),inset 0 2px 0 #fff;
+  }
+  .pbig .v{font-size:150px;font-weight:850;letter-spacing:-6px;line-height:1;color:#12301F}
+  .pbig .l{font-size:34px;font-weight:620;color:rgba(20,40,28,.56);margin-top:16px;letter-spacing:-.4px}
+  .ptwo{display:flex;gap:36px}
+  .ptwo>div{
+    flex:1;border-radius:38px;padding:44px 32px;text-align:center;
+    background:linear-gradient(150deg,rgba(255,255,255,.98),rgba(238,246,241,.96));
+    box-shadow:0 30px 62px rgba(0,0,0,.30),0 8px 18px rgba(0,0,0,.16),inset 0 2px 0 #fff;
+  }
+  .ptwo .v{font-size:82px;font-weight:820;letter-spacing:-3px;line-height:1;color:#12301F}
+  .ptwo .l{font-size:27px;font-weight:600;color:rgba(20,40,28,.56);margin-top:12px;letter-spacing:-.3px}
+  .pnote{
+    display:flex;align-items:center;justify-content:center;gap:18px;color:#fff;font-size:32px;font-weight:600;
+    letter-spacing:-.3px;opacity:.9;
+  }
+  .pnote svg{width:38px;height:38px}
+
+  /* ============================================================
+     iPad 13" mode  (2064 x 2752).  The app has NO iPad-specific
+     layout — no size classes, no maxWidth caps — so the screen
+     content here is deliberately the same markup stretched to
+     1032pt wide, which is what the shipping app actually does.
+     ============================================================ */
+  body.ipad .panel{width:2064px;height:2752px}
+  body.ipad .copy{top:150px;padding:0 200px}
+  body.ipad .eyebrow{font-size:39px;padding:18px 40px;margin-bottom:40px}
+  body.ipad h1{font-size:124px;letter-spacing:-3.8px}
+  body.ipad h1.sm{font-size:116px}
+  body.ipad .sub{font-size:52px;margin-top:38px;max-width:1400px}
+
+  body.ipad .stage{perspective:3400px;perspective-origin:50% 30%}
+  body.ipad .device{
+    width:1032px;height:1376px;margin-left:-516px;top:800px;
+    border-radius:50px;padding:20px;
+  }
+  body.ipad .device.tilt{transform:scale(1.37) rotateY(-13deg) rotateX(4deg) rotateZ(-1.4deg)}
+  body.ipad .device::after{inset:20px;border-radius:30px}
+  body.ipad .device::before{top:60px;bottom:60px}
+  body.ipad .screen{border-radius:30px}
+  body.ipad .shadowpad{top:2560px;width:1700px;height:200px}
+  body.ipad .glow{width:2300px;height:2300px}
+
+  /* iPadOS centers tab-bar items instead of spreading them */
+  body.ipad .tabbar{justify-content:center;gap:66px;height:70px;padding-top:8px}
+  body.ipad .tb{flex:none;min-width:96px}
+  body.ipad .homebar{width:320px}
+
+  body.ipad .fcard{border-radius:44px;padding:40px 48px}
+  body.ipad .fc-ico{width:104px;height:104px;border-radius:32px}
+  body.ipad .fc-ico svg{width:56px;height:56px}
+  body.ipad .fc-val{font-size:68px;letter-spacing:-2.2px}
+  body.ipad .fc-lab{font-size:34px;margin-top:11px}
+
+  body.ipad .proof{top:790px;padding:0 250px;gap:46px}
+  body.ipad .pbig{border-radius:56px;padding:64px}
+  body.ipad .pbig .v{font-size:210px;letter-spacing:-8px}
+  body.ipad .pbig .l{font-size:44px;margin-top:20px}
+  body.ipad .ptwo{gap:46px}
+  body.ipad .ptwo>div{border-radius:48px;padding:56px 40px}
+  body.ipad .ptwo .v{font-size:112px;letter-spacing:-4px}
+  body.ipad .ptwo .l{font-size:34px;margin-top:16px}
+  body.ipad .pnote{font-size:40px;gap:22px}
+  body.ipad .pnote svg{width:48px;height:48px}
+
+  body.ipad .steps{left:250px;right:250px;gap:34px}
+  body.ipad .step{border-radius:48px;padding:48px 54px;gap:40px}
+  body.ipad .step .n{width:124px;height:124px;border-radius:38px;font-size:58px}
+  body.ipad .step .t{font-size:56px;letter-spacing:-1.5px}
+  body.ipad .step .d{font-size:38px;margin-top:10px}
+
+  /* index preview */
+  body.index{display:flex;gap:24px;padding:24px;overflow-x:auto;background:#1b1b1e}
+  body.index .panel{flex:none;transform:scale(.235);transform-origin:top left;width:1290px;height:2796px}
+  body.index .wrap{width:303px;height:657px;overflow:hidden;border-radius:8px}
+  body.index.ipad .panel{width:2064px;height:2752px}
+  body.index.ipad .wrap{width:485px;height:647px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ============ mode ============ */
+const q=new URLSearchParams(location.search);
+const IPAD=q.get('d')==='ipad';
+/** pick a value per device mode — keeps one source of truth for both sets */
+const M=(phone,ipad)=>IPAD?ipad:phone;
+
+/* ============ icons (SF-Symbol-ish, 24x24) ============ */
+const P = {
+  shield:'M12 1.7 3.7 4.9v6.3c0 5.3 3.5 9.3 8.3 11 4.8-1.7 8.3-5.7 8.3-11V4.9z',
+  check:'M7.7 12.2l2.9 2.9 5.7-6.1',
+  heart:'M12 20.9C6.4 17.4 2.6 13.9 2.6 10.1 2.6 7.2 4.8 5.1 7.5 5.1c1.8 0 3.4 1 4.5 2.6 1.1-1.6 2.7-2.6 4.5-2.6 2.7 0 4.9 2.1 4.9 5 0 3.8-3.8 7.3-9.4 10.8z',
+  star:'M12 2.2l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.1l-5.9 3.1 1.2-6.5L2.5 9.1l6.6-.9z',
+  crown:'M2.8 8.2 7 11.5l5-6.9 5 6.9 4.2-3.3-1.8 10.4H4.6z',
+  trophy:'M7 3.4h10v4.3a5 5 0 0 1-10 0zM3.9 4.9h2.4v3.3A2.7 2.7 0 0 1 3.9 5.6zm13.8 0h2.4v.7a2.7 2.7 0 0 1-2.4 2.6zM10.8 13.9h2.4v3.5h-2.4zM7.4 18.2h9.2v2.4H7.4z',
+  sunrise:'M12 2.6l3.6 4H8.4zM2.6 13.1h3.9a5.5 5.5 0 0 1 11 0h3.9V15H2.6zM2.6 17.6h18.8V19.5H2.6z',
+  gear:'M12 8.4A3.6 3.6 0 1 0 12 15.6 3.6 3.6 0 0 0 12 8.4m9 5.1-2-.5a7 7 0 0 0 0-2l2-.5-.9-3-2 .6a7.4 7.4 0 0 0-1.4-1.4l.6-2-3-.9-.5 2a7 7 0 0 0-2 0l-.5-2-3 .9.6 2A7.4 7.4 0 0 0 7.4 7.6l-2-.6-.9 3 2 .5a7 7 0 0 0 0 2l-2 .5.9 3 2-.6a7.4 7.4 0 0 0 1.4 1.4l-.6 2 3 .9.5-2a7 7 0 0 0 2 0l.5 2 3-.9-.6-2a7.4 7.4 0 0 0 1.4-1.4l2 .6z',
+  calcheck:'M6.6 2.4v2H5.2A2.2 2.2 0 0 0 3 6.6v12.2a2.2 2.2 0 0 0 2.2 2.2h13.6a2.2 2.2 0 0 0 2.2-2.2V6.6a2.2 2.2 0 0 0-2.2-2.2h-1.4v-2h-2v2h-6.6v-2zM5 9h14v9.8H5zm10.9 1.9-4.3 4.3-2-2-1.3 1.4 3.3 3.3 5.7-5.7z',
+  shieldslash:'M12 1.7 3.7 4.9v6.3c0 5.3 3.5 9.3 8.3 11 4.8-1.7 8.3-5.7 8.3-11V4.9zM5.6 3.9 20.7 19l-1.4 1.4L4.2 5.3z',
+  checkcircle:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m-1.2 14.6-4.2-4.2 1.5-1.5 2.7 2.7 5.6-5.6 1.5 1.5z',
+  refresh:'M12 4.6V2L8.2 5.3 12 8.6V6.4a5.7 5.7 0 1 1-5.6 5.7H4.6a7.5 7.5 0 1 0 7.4-7.5',
+  plus:'M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z',
+  chevL:'M15.2 4.6 13.9 3.3 5.2 12l8.7 8.7 1.3-1.3L7.8 12z',
+  chevR:'M8.8 3.3 7.5 4.6 15.7 12l-8.2 7.4 1.3 1.3L18.3 12z',
+  search:'M10.4 3a7.4 7.4 0 1 0 4.5 13.3l4.6 4.6 1.5-1.5-4.6-4.6A7.4 7.4 0 0 0 10.4 3m0 2a5.4 5.4 0 1 1 0 10.8 5.4 5.4 0 0 1 0-10.8',
+  arrowUp:'M12 3.4 4.9 10.5l1.4 1.4L11 7.2v13.4h2V7.2l4.7 4.7 1.4-1.4z',
+  arrowUR:'M7 6h11v11h-2V9.4L6.7 18.7 5.3 17.3 14.6 8H7z',
+  ellipsis:'M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4m6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4',
+  personq:'M9.6 3a4.3 4.3 0 1 0 0 8.6 4.3 4.3 0 0 0 0-8.6m0 10.4c-3.9 0-7.6 2-7.6 4.5V21h11.3v-2.6c0-2-1.3-3.7-3.3-4.7zM18.4 3.4c-1.9 0-3.2 1.1-3.5 2.9l1.9.4c.2-.9.7-1.4 1.6-1.4.8 0 1.4.5 1.4 1.2 0 .6-.3 1-1.1 1.6-1 .7-1.5 1.4-1.4 2.7h1.9c0-.8.2-1.1 1-1.7 1-.8 1.6-1.5 1.6-2.7 0-1.8-1.4-3-3.4-3m-1.1 8.9a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4',
+  bubble:'M8.4 3C4.9 3 2 5.5 2 8.6c0 1.9 1.1 3.6 2.8 4.6-.2.9-.7 1.8-1.5 2.6 1.5-.1 2.9-.6 3.9-1.4.4.1.8.1 1.2.1h.4a5.5 5.5 0 0 1-.1-1c0-3.2 3.1-5.8 6.9-5.8h.5C15.4 5 12.2 3 8.4 3m7.2 5.6c-3.5 0-6.4 2.3-6.4 5.2s2.9 5.2 6.4 5.2c.4 0 .8 0 1.2-.1 1 .8 2.4 1.3 3.9 1.4-.8-.8-1.3-1.7-1.5-2.6 1.7-1 2.8-2.5 2.8-4C22 10.9 19.1 8.6 15.6 8.6',
+  chart:'M3.2 19.6h17.6v1.9H3.2zM4.9 9.4h3v8.3h-3zm5.6-4.6h3v12.9h-3zm5.6 7.1h3v5.8h-3z',
+  safari:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20m0 1.9a8.1 8.1 0 1 1 0 16.2 8.1 8.1 0 0 1 0-16.2m4.9 3.2-6.6 3.1-3.2 6.6 6.6-3.1zM12 10.8a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4',
+  copy:'M9 2h9a2 2 0 0 1 2 2v11h-2V4H9zM6 6h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2m0 2v12h9V8z',
+  speaker:'M11 4.5 6.6 8.2H3v7.6h3.6L11 19.5zm3.2 3.1-1.3 1.5a4 4 0 0 1 0 5.8l1.3 1.5a6 6 0 0 0 0-8.8m2.5-2.6-1.3 1.5a7.6 7.6 0 0 1 0 11l1.3 1.5a9.6 9.6 0 0 0 0-14',
+  thumbUp:'M9 21H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3zm1.8-11.6L14.2 2c1.6 0 2.7 1.2 2.4 2.7L16 8.2h3.6c1.5 0 2.6 1.4 2.2 2.9l-1.9 7.5a2.6 2.6 0 0 1-2.5 2h-6.6z',
+  thumbDown:'M9 3h8.4a2.6 2.6 0 0 1 2.5 2l1.9 7.5c.4 1.5-.7 2.9-2.2 2.9H16l.6 3.5c.3 1.5-.8 2.7-2.4 2.7l-3.4-7.4zM6 3h3v11H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2',
+  wifi:'M12 17.2a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8m0-4.6c-1.7 0-3.2.7-4.3 1.8l1.6 1.6a3.9 3.9 0 0 1 5.5 0l1.6-1.6a6 6 0 0 0-4.3-1.8m0-4.6c-2.9 0-5.6 1.2-7.5 3.1l1.6 1.6a8.4 8.4 0 0 1 11.9 0l1.6-1.6A10.5 10.5 0 0 0 12 8m0-4.6c-4.2 0-8 1.7-10.7 4.5l1.6 1.6a13 13 0 0 1 18.3 0l1.6-1.6A15 15 0 0 0 12 3.4',
+  batt:'M2.5 7.5h15a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2m18 2.3h1v4.4h-1z',
+  bolt:'M13.6 2 5.4 13.4h5L9.8 22 18 10.6h-5z',
+  lock:'M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5m0 2a3 3 0 0 1 3 3v3H9V7a3 3 0 0 1 3-3',
+  check2:'M9.6 17.3 4.3 12l1.7-1.7 3.6 3.6L18 5.5l1.7 1.7z',
+  trash:'M9 3h6l1 1.5h4v2H4v-2h4zM5.5 8.5h13l-1 12A1.5 1.5 0 0 1 16 22H8a1.5 1.5 0 0 1-1.5-1.5z',
+  bell:'M12 2.2a6.4 6.4 0 0 0-6.4 6.4v4L3.4 16v1.6h17.2V16l-2.2-3.4v-4A6.4 6.4 0 0 0 12 2.2M9.4 19.2a2.6 2.6 0 0 0 5.2 0z',
+  key:'M14.5 3a6.5 6.5 0 0 0-6.2 8.6L2 17.9V22h4.1l1.5-1.5v-2h2v-2h2l1.4-1.4A6.5 6.5 0 1 0 14.5 3m2.2 3a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6',
+};
+const svg = (d,cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="currentColor"><path d="${P[d]}"/></svg>`;
+const shieldCheck = (bg) => `<svg viewBox="0 0 24 24"><path fill="currentColor" d="${P.shield}"/><path d="${P.check}" fill="none" stroke="${bg}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+/* ============ shared chrome ============ */
+const statusbar = (t='9:41') => `
+  <div class="statusbar"><div>${t}</div>
+  <div class="sb-r">${svg('wifi')}${svg('batt')}</div></div>`;
+
+const tabbar = (active) => {
+  const items=[['shield','Protection'],['safari','Safe Browse'],['bubble','Buddy'],['chart','Streaks'],['gear','Settings']];
+  return `<div class="tabbar">${items.map((it,i)=>
+    `<div class="tb ${i===active?'on':''}">${svg(it[0])}<span>${it[1]}</span></div>`).join('')}
+    </div><div class="homebar"></div>`;
+};
+
+/* ============ app screens ============ */
+function screenDashboard(){
+  return `<div class="screen">${statusbar()}
+    <div class="navlarge">Protection Center</div>
+    <div class="body" style="padding-top:8px">
+      <div class="hero">
+        <div class="ring">${shieldCheck('#20663C')}</div>
+        <h3>Fully Protected</h3>
+        <p>Your browser is shielded from inappropriate content</p>
+      </div>
+      <div class="stats">
+        <div class="qs"><div style="color:#2D8044">${svg('heart')}</div><div class="v rnd">18</div><div class="l">Porn Free<br>Streak</div></div>
+        <div class="qs"><div style="color:#396FBF">${svg('calcheck')}</div><div class="v rnd">42</div><div class="l">Days<br>Protected</div></div>
+        <div class="qs"><div style="color:#D97F2B">${svg('shieldslash')}</div><div class="v rnd">1.2K</div><div class="l">Attempts<br>Blocked</div></div>
+      </div>
+      <div class="card dbcard">
+        <div class="dbdot">${svg('checkcircle')}</div>
+        <div style="flex:1">
+          <div class="t">Protection Database</div>
+          <div class="s">Up to date &bull; 173K sites &bull; 1.2K keywords</div>
+          <div class="u">Updated Aug 1, 2026</div>
+        </div>
+        <div style="color:#007AFF;width:19px">${svg('refresh')}</div>
+      </div>
+      <div class="cta">${svg('checkcircle')}PROTECTION ACTIVE</div>
+      <div class="sect" style="margin:15px 4px 8px">Your Rules</div>
+      <div class="card" style="overflow:hidden">
+        ${[['Custom blocked sites','14','#2D8044','shield'],['Blocked keywords','38','#D97F2B','search']]
+          .map((r,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;${i<1?'border-bottom:.5px solid rgba(60,60,67,.14)':''}">
+            <div style="width:30px;height:30px;border-radius:8px;background:${r[2]}22;display:grid;place-items:center;color:${r[2]}"><div style="width:16px;height:16px">${svg(r[3])}</div></div>
+            <div style="flex:1;font-size:15px;font-weight:550;letter-spacing:-.2px">${r[0]}</div>
+            <div style="font-size:15px;color:var(--sec)">${r[1]}</div>
+            <div style="width:11px;color:var(--g3)">${svg('chevR')}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    ${tabbar(0)}</div>`;
+}
+
+function screenStreaks(){
+  const R=65, C=2*Math.PI*R, prog=18/30;
+  const miles=[['sunrise','1 Day','#B29736',1],['star','1 Week','#B2A636',1],['crown','1 Month','#368DB2',0],['shield','3 Months','#36B259',0],['trophy','1 Year','#B29736',0]];
+  return `<div class="screen">${statusbar()}
+    <div class="navrow"><div class="navlarge">Insights</div><div style="color:#2D8044;width:22px">${svg('plus')}</div></div>
+    <div class="body" style="padding-top:8px">
+      <div class="shero">
+        <div class="o1"></div><div class="o2"></div>
+        <div class="gear">${svg('gear')}</div>
+        <div class="sring">
+          <svg viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="${R}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/>
+            <circle cx="70" cy="70" r="${R}" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-prog)}"/>
+          </svg>
+          <div style="text-align:center"><div class="n rnd">18</div><div class="d">DAYS</div></div>
+        </div>
+        <div class="slabel"><div class="a">🛡️ Porn Free</div><div class="b">24 days logged</div></div>
+        <div class="srow">
+          <div class="c"><div class="v rnd">23</div><div class="k">Longest Streak</div></div>
+          <div class="sep"></div>
+          <div class="c"><div class="v rnd">12d</div><div class="k">Next Goal</div></div>
+        </div>
+        <div class="checkin">${svg('checkcircle')}Check In Today</div>
+        <div class="sfoot">I slipped today</div>
+      </div>
+      <div class="sect" style="margin:14px 4px 10px">Milestones</div>
+      <div class="mrow">
+        ${miles.map(m=>m[3]
+          ? `<div class="mb on"><div class="cir" style="background:${m[2]}2E;border:2px solid ${m[2]}66;color:${m[2]}">${svg(m[0])}</div><div class="lb">${m[1]}</div></div>`
+          : `<div class="mb off"><div class="cir">${svg(m[0])}</div><div class="lb">${m[1]}</div></div>`).join('')}
+      </div>
+      <div class="sect" style="display:flex;align-items:center;justify-content:space-between;margin:14px 4px 10px">My Habits
+        <span style="font-size:15px;font-weight:550;color:#2D8044">+ Add</span></div>
+      ${[['🏃','Exercise','9 day streak',0.72],['🧘','Meditation','12 day streak',0.9]]
+        .map(h=>`<div class="card" style="display:flex;align-items:center;gap:12px;padding:14px;margin-bottom:10px">
+          <div style="width:38px;height:38px;border-radius:11px;background:#2D80441F;display:grid;place-items:center;font-size:19px">${h[0]}</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:640;letter-spacing:-.2px">${h[1]}</div>
+            <div style="font-size:12px;color:var(--sec);margin-top:3px">${h[2]}</div>
+            <div style="height:5px;border-radius:3px;background:var(--g5);margin-top:7px;overflow:hidden">
+              <div style="height:100%;width:${h[3]*100}%;background:#2D8044;border-radius:3px"></div></div>
+          </div>
+          <div style="width:26px;height:26px;border-radius:50%;border:1.8px solid #2D8044;display:grid;place-items:center;color:#2D8044"><div style="width:13px;height:13px">${svg('check2')}</div></div>
+        </div>`).join('')}
+    </div>
+    ${tabbar(3)}</div>`;
+}
+
+function screenBrowser(){
+  const pal=['#3F8C55','#3677D9','#CC6D29','#8F52CC','#3AA6A6','#BF4368'];
+  const tabs=[['Mindful — Daily Focus','mindful.app',0,1],['Recovery Guide','healthline.com',1,0],['Morning Run Log','strava.com',2,0],['Study Playlist','music.apple.com',3,0],['Weekly Meal Plan','budgetbytes.com',4,0],['Beginner Guitar','justinguitar.com',5,0]];
+  return `<div class="screen">${statusbar()}
+    <div class="bbar">
+      <div class="brow">
+        <div class="pill">
+          <div class="pbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+          <div class="purl"><b>google.com</b><span>/search?q=focus</span></div>
+        </div>
+        <div class="tabbtn"><i>6</i></div>
+        <div class="plusbtn">${svg('plus')}</div>
+      </div>
+      <div class="brow2">
+        <div>${svg('chevL')}</div><div style="color:#C7C7CC">${svg('chevR')}</div>
+        <div class="hint">Swipe the bar to switch tabs</div><div>${svg('ellipsis')}</div>
+      </div>
+    </div>
+    <div class="tabhead"><div class="t">Tabs</div><div class="s">6 open</div></div>
+    <div class="searchf">${svg('search')}Search tabs</div>
+    <div class="grid">
+      ${tabs.map(t=>`
+      <div class="gcard ${t[3]?'act':''}">
+        <div class="gx">&times;</div>
+        <div class="gprev">
+          <div class="skel" style="width:90px"></div><div class="skel"></div>
+          <div class="skel" style="width:110px"></div><div class="skel" style="width:70px"></div>
+          <div class="skel"></div>
+        </div>
+        <div class="gfoot">
+          <div class="mono" style="background:${pal[t[2]]}">${t[1][0].toUpperCase()}</div>
+          <div style="min-width:0"><div class="tt">${t[0]}</div><div class="hh">${t[1]}</div></div>
+        </div>
+      </div>`).join('')}
+    </div>
+    ${tabbar(1)}</div>`;
+}
+
+function screenChat(){
+  return `<div class="screen">${statusbar()}
+    <div class="navinline">Buddy</div>
+    <div class="msgs">
+      <div class="b-a">Three weeks in. How are you actually doing?</div>
+      <div class="b-u">Honestly? Better than I expected. The evenings are still hard.</div>
+      <div class="b-a">Evenings are the common one — tired, alone, nothing scheduled. Worth planning something for that window rather than white-knuckling it.</div>
+      <div class="b-u">Can't sleep and I'm just scrolling.</div>
+      <div class="b-a">That's a risky spot, and you already know it — that's why you're here. Put the phone on the charger across the room for two minutes. I'll wait.</div>
+      <div class="b-u">I just had an urge — what should I do?</div>
+      <div class="b-a">First: you noticed it and reached out instead of acting on it. That already counts.</div>
+      <div class="b-a">Urges peak and fade, usually inside 15&ndash;20 minutes. Let's get you through this one. Can you step outside or change rooms right now?</div>
+      <div class="acts">${svg('copy')}${svg('speaker')}<div style="flex:1"></div>${svg('thumbUp')}${svg('thumbDown')}</div>
+      <div class="b-u">Just went out on the balcony.</div>
+      <div class="b-a">Good. Feel the cold air for a second. What set it off tonight?</div>
+    </div>
+    <div class="composer">
+      <div class="tfield">Message your buddy</div>
+      <div class="send">${svg('arrowUp')}</div>
+    </div>
+    ${tabbar(2)}</div>`;
+}
+
+function screenChatEmpty(){
+  const ps=["I just had an urge — what should I do?","I relapsed last night. Can we talk?","How do I tell my partner I'm struggling with this?","What's a healthier way to deal with stress?"];
+  return `<div class="screen">${statusbar()}
+    <div class="navinline">Buddy</div>
+    <div style="padding:44px 16px 0;text-align:center">
+      <div class="esphere">${svg('personq')}</div>
+      <div style="font-size:20px;font-weight:750;margin-top:20px;letter-spacing:-.4px">Hey, glad you're here.</div>
+      <div style="font-size:15px;color:var(--sec);margin-top:10px;padding:0 26px;line-height:1.35">This is a private space. Tell me what's going on — an urge, a slip, a small win, anything.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:24px;text-align:left">
+        ${ps.map(p=>`<div class="prompt">${p}${svg('arrowUR')}</div>`).join('')}
+      </div>
+    </div>
+    ${tabbar(2)}</div>`;
+}
+
+function screenBlocklist(){
+  const toggle = on => `<div style="width:44px;height:26px;border-radius:999px;background:${on?'#2D8044':'#E5E5EA'};position:relative;flex:none">
+      <div style="position:absolute;top:2px;${on?'right:2px':'left:2px'};width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)"></div></div>`;
+  const row=(ic,col,name,right,last)=>`<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;${last?'':'border-bottom:.5px solid rgba(60,60,67,.14)'}">
+      <div style="width:30px;height:30px;border-radius:8px;background:${col}22;display:grid;place-items:center;color:${col}"><div style="width:16px;height:16px">${svg(ic)}</div></div>
+      <div style="flex:1;font-size:16px;letter-spacing:-.2px">${name}</div>${right}</div>`;
+  const chev=`<div style="width:11px;color:var(--g3)">${svg('chevR')}</div>`;
+  return `<div class="screen">${statusbar()}
+    <div class="navrow" style="padding-top:6px">
+      <div style="width:11px;color:#007AFF">${svg('chevL')}</div>
+      <div style="font-size:17px;font-weight:650">Blocklist</div>
+      <div style="width:19px"></div>
+    </div>
+    <div class="body" style="padding-top:14px">
+      <div style="border-radius:20px;padding:26px 18px;text-align:center;color:#fff;background:linear-gradient(135deg,#28733D,#1B593B);box-shadow:0 8px 18px rgba(45,128,68,.35)">
+        <div class="rnd" style="font-size:44px;font-weight:800;letter-spacing:-1.4px">172,912</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.8);margin-top:4px">sites in your blocklist</div>
+        <div style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:7px 15px;border-radius:999px;background:rgba(255,255,255,.18);font-size:13px;font-weight:600">
+          <div style="width:15px;height:15px">${svg('checkcircle')}</div>Up to date</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:12px">Last checked today, 6:04 AM</div>
+      </div>
+      <div class="card" style="overflow:hidden;margin-top:18px">
+        ${row('refresh','#396FBF','Auto-update daily',toggle(1))}
+        ${row('wifi','#8F52CC','Wi-Fi only',toggle(1),1)}
+      </div>
+      <div class="sect" style="margin:20px 4px 10px">Your additions</div>
+      <div class="card" style="overflow:hidden">
+        ${row('shield','#2D8044','Blocked sites','<div style="font-size:16px;color:var(--sec);margin-right:8px">14</div>'+chev)}
+        ${row('key','#D97F2B','Blocked keywords','<div style="font-size:16px;color:var(--sec);margin-right:8px">38</div>'+chev)}
+        ${row('checkcircle','#34C759','Allowed sites','<div style="font-size:16px;color:var(--sec);margin-right:8px">3</div>'+chev,1)}
+      </div>
+    </div>
+    ${tabbar(4)}</div>`;
+}
+
+function screenSettings(){
+  const toggle = on => `<div style="width:44px;height:26px;border-radius:999px;background:${on?'#2D8044':'#E5E5EA'};position:relative;flex:none">
+      <div style="position:absolute;top:2px;${on?'right:2px':'left:2px'};width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)"></div></div>`;
+  const row=(ic,col,name,right,last)=>`<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;${last?'':'border-bottom:.5px solid rgba(60,60,67,.14)'}">
+      <div style="width:30px;height:30px;border-radius:8px;background:${col}22;display:grid;place-items:center;color:${col}"><div style="width:16px;height:16px">${svg(ic)}</div></div>
+      <div style="flex:1;font-size:16px;letter-spacing:-.2px">${name}</div>${right}</div>`;
+  return `<div class="screen">${statusbar()}
+    <div class="navlarge">Settings</div>
+    <div class="body" style="padding-top:8px">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:#2D80441A;border:1px solid #2D804433;margin-bottom:18px">
+        <div style="width:40px;height:40px;border-radius:50%;background:#2D8044;display:grid;place-items:center;color:#fff"><div style="width:22px;height:22px">${shieldCheck('#2D8044')}</div></div>
+        <div><div style="font-size:15px;font-weight:640">Safari extension enabled</div>
+        <div style="font-size:12px;color:var(--sec);margin-top:2px">Blocking is live across Safari</div></div>
+      </div>
+      <div class="sect" style="margin:0 4px 10px">Protection</div>
+      <div class="card" style="overflow:hidden">
+        ${row('shield','#2D8044','Block adult sites',toggle(1))}
+        ${row('key','#D97F2B','Keyword filtering',toggle(1))}
+        ${row('search','#396FBF','Force safe search',toggle(1),1)}
+      </div>
+      <div class="sect" style="margin:20px 4px 10px">Reminders</div>
+      <div class="card" style="overflow:hidden">
+        ${row('bell','#8F52CC','Daily check-in','<div style="font-size:16px;color:var(--sec)">9:00 PM</div>')}
+        ${row('heart','#BF4368','Milestone alerts',toggle(1),1)}
+      </div>
+    </div>
+    ${tabbar(4)}</div>`;
+}
+
+/* ============ panels ============ */
+const BG = {
+  a:'linear-gradient(158deg,#35A85F 0%,#1B7343 46%,#0D4A33 100%)',
+  b:'linear-gradient(158deg,#2FA469 0%,#166B49 46%,#0B4438 100%)',
+  c:'linear-gradient(158deg,#2AA079 0%,#12634F 46%,#093E3D 100%)',
+  d:'linear-gradient(158deg,#279A88 0%,#0F5B57 46%,#093843 100%)',
+  e:'linear-gradient(158deg,#33A65F 0%,#186E46 46%,#0A4239 100%)',
+  f:'linear-gradient(158deg,#2CA271 0%,#14664D 46%,#0A403B 100%)',
+};
+
+function shell(bg, inner){
+  return `<div class="panel">
+    <div class="bg" style="background:${bg}"></div>
+    <div class="glow"></div>
+    <div class="orb" style="width:640px;height:640px;left:-190px;top:1180px;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 68%)"></div>
+    <div class="orb" style="width:520px;height:520px;right:-150px;top:340px;background:radial-gradient(circle,rgba(255,255,255,.09),transparent 68%)"></div>
+    <div class="shadowpad"></div>
+    ${inner}
+    <div class="grain"></div>
+  </div>`;
+}
+
+function panel1(){
+  return shell(BG.a,`
+    <div class="copy">
+      <div class="eyebrow">Safari + in-app browser</div>
+      <h1>Blocked before<br>you see it</h1>
+      <div class="sub">Turn it on once. Protection stays on everywhere Safari goes.</div>
+    </div>
+    <div class="stage"><div class="device tilt">${screenDashboard()}</div></div>
+    <div class="fcard" style="${M('left:34px;top:1330px','left:150px;top:1990px')};transform:rotate(-4deg)">
+      <div class="fc-row">
+        <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${shieldCheck('#1E7042')}</div>
+        <div><div class="fc-val">172,912</div><div class="fc-lab">Sites blocked</div></div>
+      </div>
+    </div>
+    <div class="fcard dark" style="${M('right:30px;top:2130px','right:140px;top:2300px')};transform:rotate(3.5deg)">
+      <div class="fc-row">
+        <div class="fc-ico" style="background:linear-gradient(150deg,#E08A3C,#B4611C);color:#fff">${svg('shieldslash')}</div>
+        <div><div class="fc-val">1,284</div><div class="fc-lab">Attempts stopped</div></div>
+      </div>
+    </div>`);
+}
+
+function panel2(){
+  return shell(BG.b,`
+    <div class="copy">
+      <div class="eyebrow">Streaks &amp; milestones</div>
+      <h1>Build a streak<br>you're proud of</h1>
+      <div class="sub">Check in once a day. Watch the days add up — and celebrate every milestone.</div>
+    </div>
+    <div class="stage"><div class="device tilt">${screenStreaks()}</div></div>
+    <div class="fcard" style="${M('right:26px;top:1620px','right:110px;top:1900px')};transform:rotate(3deg);text-align:center">
+      <div style="width:104px;height:104px;border-radius:50%;margin:0 auto 20px;display:grid;place-items:center;background:#B2A62E;box-shadow:0 14px 26px rgba(178,166,46,.42),inset 0 2px 0 rgba(255,255,255,.5);color:#fff">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:54px;height:54px"><path d="${P.star}"/></svg>
+      </div>
+      <div style="font-size:42px;font-weight:800;letter-spacing:-1.2px;color:#12301F">1 Week</div>
+      <div style="font-size:38px;font-weight:800;letter-spacing:-1.2px;color:#12301F">Milestone!</div>
+      <div class="fc-lab" style="font-size:25px;margin-top:12px">7 days porn free</div>
+    </div>
+    <div class="fcard dark" style="${M('left:4px;top:2255px','left:150px;top:2270px')};transform:rotate(-4deg)">
+      <div class="fc-row">
+        <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('heart')}</div>
+        <div><div class="fc-val">23 days</div><div class="fc-lab">Longest streak</div></div>
+      </div>
+    </div>`);
+}
+
+function panel3(){
+  return shell(BG.c,`
+    <div class="copy">
+      <div class="eyebrow">Safe Browse</div>
+      <h1>A browser that<br>can't wander</h1>
+      <div class="sub">Real tabs, saved sessions, and safe search locked on — every single time.</div>
+    </div>
+    <div class="stage"><div class="device tilt">${screenBrowser()}</div></div>
+    <div class="fcard" style="${M('left:30px;top:1600px;max-width:620px','left:130px;top:2080px;max-width:840px')};transform:rotate(-3.5deg)">
+      <div class="fc-row">
+        <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('lock')}</div>
+        <div><div class="fc-val" style="font-size:44px">Safe search</div><div class="fc-lab">Forced on Google, Bing &amp; more</div></div>
+      </div>
+    </div>
+    <div class="fcard dark" style="${M('right:28px;top:2160px','right:120px;top:2380px')};transform:rotate(3deg)">
+      <div class="fc-row">
+        <div class="fc-ico" style="background:linear-gradient(150deg,#3F8FD9,#245FA8);color:#fff">${svg('safari')}</div>
+        <div><div class="fc-val" style="font-size:44px">Tabs saved</div><div class="fc-lab">Restored when you return</div></div>
+      </div>
+    </div>`);
+}
+
+function panel4(){
+  return shell(BG.d,`
+    <div class="copy">
+      <div class="eyebrow">AI buddy chat</div>
+      <h1>Someone in your<br>corner at 2am</h1>
+      <div class="sub">Private, judgment-free support the moment an urge hits.</div>
+    </div>
+    <div class="stage"><div class="device tilt">${screenChat()}</div></div>
+    <div class="fcard" style="${M('left:0px;top:1540px;max-width:600px','left:120px;top:1120px;max-width:820px')};transform:rotate(-4deg)">
+      <div class="fc-row">
+        <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('bubble')}</div>
+        <div><div class="fc-val" style="font-size:42px">Always awake</div><div class="fc-lab">No appointments, no waiting</div></div>
+      </div>
+    </div>
+    <div class="fcard dark" style="${M('right:26px;top:2170px;max-width:640px','right:120px;top:2330px;max-width:860px')};transform:rotate(3.5deg)">
+      <div class="fc-row">
+        <div class="fc-ico" style="background:linear-gradient(150deg,#4C4C55,#232329);color:#fff">${svg('lock')}</div>
+        <div><div class="fc-val" style="font-size:42px">Stays private</div><div class="fc-lab">Chats live on your device</div></div>
+      </div>
+    </div>`);
+}
+
+function panel5(){
+  return shell(BG.e,`
+    <div class="copy">
+      <div class="eyebrow">Updated every day</div>
+      <h1 class="sm">A blocklist that<br>keeps up</h1>
+      <div class="sub">New sites appear constantly. Yours refreshes automatically.</div>
+    </div>
+    <div class="proof" style="${M('top:700px','top:790px')}">
+      <div class="pbig" style="padding:44px 56px">
+        <div class="v rnd">172,912</div>
+        <div class="l">Adult sites blocked</div>
+      </div>
+      <div class="ptwo">
+        <div><div class="v rnd">1,200+</div><div class="l">Keywords filtered</div></div>
+        <div><div class="v rnd">Daily</div><div class="l">Automatic updates</div></div>
+      </div>
+      <div class="pnote">${svg('checkcircle')}Add your own sites and keywords too</div>
+    </div>
+    <div class="stage"><div class="device tilt" style="${M('top:1470px','top:1760px')}">${screenBlocklist()}</div></div>`);
+}
+
+function panel6(){
+  return shell(BG.f,`
+    <div class="copy">
+      <div class="eyebrow">Guided setup</div>
+      <h1 class="sm">Protected in<br>under a minute</h1>
+      <div class="sub">No settings maze. The app walks you through it.</div>
+    </div>
+    <div class="steps" style="${M('top:672px;gap:26px','top:800px;gap:30px')}">
+      <div class="step">
+        <div class="n rnd">1</div>
+        <div><div class="t">Turn on blocking</div><div class="d">One switch enables the Safari extension.</div></div>
+      </div>
+      <div class="step">
+        <div class="n rnd">2</div>
+        <div><div class="t">Set your start date</div><div class="d">Already clean a while? Your streak backfills.</div></div>
+      </div>
+      <div class="step">
+        <div class="n rnd">3</div>
+        <div><div class="t">Pick a daily reminder</div><div class="d">A nudge to check in, at a time you choose.</div></div>
+      </div>
+    </div>
+    <div class="stage"><div class="device tilt" style="${M('top:1520px','top:1640px')}">${screenSettings()}</div></div>`);
+}
+
+/* ============ render ============ */
+const PANELS=[panel1,panel2,panel3,panel4,panel5,panel6];
+const p=q.get('p');
+if(p){
+  if(IPAD) document.body.className='ipad';
+  document.getElementById('root').innerHTML=PANELS[parseInt(p,10)-1]();
+}else{
+  document.body.className='index'+(IPAD?' ipad':'');
+  document.getElementById('root').outerHTML=PANELS.map(f=>`<div class="wrap">${f()}</div>`).join('');
+}
+</script>
+</body>
+</html>
