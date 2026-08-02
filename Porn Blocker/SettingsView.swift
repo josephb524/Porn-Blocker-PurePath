@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SettingsView: View {
+    private static let supportEmail = "eltercerelias3@hotmail.com"
+
     @StateObject private var blocklistManager = BlocklistManager.shared
     @StateObject private var subManager = SubscriptionManager.shared
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
@@ -38,6 +40,14 @@ struct SettingsView: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+
+                    Button {
+                        contactSupport()
+                    } label: {
+                        SettingsRow(icon: "envelope", title: "Support")
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
                 
                 Section {
@@ -62,36 +72,36 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
 
-                    NavigationLink(destination: PrivacyPolicyView()) {
-                        SettingsRow(icon: "lock", title: "Privacy policy")
-                    }
-
-                    NavigationLink(destination: TermsView()) {
-                        SettingsRow(icon: "doc.text", title: "Terms of use")
-                    }
+//                    NavigationLink(destination: PrivacyPolicyView()) {
+//                        SettingsRow(icon: "lock", title: "Privacy policy")
+//                    }
+//
+//                    NavigationLink(destination: TermsView()) {
+//                        SettingsRow(icon: "doc.text", title: "Terms of use")
+//                    }
                 }
 
-                Section(header: Text("Subscription")) {
-                    if subManager.isSubscribed {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Subscription Active")
-                                .foregroundColor(.green)
-                                .fontWeight(.medium)
-                            if let expiryDate = subManager.expiryDate {
-                                Text("Renews: \(expiryDate.formatted(date: .abbreviated, time: .omitted))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-
-                    // Visible to non-subscribers too — that's who needs it
-                    // after a reinstall or a new device.
-                    Button("Restore Purchases") {
-                        Task { await subManager.restore() }
-                    }
-                    .disabled(subManager.isLoading)
-                }
+//                Section(header: Text("Subscription")) {
+//                    if subManager.isSubscribed {
+//                        VStack(alignment: .leading, spacing: 4) {
+//                            Text("Subscription Active")
+//                                .foregroundColor(.green)
+//                                .fontWeight(.medium)
+//                            if let expiryDate = subManager.expiryDate {
+//                                Text("Renews: \(expiryDate.formatted(date: .abbreviated, time: .omitted))")
+//                                    .font(.caption)
+//                                    .foregroundColor(.secondary)
+//                            }
+//                        }
+//                    }
+//
+//                    // Visible to non-subscribers too — that's who needs it
+//                    // after a reinstall or a new device.
+//                    Button("Restore Purchases") {
+//                        Task { await subManager.restore() }
+//                    }
+//                    .disabled(subManager.isLoading)
+//                }
             }
             .navigationTitle("Settings")
             .sheet(isPresented: $showSubmitSheet) {
@@ -100,6 +110,25 @@ struct SettingsView: View {
         }
     }
     
+    /// Opens the user's mail client with the support address pre-filled and the
+    /// app's display name as the subject, so replies are easy to triage.
+    private func contactSupport() {
+        let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+            ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
+            ?? "Porn Blocker"
+
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = Self.supportEmail
+        components.queryItems = [URLQueryItem(name: "subject", value: appName)]
+
+        guard let url = components.url, UIApplication.shared.canOpenURL(url) else {
+            Log.error("Unable to open support mail composer")
+            return
+        }
+        UIApplication.shared.open(url)
+    }
+
     private func shareApp() {
         var items: [Any] = ["Check out this great app for blocking adult content!"]
         if let storeURL = URL(string: "https://apps.apple.com/app/id6749251520") {
