@@ -543,6 +543,59 @@ Non-obvious constraints:
 - The baseline rule counts (264 core / 50 keyword / 22 cosmetic) are
   asserted as constants in `ContentBlockerRuleBuilderTests` — update them
   when the core bundle or keyword lists change.
+- **The scheme's `<Testables>` block is load-bearing.** Xcode drops it from
+  `Porn Blocker.xcscheme` on some edits (e.g. attaching the StoreKit
+  configuration). Without it `xcodebuild test` fails with *"Scheme Porn
+  Blocker is not currently configured for the test action"* and **CI goes
+  red on every push** — commit `2ba9288` did exactly this. Check `git diff`
+  on the scheme before committing it.
+
+### Verifying UI behavior in the simulator
+
+Much of this app's behavior (launch-time flashes, notification routing,
+subscription gating) can only be confirmed by running it. `maestro` is
+installed and drives the booted simulator. Gotchas, each of which cost real
+time to rediscover:
+
+- **`Log.debug` output needs a live stream.** `os.Logger` debug-level
+  messages are not persisted, so `log show` returns nothing no matter the
+  predicate. Use:
+  `xcrun simctl spawn <udid> log stream --level debug --predicate 'subsystem == "com.jose.pimentel.Porn-Blocker"'`
+  Run it in the background *before* launching. This is the best window into
+  launch ordering (seeding, entitlement checks, ruleset rebuilds).
+- **`cfprefsd` caches the app's prefs domain**, so editing
+  `<data container>/Library/Preferences/<bundle-id>.plist` while the domain
+  is cached is silently ignored. To seed `UserDefaults` (e.g.
+  `hasSeenOnboarding`, the subscription cache keys): `simctl uninstall` →
+  `simctl spawn <udid> killall -9 cfprefsd` → `simctl install` → write the
+  plist → launch. Note `simctl spawn <udid> defaults write <bundle-id> …`
+  writes the *simulator's* user domain, **not** the app container — it will
+  look like it worked and have no effect.
+- **`simctl install` + `simctl launch` ignore the StoreKit configuration**
+  even though the scheme references it, so the app reports no products and
+  no subscription. Launch from Xcode to exercise real purchases.
+- **Notification taps**: `simctl push` needs notification authorization
+  first — grant it by enabling a habit reminder through the UI (the prompt
+  fires on Save, not on the toggle). The banner auto-dismisses in ~5s, which
+  is shorter than maestro's startup, so tapping the banner is a race; open
+  **Notification Center** instead (swipe `50%,1%` → `50%,70%`) and tap the
+  entry there. A stacked group expands on first tap and opens on the second.
+  Payload shape — the delegate reads `userInfo["habitID"]`:
+  ```json
+  { "Simulator Target Bundle": "com.jose.pimentel.Porn-Blocker",
+    "aps": { "alert": { "title": "Porn Free", "body": "…" } },
+    "habitID": "00000000-0000-0000-0000-000000000001" }
+  ```
+- **Screenshots can't catch sub-second states** (`simctl io screenshot` takes
+  ~0.4s each). For launch-frame questions, take a burst and inspect the
+  earliest frames, or check colors programmatically:
+  `ffmpeg -i shot.png -vf "crop=W:H:X:Y,scale=1:1" -f rawvideo -pix_fmt rgb24 -`
+  gives the average RGB of a region. Beware what the region actually means —
+  the hero card's red gradient is used by *both* "Protection Inactive" and
+  "Setup Required", so color alone doesn't identify the state.
+- **`simctl io recordVideo` needs SIGINT** to write the mp4's moov atom.
+  Killing it (SIGKILL) leaves a truncated file *and* a stuck host-recording
+  session that blocks later recordings until the device is restarted.
 
 ## Buddy Chat backend (`worker/`)
 
