@@ -32,7 +32,7 @@ The non-secret vars live in [`wrangler.toml`](wrangler.toml). The defaults:
 | Var | Default | Notes |
 |---|---|---|
 | `APPLE_BUNDLE_ID` | `com.jose.pimentel.Porn-Blocker` | Must match the iOS app's bundle ID exactly. |
-| `FIREWORKS_MODEL` | `accounts/fireworks/models/gpt-oss-120b` | See <https://fireworks.ai/models>; `llama-v3p3-70b-instruct` is a good conversational alternative. |
+| `FIREWORKS_MODEL` | `accounts/fireworks/models/deepseek-v4-flash-0731` | See <https://fireworks.ai/models>. Reasoning model — `src/fireworks.ts` sends `thinking: { type: 'disabled' }` so the chain-of-thought doesn't stall the reply. Swapping to a non-DeepSeek model means re-verifying or removing that param. |
 
 Allowed product IDs are hardcoded in `src/verify.ts`:
 `pornBlocker`, `pornBlockerMonthly`. If you rename them in App Store Connect,
@@ -102,7 +102,9 @@ Apple's root certificate.
 ## Cost note
 
 - Fireworks charges per input + output token, model-dependent. The default
-  (`gpt-oss-120b`) is cheap per multi-turn chat.
+  (`deepseek-v4-flash`) is cheap per multi-turn chat — ~$0.14/$0.28 per M
+  input/output tokens, and thinking is disabled so no reasoning tokens are
+  billed on top.
 - Multi-turn history is sent on every request — grows linearly with
   conversation length, which is why the worker caps at 40 messages.
 - Cloudflare Workers free tier covers the proxying itself.

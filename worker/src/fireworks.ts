@@ -2,7 +2,7 @@ import type { Env, ChatRequest } from './types';
 import { SYSTEM_PROMPT } from './prompt';
 
 const FIREWORKS_URL = 'https://api.fireworks.ai/inference/v1/chat/completions';
-const DEFAULT_MODEL = 'accounts/fireworks/models/gpt-oss-120b';
+const DEFAULT_MODEL = 'accounts/fireworks/models/deepseek-v4-flash-0731';
 const MAX_TOKENS = 1024;
 
 /// Calls Fireworks' OpenAI-compatible chat completions API with streaming
@@ -30,6 +30,18 @@ export async function proxyChat(body: ChatRequest, env: Env): Promise<Response> 
       model,
       max_tokens: MAX_TOKENS,
       stream: true,
+      // DeepSeek V4 reasons at high effort by default and streams the chain-of-
+      // thought in delta.reasoning_content, which the iOS client drops (it only
+      // decodes delta.content) — so the user just watches the typing indicator for
+      // seconds before any text appears. `reasoning_effort: 'low'` is ignored by
+      // this model on Fireworks (measured: reasoning output went *up*); the
+      // Anthropic-style `thinking` block is the knob that works. Time-to-first-
+      // token: ~3-12 s -> ~0.9 s. With thinking off the whole max_tokens budget
+      // goes to the answer, which also removes the truncated/empty-reply risk.
+      // NOTE: this param is DeepSeek-specific. If FIREWORKS_MODEL is ever swapped
+      // to a non-DeepSeek model, re-verify or remove it — and never send `thinking`
+      // and `reasoning_effort` together, Fireworks rejects that.
+      thinking: { type: 'disabled' },
       messages,
     }),
   });

@@ -668,7 +668,7 @@ else returns 404.
 **Vars** (in `wrangler.toml`, non-secret):
 
 - `APPLE_BUNDLE_ID = "com.jose.pimentel.Porn-Blocker"` — must match the iOS bundle ID exactly.
-- `FIREWORKS_MODEL` — default `accounts/fireworks/models/gpt-oss-120b`. See <https://fireworks.ai/models>.
+- `FIREWORKS_MODEL` — default `accounts/fireworks/models/deepseek-v4-flash-0731`. See <https://fireworks.ai/models>. It is a reasoning model, so `src/fireworks.ts` sends `thinking: { type: 'disabled' }` — without it DeepSeek reasons at high effort and streams the chain-of-thought in `delta.reasoning_content`, which the client drops, leaving the user on a typing indicator for seconds. `reasoning_effort` is ignored by this model on Fireworks; don't reach for it, and never send both.
 
 ### Worker workflow
 

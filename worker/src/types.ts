@@ -2,7 +2,7 @@
 export interface Env {
   /// The iOS app's bundle identifier — used to reject JWSes from other apps.
   APPLE_BUNDLE_ID: string;
-  /// Fireworks model path, e.g. `accounts/fireworks/models/gpt-oss-120b`.
+  /// Fireworks model path, e.g. `accounts/fireworks/models/deepseek-v4-flash-0731`.
   /// Optional; the proxy falls back to a sensible default.
   FIREWORKS_MODEL?: string;
   /// Fireworks API key (`fw_…`). Set via `wrangler secret put`.
