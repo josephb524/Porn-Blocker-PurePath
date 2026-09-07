@@ -34,7 +34,7 @@ struct SettingsView: View {
                 
                 Section(header: Text("Feedback")) {
                     Button {
-                        RatingRequestManager.shared.promptForReviewDirectly()
+                        RatingRequestManager.shared.openWriteReview()
                     } label: {
                         SettingsRow(icon: "star.fill", title: "Rate the App")
                             .contentShape(Rectangle())

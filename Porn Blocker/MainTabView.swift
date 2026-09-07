@@ -217,17 +217,7 @@ struct ReviewPromptView: View {
     
     private func rateApp() {
         onReviewAction()
-        
-        // Open App Store for rating
-        if let writeReviewURL = URL(string: "https://apps.apple.com/app/id\(RatingRequestManager.shared.appStoreID)?action=write-review") {
-            UIApplication.shared.open(writeReviewURL)
-        } else {
-            // Fallback to native review prompt
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                SKStoreReviewController.requestReview(in: windowScene)
-            }
-        }
-        
+        RatingRequestManager.shared.openWriteReview()
         isPresented = false
     }
     

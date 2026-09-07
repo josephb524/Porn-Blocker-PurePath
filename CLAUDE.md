@@ -510,23 +510,29 @@ same habit.
 
 ### Rating prompts
 
-`RatingRequestManager` (a `@MainActor` singleton) exposes two entry
-points that are intentionally non-overlapping — don't merge them:
+`RatingRequestManager` (a `@MainActor` singleton) has two prompts that
+stay mutually exclusive — enforced by `ReviewScheduler.swift`, a pure
+policy file that is byte-identical across the hymnal apps, Interlinear
+Bible Plus, La Fe de Jesús y Doctrinas and this app (edit it in one place
+and copy it to the others):
 
 - **`maybePromptForReview()`** — called from `Porn_BlockerApp` on
-  `didBecomeActive`. Gated by `shouldPrompt()` (≥5 launches, ≥3 days
-  since first install, ≥90 days since the last prompt, not permanently
-  dismissed). Fires Apple's native
-  `SKStoreReviewController.requestReview(in: scene)` sheet and
-  **nothing else**. If no foreground scene is available it returns
+  `didBecomeActive`. Asks `ReviewScheduler.decide` (≥5 launches, ≥3 days
+  since install) and shows **either** Apple's native `AppStore.requestReview`
+  sheet (at most every 90 days) **or** the custom `ReviewPromptView` overlay
+  in `MainTabView` (at most every 30 days) — never both in one session, and
+  at least 14 days after whichever fired last. The card stops for good after
+  Rate or two "No, thanks". If no foreground scene exists it returns
   silently — iOS will fire `didBecomeActive` again later.
-- **`promptForReviewDirectly()`** — called only from Settings → "Rate
-  the App". Shows the custom `ReviewPromptView` overlay defined in
-  `MainTabView`.
+- **`openWriteReview()`** — Settings → "Rate the App" and the card's Rate
+  button. Opens the App Store review page directly (no card) and marks
+  `review.didLeaveReview`, which retires the card.
 
-The previous behavior chained the custom overlay 2 seconds after the
-native sheet on the auto path, which visually stacked both popups.
-Don't reintroduce that — the two paths are mutually exclusive by design.
+Keys: `appLaunchCount` plus the namespaced `review.*` keys from
+`ReviewScheduler.swift`; the old `lastRatingPromptDate`, `firstInstallDate`
+and `reviewPromptDismissedPermanently` are migrated once
+(`ReviewStore.migrateIfNeeded`). The scheduling rules are unit-tested in
+the ChantsDEsperance / HarpaCrista repos (`ReviewSchedulerTests`).
 
 **Native sheet caveats** (not a code issue, frequently misdiagnosed):
 `SKStoreReviewController` only fully works on App Store-installed

@@ -31,6 +31,7 @@
 		BB6600006600006600006600 /* SafeBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5500005500005500005500 /* SafeBrowserView.swift */; };
 		BB8800008800008800008800 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7700007700007700007700 /* OnboardingView.swift */; };
 		BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB99A0012E99999900534EED /* RatingRequestManager.swift */; };
+		BB99A0122E99999900534EED /* ReviewScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB99A0112E99999900534EED /* ReviewScheduler.swift */; };
 		BB9A00009A00009A00009A00 /* BrowserTabStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9900009900009900009900 /* BrowserTabStore.swift */; };
 		BBAAAA222E5555550053EED1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */; };
 		BBAAAA442E5555550053EED1 /* KeywordMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */; };
@@ -131,6 +132,7 @@
 		DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionCacheTests.swift; sourceTree = "<group>"; };
 		DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicyTests.swift; sourceTree = "<group>"; };
 		BB99A0012E99999900534EED /* RatingRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingRequestManager.swift; sourceTree = "<group>"; };
+		BB99A0112E99999900534EED /* ReviewScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewScheduler.swift; sourceTree = "<group>"; };
 		BBAAAA112E5555550053EED1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BBAAAA332E5555550053EED1 /* KeywordMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordMatcher.swift; sourceTree = "<group>"; };
 		BBAAAA552E5555550053EED1 /* ContentBlockerRuleBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBlockerRuleBuilder.swift; sourceTree = "<group>"; };
@@ -251,6 +253,7 @@
 				BB4378562E18AE9B00534EED /* BlocklistManager.swift */,
 				BB4378572E18AE9B00534EED /* SubscriptionManager.swift */,
 				BB99A0012E99999900534EED /* RatingRequestManager.swift */,
+				BB99A0112E99999900534EED /* ReviewScheduler.swift */,
 				BBC567EB2A2EA0460017E798 /* Porn_BlockerApp.swift */,
 				BBC567ED2A2EA0460017E798 /* ContentView.swift */,
 				BB7700007700007700007700 /* OnboardingView.swift */,
@@ -472,6 +475,7 @@
 				BBAAAB222E5555550053EED1 /* ConversationListView.swift in Sources */,
 				BB4378592E18AE9B00534EED /* SubscriptionManager.swift in Sources */,
 				BB99A0022E99999900534EED /* RatingRequestManager.swift in Sources */,
+				BB99A0122E99999900534EED /* ReviewScheduler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
