@@ -54,6 +54,10 @@
     text-shadow:0 3px 16px rgba(0,0,0,.24);
   }
 
+  /* translated sets only: balance subtitle lines so no word is orphaned
+     (kept off for English so the shipped PNGs stay byte-identical) */
+  body.l10n .sub{text-wrap:balance}
+
   /* ---------- 3D stage ---------- */
   .stage{position:absolute;left:0;right:0;top:0;bottom:0;z-index:4;perspective:1750px;perspective-origin:50% 34%}
   .device{
@@ -374,6 +378,20 @@ const IPAD=q.get('d')==='ipad';
 /** pick a value per device mode — keeps one source of truth for both sets */
 const M=(phone,ipad)=>IPAD?ipad:phone;
 
+/* ============ language (?l=es | pt-BR | de; default en) ============ */
+const L=q.get('l')||'en';
+document.documentElement.lang=L;
+/** translate — falls back to the English source string */
+const t=s=>(I18N[L]&&I18N[L][s])||s.replace(/^[a-z]+:/,''); // 'ctx:' prefix disambiguates keys
+const LOC=L==='en'?'en-US':L;
+const nf=n=>n.toLocaleString(LOC);
+/** compact: one truncated decimal (1,284 -> 1.2K); pass whole=true to round to an integer (172,912 -> 173K) */
+const cf=(n,whole)=>new Intl.NumberFormat(LOC,whole?{notation:'compact',maximumFractionDigits:0}:{notation:'compact',maximumFractionDigits:1,roundingMode:'trunc'}).format(n);
+const df=d=>d.toLocaleDateString(LOC,{day:'numeric',month:'short',year:'numeric'});
+const tf=(h,m)=>new Date(2026,7,1,h,m).toLocaleTimeString(LOC,{hour:'numeric',minute:'2-digit'});
+/* marketing figures — one place, formatted per locale */
+const SITES=172912, ATTEMPTS=1284, KEYWORDS=100; // = KeywordMatcher.predefinedKeywords.count — keep in sync
+
 /* ============ icons (SF-Symbol-ish, 24x24) ============ */
 const P = {
   shield:'M12 1.7 3.7 4.9v6.3c0 5.3 3.5 9.3 8.3 11 4.8-1.7 8.3-5.7 8.3-11V4.9z',
@@ -423,41 +441,41 @@ const statusbar = (t='9:41') => `
 const tabbar = (active) => {
   const items=[['shield','Protection'],['safari','Safe Browse'],['bubble','Buddy'],['chart','Streaks'],['gear','Settings']];
   return `<div class="tabbar">${items.map((it,i)=>
-    `<div class="tb ${i===active?'on':''}">${svg(it[0])}<span>${it[1]}</span></div>`).join('')}
+    `<div class="tb ${i===active?'on':''}">${svg(it[0])}<span>${t(it[1])}</span></div>`).join('')}
     </div><div class="homebar"></div>`;
 };
 
 /* ============ app screens ============ */
 function screenDashboard(){
   return `<div class="screen">${statusbar()}
-    <div class="navlarge">Protection Center</div>
+    <div class="navlarge">${t('Protection Center')}</div>
     <div class="body" style="padding-top:8px">
       <div class="hero">
         <div class="ring">${shieldCheck('#20663C')}</div>
-        <h3>Fully Protected</h3>
-        <p>Your browser is shielded from inappropriate content</p>
+        <h3>${t('Fully Protected')}</h3>
+        <p>${t('Your browser is shielded from inappropriate content')}</p>
       </div>
       <div class="stats">
-        <div class="qs"><div style="color:#2D8044">${svg('heart')}</div><div class="v rnd">18</div><div class="l">Porn Free<br>Streak</div></div>
-        <div class="qs"><div style="color:#396FBF">${svg('calcheck')}</div><div class="v rnd">42</div><div class="l">Days<br>Protected</div></div>
-        <div class="qs"><div style="color:#D97F2B">${svg('shieldslash')}</div><div class="v rnd">1.2K</div><div class="l">Attempts<br>Blocked</div></div>
+        <div class="qs"><div style="color:#2D8044">${svg('heart')}</div><div class="v rnd">18</div><div class="l">${t('Porn Free<br>Streak')}</div></div>
+        <div class="qs"><div style="color:#396FBF">${svg('calcheck')}</div><div class="v rnd">42</div><div class="l">${t('Days<br>Protected')}</div></div>
+        <div class="qs"><div style="color:#D97F2B">${svg('shieldslash')}</div><div class="v rnd">${cf(ATTEMPTS)}</div><div class="l">${t('Attempts<br>Blocked')}</div></div>
       </div>
       <div class="card dbcard">
         <div class="dbdot">${svg('checkcircle')}</div>
         <div style="flex:1">
-          <div class="t">Protection Database</div>
-          <div class="s">Up to date &bull; 173K sites &bull; 1.2K keywords</div>
-          <div class="u">Updated Aug 1, 2026</div>
+          <div class="t">${t('Protection Database')}</div>
+          <div class="s">${t('Up to date')} &bull; ${cf(SITES,true)} ${t('sites')} &bull; ${cf(KEYWORDS)} ${t('keywords')}</div>
+          <div class="u">${t('Updated')} ${df(new Date(2026,7,1))}</div>
         </div>
         <div style="color:#007AFF;width:19px">${svg('refresh')}</div>
       </div>
-      <div class="cta">${svg('checkcircle')}PROTECTION ACTIVE</div>
-      <div class="sect" style="margin:15px 4px 8px">Your Rules</div>
+      <div class="cta">${svg('checkcircle')}${t('PROTECTION ACTIVE')}</div>
+      <div class="sect" style="margin:15px 4px 8px">${t('Your Rules')}</div>
       <div class="card" style="overflow:hidden">
         ${[['Custom blocked sites','14','#2D8044','shield'],['Blocked keywords','38','#D97F2B','search']]
           .map((r,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;${i<1?'border-bottom:.5px solid rgba(60,60,67,.14)':''}">
             <div style="width:30px;height:30px;border-radius:8px;background:${r[2]}22;display:grid;place-items:center;color:${r[2]}"><div style="width:16px;height:16px">${svg(r[3])}</div></div>
-            <div style="flex:1;font-size:15px;font-weight:550;letter-spacing:-.2px">${r[0]}</div>
+            <div style="flex:1;font-size:15px;font-weight:550;letter-spacing:-.2px">${t(r[0])}</div>
             <div style="font-size:15px;color:var(--sec)">${r[1]}</div>
             <div style="width:11px;color:var(--g3)">${svg('chevR')}</div>
           </div>`).join('')}
@@ -470,7 +488,7 @@ function screenStreaks(){
   const R=65, C=2*Math.PI*R, prog=18/30;
   const miles=[['sunrise','1 Day','#B29736',1],['star','1 Week','#B2A636',1],['crown','1 Month','#368DB2',0],['shield','3 Months','#36B259',0],['trophy','1 Year','#B29736',0]];
   return `<div class="screen">${statusbar()}
-    <div class="navrow"><div class="navlarge">Insights</div><div style="color:#2D8044;width:22px">${svg('plus')}</div></div>
+    <div class="navrow"><div class="navlarge">${t('Insights')}</div><div style="color:#2D8044;width:22px">${svg('plus')}</div></div>
     <div class="body" style="padding-top:8px">
       <div class="shero">
         <div class="o1"></div><div class="o2"></div>
@@ -481,31 +499,31 @@ function screenStreaks(){
             <circle cx="70" cy="70" r="${R}" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="10"
               stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-prog)}"/>
           </svg>
-          <div style="text-align:center"><div class="n rnd">18</div><div class="d">DAYS</div></div>
+          <div style="text-align:center"><div class="n rnd">18</div><div class="d">${t('DAYS')}</div></div>
         </div>
-        <div class="slabel"><div class="a">🛡️ Porn Free</div><div class="b">24 days logged</div></div>
+        <div class="slabel"><div class="a">🛡️ ${t('Porn Free')}</div><div class="b">${t('24 days logged')}</div></div>
         <div class="srow">
-          <div class="c"><div class="v rnd">23</div><div class="k">Longest Streak</div></div>
+          <div class="c"><div class="v rnd">23</div><div class="k">${t('Longest Streak')}</div></div>
           <div class="sep"></div>
-          <div class="c"><div class="v rnd">12d</div><div class="k">Next Goal</div></div>
+          <div class="c"><div class="v rnd">${t('12d')}</div><div class="k">${t('Next Goal')}</div></div>
         </div>
-        <div class="checkin">${svg('checkcircle')}Check In Today</div>
-        <div class="sfoot">I slipped today</div>
+        <div class="checkin">${svg('checkcircle')}${t('Check In Today')}</div>
+        <div class="sfoot">${t('I slipped today')}</div>
       </div>
-      <div class="sect" style="margin:14px 4px 10px">Milestones</div>
+      <div class="sect" style="margin:14px 4px 10px">${t('Milestones')}</div>
       <div class="mrow">
         ${miles.map(m=>m[3]
-          ? `<div class="mb on"><div class="cir" style="background:${m[2]}2E;border:2px solid ${m[2]}66;color:${m[2]}">${svg(m[0])}</div><div class="lb">${m[1]}</div></div>`
-          : `<div class="mb off"><div class="cir">${svg(m[0])}</div><div class="lb">${m[1]}</div></div>`).join('')}
+          ? `<div class="mb on"><div class="cir" style="background:${m[2]}2E;border:2px solid ${m[2]}66;color:${m[2]}">${svg(m[0])}</div><div class="lb">${t(m[1])}</div></div>`
+          : `<div class="mb off"><div class="cir">${svg(m[0])}</div><div class="lb">${t(m[1])}</div></div>`).join('')}
       </div>
-      <div class="sect" style="display:flex;align-items:center;justify-content:space-between;margin:14px 4px 10px">My Habits
-        <span style="font-size:15px;font-weight:550;color:#2D8044">+ Add</span></div>
+      <div class="sect" style="display:flex;align-items:center;justify-content:space-between;margin:14px 4px 10px">${t('My Habits')}
+        <span style="font-size:15px;font-weight:550;color:#2D8044">+ ${t('Add')}</span></div>
       ${[['🏃','Exercise','9 day streak',0.72],['🧘','Meditation','12 day streak',0.9]]
         .map(h=>`<div class="card" style="display:flex;align-items:center;gap:12px;padding:14px;margin-bottom:10px">
           <div style="width:38px;height:38px;border-radius:11px;background:#2D80441F;display:grid;place-items:center;font-size:19px">${h[0]}</div>
           <div style="flex:1">
-            <div style="font-size:15px;font-weight:640;letter-spacing:-.2px">${h[1]}</div>
-            <div style="font-size:12px;color:var(--sec);margin-top:3px">${h[2]}</div>
+            <div style="font-size:15px;font-weight:640;letter-spacing:-.2px">${t(h[1])}</div>
+            <div style="font-size:12px;color:var(--sec);margin-top:3px">${t(h[2])}</div>
             <div style="height:5px;border-radius:3px;background:var(--g5);margin-top:7px;overflow:hidden">
               <div style="height:100%;width:${h[3]*100}%;background:#2D8044;border-radius:3px"></div></div>
           </div>
@@ -530,14 +548,14 @@ function screenBrowser(){
       </div>
       <div class="brow2">
         <div>${svg('chevL')}</div><div style="color:#C7C7CC">${svg('chevR')}</div>
-        <div class="hint">Swipe the bar to switch tabs</div><div>${svg('ellipsis')}</div>
+        <div class="hint">${t('Swipe the bar to switch tabs')}</div><div>${svg('ellipsis')}</div>
       </div>
     </div>
-    <div class="tabhead"><div class="t">Tabs</div><div class="s">6 open</div></div>
-    <div class="searchf">${svg('search')}Search tabs</div>
+    <div class="tabhead"><div class="t">${t('Tabs')}</div><div class="s">${t('6 open')}</div></div>
+    <div class="searchf">${svg('search')}${t('Search tabs')}</div>
     <div class="grid">
-      ${tabs.map(t=>`
-      <div class="gcard ${t[3]?'act':''}">
+      ${tabs.map(tb=>`
+      <div class="gcard ${tb[3]?'act':''}">
         <div class="gx">&times;</div>
         <div class="gprev">
           <div class="skel" style="width:90px"></div><div class="skel"></div>
@@ -545,8 +563,8 @@ function screenBrowser(){
           <div class="skel"></div>
         </div>
         <div class="gfoot">
-          <div class="mono" style="background:${pal[t[2]]}">${t[1][0].toUpperCase()}</div>
-          <div style="min-width:0"><div class="tt">${t[0]}</div><div class="hh">${t[1]}</div></div>
+          <div class="mono" style="background:${pal[tb[2]]}">${tb[1][0].toUpperCase()}</div>
+          <div style="min-width:0"><div class="tt">${t(tb[0])}</div><div class="hh">${tb[1]}</div></div>
         </div>
       </div>`).join('')}
     </div>
@@ -555,22 +573,22 @@ function screenBrowser(){
 
 function screenChat(){
   return `<div class="screen">${statusbar()}
-    <div class="navinline">Buddy</div>
+    <div class="navinline">${t('Buddy')}</div>
     <div class="msgs">
-      <div class="b-a">Three weeks in. How are you actually doing?</div>
-      <div class="b-u">Honestly? Better than I expected. The evenings are still hard.</div>
-      <div class="b-a">Evenings are the common one — tired, alone, nothing scheduled. Worth planning something for that window rather than white-knuckling it.</div>
-      <div class="b-u">Can't sleep and I'm just scrolling.</div>
-      <div class="b-a">That's a risky spot, and you already know it — that's why you're here. Put the phone on the charger across the room for two minutes. I'll wait.</div>
-      <div class="b-u">I just had an urge — what should I do?</div>
-      <div class="b-a">First: you noticed it and reached out instead of acting on it. That already counts.</div>
-      <div class="b-a">Urges peak and fade, usually inside 15&ndash;20 minutes. Let's get you through this one. Can you step outside or change rooms right now?</div>
+      <div class="b-a">${t('Three weeks in. How are you actually doing?')}</div>
+      <div class="b-u">${t('Honestly? Better than I expected. The evenings are still hard.')}</div>
+      <div class="b-a">${t('Evenings are the common one — tired, alone, nothing scheduled. Worth planning something for that window rather than white-knuckling it.')}</div>
+      <div class="b-u">${t('Can\'t sleep and I\'m just scrolling.')}</div>
+      <div class="b-a">${t('That\'s a risky spot, and you already know it — that\'s why you\'re here. Put the phone on the charger across the room for two minutes. I\'ll wait.')}</div>
+      <div class="b-u">${t('I just had an urge — what should I do?')}</div>
+      <div class="b-a">${t('First: you noticed it and reached out instead of acting on it. That already counts.')}</div>
+      <div class="b-a">${t('Urges peak and fade, usually inside 15&ndash;20 minutes. Let\'s get you through this one. Can you step outside or change rooms right now?')}</div>
       <div class="acts">${svg('copy')}${svg('speaker')}<div style="flex:1"></div>${svg('thumbUp')}${svg('thumbDown')}</div>
-      <div class="b-u">Just went out on the balcony.</div>
-      <div class="b-a">Good. Feel the cold air for a second. What set it off tonight?</div>
+      <div class="b-u">${t('Just went out on the balcony.')}</div>
+      <div class="b-a">${t('Good. Feel the cold air for a second. What set it off tonight?')}</div>
     </div>
     <div class="composer">
-      <div class="tfield">Message your buddy</div>
+      <div class="tfield">${t('Message your buddy')}</div>
       <div class="send">${svg('arrowUp')}</div>
     </div>
     ${tabbar(2)}</div>`;
@@ -601,26 +619,26 @@ function screenBlocklist(){
   return `<div class="screen">${statusbar()}
     <div class="navrow" style="padding-top:6px">
       <div style="width:11px;color:#007AFF">${svg('chevL')}</div>
-      <div style="font-size:17px;font-weight:650">Blocklist</div>
+      <div style="font-size:17px;font-weight:650">${t('Blocklist')}</div>
       <div style="width:19px"></div>
     </div>
     <div class="body" style="padding-top:14px">
       <div style="border-radius:20px;padding:26px 18px;text-align:center;color:#fff;background:linear-gradient(135deg,#28733D,#1B593B);box-shadow:0 8px 18px rgba(45,128,68,.35)">
-        <div class="rnd" style="font-size:44px;font-weight:800;letter-spacing:-1.4px">172,912</div>
-        <div style="font-size:14px;color:rgba(255,255,255,.8);margin-top:4px">sites in your blocklist</div>
+        <div class="rnd" style="font-size:44px;font-weight:800;letter-spacing:-1.4px">${nf(SITES)}</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.8);margin-top:4px">${t('sites in your blocklist')}</div>
         <div style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:7px 15px;border-radius:999px;background:rgba(255,255,255,.18);font-size:13px;font-weight:600">
-          <div style="width:15px;height:15px">${svg('checkcircle')}</div>Up to date</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:12px">Last checked today, 6:04 AM</div>
+          <div style="width:15px;height:15px">${svg('checkcircle')}</div>${t('Up to date')}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:12px">${t('Last checked today, %t').replace('%t',tf(6,4))}</div>
       </div>
       <div class="card" style="overflow:hidden;margin-top:18px">
-        ${row('refresh','#396FBF','Auto-update daily',toggle(1))}
-        ${row('wifi','#8F52CC','Wi-Fi only',toggle(1),1)}
+        ${row('refresh','#396FBF',t('Auto-update daily'),toggle(1))}
+        ${row('wifi','#8F52CC',t('Wi-Fi only'),toggle(1),1)}
       </div>
-      <div class="sect" style="margin:20px 4px 10px">Your additions</div>
+      <div class="sect" style="margin:20px 4px 10px">${t('Your additions')}</div>
       <div class="card" style="overflow:hidden">
-        ${row('shield','#2D8044','Blocked sites','<div style="font-size:16px;color:var(--sec);margin-right:8px">14</div>'+chev)}
-        ${row('key','#D97F2B','Blocked keywords','<div style="font-size:16px;color:var(--sec);margin-right:8px">38</div>'+chev)}
-        ${row('checkcircle','#34C759','Allowed sites','<div style="font-size:16px;color:var(--sec);margin-right:8px">3</div>'+chev,1)}
+        ${row('shield','#2D8044',t('Blocked sites'),'<div style="font-size:16px;color:var(--sec);margin-right:8px">14</div>'+chev)}
+        ${row('key','#D97F2B',t('Blocked keywords'),'<div style="font-size:16px;color:var(--sec);margin-right:8px">38</div>'+chev)}
+        ${row('checkcircle','#34C759',t('Allowed sites'),'<div style="font-size:16px;color:var(--sec);margin-right:8px">3</div>'+chev,1)}
       </div>
     </div>
     ${tabbar(4)}</div>`;
@@ -633,23 +651,23 @@ function screenSettings(){
       <div style="width:30px;height:30px;border-radius:8px;background:${col}22;display:grid;place-items:center;color:${col}"><div style="width:16px;height:16px">${svg(ic)}</div></div>
       <div style="flex:1;font-size:16px;letter-spacing:-.2px">${name}</div>${right}</div>`;
   return `<div class="screen">${statusbar()}
-    <div class="navlarge">Settings</div>
+    <div class="navlarge">${t('Settings')}</div>
     <div class="body" style="padding-top:8px">
       <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:#2D80441A;border:1px solid #2D804433;margin-bottom:18px">
         <div style="width:40px;height:40px;border-radius:50%;background:#2D8044;display:grid;place-items:center;color:#fff"><div style="width:22px;height:22px">${shieldCheck('#2D8044')}</div></div>
-        <div><div style="font-size:15px;font-weight:640">Safari extension enabled</div>
-        <div style="font-size:12px;color:var(--sec);margin-top:2px">Blocking is live across Safari</div></div>
+        <div><div style="font-size:15px;font-weight:640">${t('Safari extension enabled')}</div>
+        <div style="font-size:12px;color:var(--sec);margin-top:2px">${t('Blocking is live across Safari')}</div></div>
       </div>
-      <div class="sect" style="margin:0 4px 10px">Protection</div>
+      <div class="sect" style="margin:0 4px 10px">${t('Protection')}</div>
       <div class="card" style="overflow:hidden">
-        ${row('shield','#2D8044','Block adult sites',toggle(1))}
-        ${row('key','#D97F2B','Keyword filtering',toggle(1))}
-        ${row('search','#396FBF','Force safe search',toggle(1),1)}
+        ${row('shield','#2D8044',t('Block adult sites'),toggle(1))}
+        ${row('key','#D97F2B',t('Keyword filtering'),toggle(1))}
+        ${row('search','#396FBF',t('Force safe search'),toggle(1),1)}
       </div>
-      <div class="sect" style="margin:20px 4px 10px">Reminders</div>
+      <div class="sect" style="margin:20px 4px 10px">${t('Reminders')}</div>
       <div class="card" style="overflow:hidden">
-        ${row('bell','#8F52CC','Daily check-in','<div style="font-size:16px;color:var(--sec)">9:00 PM</div>')}
-        ${row('heart','#BF4368','Milestone alerts',toggle(1),1)}
+        ${row('bell','#8F52CC',t('Daily check-in'),`<div style="font-size:16px;color:var(--sec)">${tf(21,0)}</div>`)}
+        ${row('heart','#BF4368',t('Milestone alerts'),toggle(1),1)}
       </div>
     </div>
     ${tabbar(4)}</div>`;
@@ -680,21 +698,21 @@ function shell(bg, inner){
 function panel1(){
   return shell(BG.a,`
     <div class="copy">
-      <div class="eyebrow">Safari + in-app browser</div>
-      <h1>Blocked before<br>you see it</h1>
-      <div class="sub">Turn it on once. Protection stays on everywhere Safari goes.</div>
+      <div class="eyebrow">${t('Safari + in-app browser')}</div>
+      <h1>${t('Blocked before<br>you see it')}</h1>
+      <div class="sub">${t('Turn it on once. Protection stays on everywhere Safari goes.')}</div>
     </div>
     <div class="stage"><div class="device tilt">${screenDashboard()}</div></div>
     <div class="fcard" style="${M('left:34px;top:1330px','left:150px;top:1990px')};transform:rotate(-4deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${shieldCheck('#1E7042')}</div>
-        <div><div class="fc-val">172,912</div><div class="fc-lab">Sites blocked</div></div>
+        <div><div class="fc-val">${nf(SITES)}</div><div class="fc-lab">${t('Sites blocked')}</div></div>
       </div>
     </div>
     <div class="fcard dark" style="${M('right:30px;top:2130px','right:140px;top:2300px')};transform:rotate(3.5deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#E08A3C,#B4611C);color:#fff">${svg('shieldslash')}</div>
-        <div><div class="fc-val">1,284</div><div class="fc-lab">Attempts stopped</div></div>
+        <div><div class="fc-val">${nf(ATTEMPTS)}</div><div class="fc-lab">${t('Attempts stopped')}</div></div>
       </div>
     </div>`);
 }
@@ -702,23 +720,23 @@ function panel1(){
 function panel2(){
   return shell(BG.b,`
     <div class="copy">
-      <div class="eyebrow">Streaks &amp; milestones</div>
-      <h1>Build a streak<br>you're proud of</h1>
-      <div class="sub">Check in once a day. Watch the days add up — and celebrate every milestone.</div>
+      <div class="eyebrow">${t('Streaks & milestones')}</div>
+      <h1>${t('Build a streak<br>you\'re proud of')}</h1>
+      <div class="sub">${t('Check in once a day. Watch the days add up — and celebrate every milestone.')}</div>
     </div>
     <div class="stage"><div class="device tilt">${screenStreaks()}</div></div>
     <div class="fcard" style="${M('right:26px;top:1620px','right:110px;top:1900px')};transform:rotate(3deg);text-align:center">
       <div style="width:104px;height:104px;border-radius:50%;margin:0 auto 20px;display:grid;place-items:center;background:#B2A62E;box-shadow:0 14px 26px rgba(178,166,46,.42),inset 0 2px 0 rgba(255,255,255,.5);color:#fff">
         <svg viewBox="0 0 24 24" fill="currentColor" style="width:54px;height:54px"><path d="${P.star}"/></svg>
       </div>
-      <div style="font-size:42px;font-weight:800;letter-spacing:-1.2px;color:#12301F">1 Week</div>
-      <div style="font-size:38px;font-weight:800;letter-spacing:-1.2px;color:#12301F">Milestone!</div>
-      <div class="fc-lab" style="font-size:25px;margin-top:12px">7 days porn free</div>
+      <div style="font-size:42px;font-weight:800;letter-spacing:-1.2px;color:#12301F">${t('1 Week')}</div>
+      <div style="font-size:38px;font-weight:800;letter-spacing:-1.2px;color:#12301F">${t('Milestone!')}</div>
+      <div class="fc-lab" style="font-size:25px;margin-top:12px">${t('7 days porn free')}</div>
     </div>
     <div class="fcard dark" style="${M('left:4px;top:2255px','left:150px;top:2270px')};transform:rotate(-4deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('heart')}</div>
-        <div><div class="fc-val">23 days</div><div class="fc-lab">Longest streak</div></div>
+        <div><div class="fc-val">${t('23 days')}</div><div class="fc-lab">${t('Longest streak')}</div></div>
       </div>
     </div>`);
 }
@@ -726,21 +744,21 @@ function panel2(){
 function panel3(){
   return shell(BG.c,`
     <div class="copy">
-      <div class="eyebrow">Safe Browse</div>
-      <h1>A browser that<br>can't wander</h1>
-      <div class="sub">Real tabs, saved sessions, and safe search locked on — every single time.</div>
+      <div class="eyebrow">${t('eyebrow:Safe Browse')}</div>
+      <h1>${t('A browser that<br>can\'t wander')}</h1>
+      <div class="sub">${t('Real tabs, saved sessions, and safe search locked on — every single time.')}</div>
     </div>
     <div class="stage"><div class="device tilt">${screenBrowser()}</div></div>
     <div class="fcard" style="${M('left:30px;top:1600px;max-width:620px','left:130px;top:2080px;max-width:840px')};transform:rotate(-3.5deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('lock')}</div>
-        <div><div class="fc-val" style="font-size:44px">Safe search</div><div class="fc-lab">Forced on Google, Bing &amp; more</div></div>
+        <div><div class="fc-val" style="font-size:44px">${t('Safe search')}</div><div class="fc-lab">${t('Forced on Google, Bing & more')}</div></div>
       </div>
     </div>
     <div class="fcard dark" style="${M('right:28px;top:2160px','right:120px;top:2380px')};transform:rotate(3deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3F8FD9,#245FA8);color:#fff">${svg('safari')}</div>
-        <div><div class="fc-val" style="font-size:44px">Tabs saved</div><div class="fc-lab">Restored when you return</div></div>
+        <div><div class="fc-val" style="font-size:44px">${t('Tabs saved')}</div><div class="fc-lab">${t('Restored when you return')}</div></div>
       </div>
     </div>`);
 }
@@ -748,21 +766,21 @@ function panel3(){
 function panel4(){
   return shell(BG.d,`
     <div class="copy">
-      <div class="eyebrow">AI buddy chat</div>
-      <h1>Someone in your<br>corner at 2am</h1>
-      <div class="sub">Private, judgment-free support the moment an urge hits.</div>
+      <div class="eyebrow">${t('AI buddy chat')}</div>
+      <h1>${t('Someone in your<br>corner at 2am')}</h1>
+      <div class="sub">${t('Private, judgment-free support the moment an urge hits.')}</div>
     </div>
     <div class="stage"><div class="device tilt">${screenChat()}</div></div>
     <div class="fcard" style="${M('left:0px;top:1540px;max-width:600px','left:120px;top:1120px;max-width:820px')};transform:rotate(-4deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('bubble')}</div>
-        <div><div class="fc-val" style="font-size:42px">Always awake</div><div class="fc-lab">No appointments, no waiting</div></div>
+        <div><div class="fc-val" style="font-size:42px">${t('Always awake')}</div><div class="fc-lab">${t('No appointments, no waiting')}</div></div>
       </div>
     </div>
     <div class="fcard dark" style="${M('right:26px;top:2170px;max-width:640px','right:120px;top:2330px;max-width:860px')};transform:rotate(3.5deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#4C4C55,#232329);color:#fff">${svg('lock')}</div>
-        <div><div class="fc-val" style="font-size:42px">Stays private</div><div class="fc-lab">Chats live on your device</div></div>
+        <div><div class="fc-val" style="font-size:42px">${t('Stays private')}</div><div class="fc-lab">${t('Chats live on your device')}</div></div>
       </div>
     </div>`);
 }
@@ -770,20 +788,20 @@ function panel4(){
 function panel5(){
   return shell(BG.e,`
     <div class="copy">
-      <div class="eyebrow">Updated every day</div>
-      <h1 class="sm">A blocklist that<br>keeps up</h1>
-      <div class="sub">New sites appear constantly. Yours refreshes automatically.</div>
+      <div class="eyebrow">${t('Updated every day')}</div>
+      <h1 class="sm">${t('A blocklist that<br>keeps up')}</h1>
+      <div class="sub">${t('New sites appear constantly. Yours refreshes automatically.')}</div>
     </div>
     <div class="proof" style="${M('top:700px','top:790px')}">
       <div class="pbig" style="padding:44px 56px">
-        <div class="v rnd">172,912</div>
-        <div class="l">Adult sites blocked</div>
+        <div class="v rnd">${nf(SITES)}</div>
+        <div class="l">${t('Adult sites blocked')}</div>
       </div>
       <div class="ptwo">
-        <div><div class="v rnd">1,200+</div><div class="l">Keywords filtered</div></div>
-        <div><div class="v rnd">Daily</div><div class="l">Automatic updates</div></div>
+        <div><div class="v rnd">${nf(KEYWORDS)}</div><div class="l">${t('Keywords filtered')}</div></div>
+        <div><div class="v rnd">${t('Daily')}</div><div class="l">${t('Automatic updates')}</div></div>
       </div>
-      <div class="pnote">${svg('checkcircle')}Add your own sites and keywords too</div>
+      <div class="pnote">${svg('checkcircle')}${t('Add your own sites and keywords too')}</div>
     </div>
     <div class="stage"><div class="device tilt" style="${M('top:1470px','top:1760px')}">${screenBlocklist()}</div></div>`);
 }
@@ -791,32 +809,406 @@ function panel5(){
 function panel6(){
   return shell(BG.f,`
     <div class="copy">
-      <div class="eyebrow">Guided setup</div>
-      <h1 class="sm">Protected in<br>under a minute</h1>
-      <div class="sub">No settings maze. The app walks you through it.</div>
+      <div class="eyebrow">${t('Guided setup')}</div>
+      <h1 class="sm">${t('Protected in<br>under a minute')}</h1>
+      <div class="sub">${t('No settings maze. The app walks you through it.')}</div>
     </div>
     <div class="steps" style="${M('top:672px;gap:26px','top:800px;gap:30px')}">
       <div class="step">
         <div class="n rnd">1</div>
-        <div><div class="t">Turn on blocking</div><div class="d">One switch enables the Safari extension.</div></div>
+        <div><div class="t">${t('Turn on blocking')}</div><div class="d">${t('One switch enables the Safari extension.')}</div></div>
       </div>
       <div class="step">
         <div class="n rnd">2</div>
-        <div><div class="t">Set your start date</div><div class="d">Already clean a while? Your streak backfills.</div></div>
+        <div><div class="t">${t('Set your start date')}</div><div class="d">${t('Already clean a while? Your streak backfills.')}</div></div>
       </div>
       <div class="step">
         <div class="n rnd">3</div>
-        <div><div class="t">Pick a daily reminder</div><div class="d">A nudge to check in, at a time you choose.</div></div>
+        <div><div class="t">${t('Pick a daily reminder')}</div><div class="d">${t('A nudge to check in, at a time you choose.')}</div></div>
       </div>
     </div>
     <div class="stage"><div class="device tilt" style="${M('top:1520px','top:1640px')}">${screenSettings()}</div></div>`);
 }
 
+/* ============ translations (keys = English source; missing -> English) ============ */
+const I18N={
+ "es": {
+  "Protection": "Protección",
+  "Safe Browse": "Navegar",
+  "Buddy": "Compañero",
+  "Streaks": "Rachas",
+  "Settings": "Ajustes",
+  "Protection Center": "Centro de protección",
+  "Fully Protected": "Totalmente protegido",
+  "Your browser is shielded from inappropriate content": "Tu navegador está protegido contra contenido inapropiado",
+  "Porn Free<br>Streak": "Racha<br>libre de porno",
+  "Days<br>Protected": "Días<br>protegidos",
+  "Attempts<br>Blocked": "Intentos<br>bloqueados",
+  "Protection Database": "Base de datos de protección",
+  "Up to date": "Actualizado",
+  "sites": "sitios",
+  "keywords": "palabras clave",
+  "Updated": "Actualizado",
+  "PROTECTION ACTIVE": "PROTECCIÓN ACTIVA",
+  "Your Rules": "Tus reglas",
+  "Custom blocked sites": "Sitios bloqueados propios",
+  "Blocked keywords": "Palabras clave bloqueadas",
+  "Insights": "Estadísticas",
+  "DAYS": "DÍAS",
+  "Porn Free": "Libre de porno",
+  "24 days logged": "24 días registrados",
+  "Longest Streak": "Racha más larga",
+  "12d": "12 d",
+  "Next Goal": "Próxima meta",
+  "Check In Today": "Registrar hoy",
+  "I slipped today": "Hoy tuve una recaída",
+  "Milestones": "Metas",
+  "1 Day": "1 día",
+  "1 Week": "1 semana",
+  "1 Month": "1 mes",
+  "3 Months": "3 meses",
+  "1 Year": "1 año",
+  "My Habits": "Mis hábitos",
+  "Add": "Añadir",
+  "Exercise": "Ejercicio",
+  "Meditation": "Meditación",
+  "9 day streak": "Racha de 9 días",
+  "12 day streak": "Racha de 12 días",
+  "Swipe the bar to switch tabs": "Desliza la barra para cambiar de pestaña",
+  "Tabs": "Pestañas",
+  "6 open": "6 abiertas",
+  "Search tabs": "Buscar pestañas",
+  "Mindful — Daily Focus": "Mindful — Enfoque diario",
+  "Recovery Guide": "Guía de recuperación",
+  "Morning Run Log": "Registro de carreras",
+  "Study Playlist": "Música para estudiar",
+  "Weekly Meal Plan": "Menú semanal",
+  "Beginner Guitar": "Guitarra para principiantes",
+  "Three weeks in. How are you actually doing?": "Tres semanas ya. ¿Cómo estás de verdad?",
+  "Honestly? Better than I expected. The evenings are still hard.": "¿Sinceramente? Mejor de lo que esperaba. Las noches todavía cuestan.",
+  "Evenings are the common one — tired, alone, nothing scheduled. Worth planning something for that window rather than white-knuckling it.": "Las noches son lo más común: cansancio, soledad, nada planeado. Vale la pena planear algo para ese rato en vez de aguantar a pura fuerza.",
+  "Can't sleep and I'm just scrolling.": "No puedo dormir y solo estoy mirando el móvil.",
+  "That's a risky spot, and you already know it — that's why you're here. Put the phone on the charger across the room for two minutes. I'll wait.": "Es un momento arriesgado y ya lo sabes; por eso estás aquí. Deja el móvil cargando al otro lado de la habitación dos minutos. Te espero.",
+  "I just had an urge — what should I do?": "Acabo de tener un impulso, ¿qué hago?",
+  "First: you noticed it and reached out instead of acting on it. That already counts.": "Primero: lo notaste y pediste ayuda en vez de actuar. Eso ya cuenta.",
+  "Urges peak and fade, usually inside 15&ndash;20 minutes. Let's get you through this one. Can you step outside or change rooms right now?": "Los impulsos suben y bajan, casi siempre en 15&ndash;20 minutos. Vamos a superar este. ¿Puedes salir afuera o cambiar de habitación ahora mismo?",
+  "Just went out on the balcony.": "Acabo de salir al balcón.",
+  "Good. Feel the cold air for a second. What set it off tonight?": "Bien. Siente el aire fresco un momento. ¿Qué lo provocó esta noche?",
+  "Message your buddy": "Escribe a tu compañero",
+  "Blocklist": "Lista de bloqueo",
+  "sites in your blocklist": "sitios en tu lista de bloqueo",
+  "Last checked today, %t": "Última revisión: hoy, %t",
+  "Auto-update daily": "Actualizar cada día",
+  "Wi-Fi only": "Solo con Wi-Fi",
+  "Your additions": "Tus añadidos",
+  "Blocked sites": "Sitios bloqueados",
+  "Allowed sites": "Sitios permitidos",
+  "Safari extension enabled": "Extensión de Safari activada",
+  "Blocking is live across Safari": "El bloqueo está activo en todo Safari",
+  "Block adult sites": "Bloquear sitios para adultos",
+  "Keyword filtering": "Filtro de palabras clave",
+  "Force safe search": "Forzar búsqueda segura",
+  "Reminders": "Recordatorios",
+  "Daily check-in": "Registro diario",
+  "Milestone alerts": "Avisos de metas",
+  "Safari + in-app browser": "Safari + navegador integrado",
+  "Blocked before<br>you see it": "Bloqueado antes<br>de que lo veas",
+  "Turn it on once. Protection stays on everywhere Safari goes.": "Actívalo una vez. La protección te acompaña en todo Safari.",
+  "Sites blocked": "Sitios bloqueados",
+  "Attempts stopped": "Intentos frenados",
+  "Streaks & milestones": "Rachas y metas",
+  "Build a streak<br>you're proud of": "Una racha de la<br>que presumir",
+  "Check in once a day. Watch the days add up — and celebrate every milestone.": "Regístrate una vez al día. Mira cómo suman los días y celebra cada meta.",
+  "Milestone!": "¡Meta cumplida!",
+  "7 days porn free": "7 días libre de porno",
+  "23 days": "23 días",
+  "Longest streak": "Racha más larga",
+  "eyebrow:Safe Browse": "Navegación segura",
+  "A browser that<br>can't wander": "Un navegador<br>sin desvíos",
+  "Real tabs, saved sessions, and safe search locked on — every single time.": "Pestañas reales, sesiones guardadas y búsqueda segura siempre activada.",
+  "Safe search": "Búsqueda segura",
+  "Forced on Google, Bing & more": "Forzada en Google, Bing y más",
+  "Tabs saved": "Pestañas guardadas",
+  "Restored when you return": "Se restauran al volver",
+  "AI buddy chat": "Chat con compañero IA",
+  "Someone in your<br>corner at 2am": "Alguien a tu lado<br>a las 2 a. m.",
+  "Private, judgment-free support the moment an urge hits.": "Apoyo privado y sin juicios en el momento en que llega un impulso.",
+  "Always awake": "Siempre despierto",
+  "No appointments, no waiting": "Sin citas, sin esperas",
+  "Stays private": "Siempre privado",
+  "Chats live on your device": "Los chats se quedan en tu dispositivo",
+  "Updated every day": "Actualizada cada día",
+  "A blocklist that<br>keeps up": "Una lista de bloqueo<br>siempre al día",
+  "New sites appear constantly. Yours refreshes automatically.": "Aparecen sitios nuevos sin parar. Tu lista se actualiza sola.",
+  "Adult sites blocked": "Sitios para adultos bloqueados",
+  "Keywords filtered": "Palabras clave filtradas",
+  "Daily": "Diaria",
+  "Automatic updates": "Actualización automática",
+  "Add your own sites and keywords too": "Añade también tus propios sitios y palabras clave",
+  "Guided setup": "Configuración guiada",
+  "Protected in<br>under a minute": "Protegido en<br>menos de un minuto",
+  "No settings maze. The app walks you through it.": "Sin laberintos de ajustes. La app te guía paso a paso.",
+  "Turn on blocking": "Activa el bloqueo",
+  "One switch enables the Safari extension.": "Un interruptor activa la extensión de Safari.",
+  "Set your start date": "Fija tu fecha de inicio",
+  "Already clean a while? Your streak backfills.": "¿Ya llevas un tiempo limpio? Tu racha se completa.",
+  "Pick a daily reminder": "Elige un recordatorio diario",
+  "A nudge to check in, at a time you choose.": "Un aviso para registrarte, a la hora que elijas."
+ },
+ "pt-BR": {
+  "Protection": "Proteção",
+  "Safe Browse": "Navegar",
+  "Buddy": "Parceiro",
+  "Streaks": "Sequências",
+  "Settings": "Ajustes",
+  "Protection Center": "Central de proteção",
+  "Fully Protected": "Totalmente protegido",
+  "Your browser is shielded from inappropriate content": "Seu navegador está protegido contra conteúdo impróprio",
+  "Porn Free<br>Streak": "Sequência<br>livre de pornô",
+  "Days<br>Protected": "Dias<br>protegidos",
+  "Attempts<br>Blocked": "Tentativas<br>bloqueadas",
+  "Protection Database": "Banco de dados de proteção",
+  "Up to date": "Atualizado",
+  "sites": "sites",
+  "keywords": "palavras-chave",
+  "Updated": "Atualizado",
+  "PROTECTION ACTIVE": "PROTEÇÃO ATIVA",
+  "Your Rules": "Suas regras",
+  "Custom blocked sites": "Sites bloqueados por você",
+  "Blocked keywords": "Palavras-chave bloqueadas",
+  "Insights": "Estatísticas",
+  "DAYS": "DIAS",
+  "Porn Free": "Livre de pornô",
+  "24 days logged": "24 dias registrados",
+  "Longest Streak": "Maior sequência",
+  "12d": "12 d",
+  "Next Goal": "Próxima meta",
+  "Check In Today": "Registrar hoje",
+  "I slipped today": "Tive uma recaída hoje",
+  "Milestones": "Marcos",
+  "1 Day": "1 dia",
+  "1 Week": "1 semana",
+  "1 Month": "1 mês",
+  "3 Months": "3 meses",
+  "1 Year": "1 ano",
+  "My Habits": "Meus hábitos",
+  "Add": "Adicionar",
+  "Exercise": "Exercício",
+  "Meditation": "Meditação",
+  "9 day streak": "Sequência de 9 dias",
+  "12 day streak": "Sequência de 12 dias",
+  "Swipe the bar to switch tabs": "Deslize a barra para trocar de aba",
+  "Tabs": "Abas",
+  "6 open": "6 abertas",
+  "Search tabs": "Pesquisar abas",
+  "Mindful — Daily Focus": "Mindful — Foco diário",
+  "Recovery Guide": "Guia de recuperação",
+  "Morning Run Log": "Registro de corridas",
+  "Study Playlist": "Playlist de estudos",
+  "Weekly Meal Plan": "Cardápio semanal",
+  "Beginner Guitar": "Violão para iniciantes",
+  "Three weeks in. How are you actually doing?": "Três semanas já. Como você está de verdade?",
+  "Honestly? Better than I expected. The evenings are still hard.": "Sinceramente? Melhor do que eu esperava. As noites ainda são difíceis.",
+  "Evenings are the common one — tired, alone, nothing scheduled. Worth planning something for that window rather than white-knuckling it.": "As noites são o momento mais comum — cansaço, solidão, nada planejado. Vale a pena planejar algo para esse horário em vez de só aguentar no braço.",
+  "Can't sleep and I'm just scrolling.": "Não consigo dormir e estou só rolando a tela.",
+  "That's a risky spot, and you already know it — that's why you're here. Put the phone on the charger across the room for two minutes. I'll wait.": "É um momento arriscado, e você já sabe disso — por isso está aqui. Deixe o celular carregando do outro lado do quarto por dois minutos. Eu espero.",
+  "I just had an urge — what should I do?": "Acabei de sentir vontade — o que eu faço?",
+  "First: you noticed it and reached out instead of acting on it. That already counts.": "Primeiro: você percebeu e pediu ajuda em vez de agir. Isso já conta.",
+  "Urges peak and fade, usually inside 15&ndash;20 minutes. Let's get you through this one. Can you step outside or change rooms right now?": "A vontade sobe e passa, geralmente em 15&ndash;20 minutos. Vamos passar por esta. Você consegue sair ou mudar de cômodo agora?",
+  "Just went out on the balcony.": "Acabei de ir para a varanda.",
+  "Good. Feel the cold air for a second. What set it off tonight?": "Boa. Sinta o ar frio por um instante. O que desencadeou isso hoje?",
+  "Message your buddy": "Mande uma mensagem ao parceiro",
+  "Blocklist": "Lista de bloqueio",
+  "sites in your blocklist": "sites na sua lista de bloqueio",
+  "Last checked today, %t": "Última verificação: hoje, %t",
+  "Auto-update daily": "Atualizar todo dia",
+  "Wi-Fi only": "Só no Wi-Fi",
+  "Your additions": "Suas adições",
+  "Blocked sites": "Sites bloqueados",
+  "Allowed sites": "Sites permitidos",
+  "Safari extension enabled": "Extensão do Safari ativada",
+  "Blocking is live across Safari": "O bloqueio está ativo em todo o Safari",
+  "Block adult sites": "Bloquear sites adultos",
+  "Keyword filtering": "Filtro de palavras-chave",
+  "Force safe search": "Forçar pesquisa segura",
+  "Reminders": "Lembretes",
+  "Daily check-in": "Registro diário",
+  "Milestone alerts": "Alertas de marcos",
+  "Safari + in-app browser": "Safari + navegador integrado",
+  "Blocked before<br>you see it": "Bloqueado antes<br>de você ver",
+  "Turn it on once. Protection stays on everywhere Safari goes.": "Ative uma vez. A proteção fica ligada em todo o Safari.",
+  "Sites blocked": "Sites bloqueados",
+  "Attempts stopped": "Tentativas barradas",
+  "Streaks & milestones": "Sequências e marcos",
+  "Build a streak<br>you're proud of": "Uma sequência<br>para se orgulhar",
+  "Check in once a day. Watch the days add up — and celebrate every milestone.": "Faça o registro uma vez por dia. Veja os dias se somarem — e comemore cada marco.",
+  "Milestone!": "Marco atingido!",
+  "7 days porn free": "7 dias livre de pornô",
+  "23 days": "23 dias",
+  "Longest streak": "Maior sequência",
+  "eyebrow:Safe Browse": "Navegação segura",
+  "A browser that<br>can't wander": "Um navegador<br>sem desvios",
+  "Real tabs, saved sessions, and safe search locked on — every single time.": "Abas de verdade, sessões salvas e pesquisa segura sempre ativada.",
+  "Safe search": "Pesquisa segura",
+  "Forced on Google, Bing & more": "Forçada no Google, Bing e mais",
+  "Tabs saved": "Abas salvas",
+  "Restored when you return": "Restauradas quando você volta",
+  "AI buddy chat": "Chat com parceiro IA",
+  "Someone in your<br>corner at 2am": "Alguém do seu lado<br>às 2 da manhã",
+  "Private, judgment-free support the moment an urge hits.": "Apoio privado e sem julgamentos na hora em que a vontade bate.",
+  "Always awake": "Sempre acordado",
+  "No appointments, no waiting": "Sem hora marcada, sem espera",
+  "Stays private": "Sempre privado",
+  "Chats live on your device": "As conversas ficam no seu dispositivo",
+  "Updated every day": "Atualizada todo dia",
+  "A blocklist that<br>keeps up": "Uma lista de bloqueio<br>sempre em dia",
+  "New sites appear constantly. Yours refreshes automatically.": "Sites novos surgem o tempo todo. A sua lista se atualiza sozinha.",
+  "Adult sites blocked": "Sites adultos bloqueados",
+  "Keywords filtered": "Palavras-chave filtradas",
+  "Daily": "Diária",
+  "Automatic updates": "Atualização automática",
+  "Add your own sites and keywords too": "Adicione também seus próprios sites e palavras-chave",
+  "Guided setup": "Configuração guiada",
+  "Protected in<br>under a minute": "Protegido em<br>menos de um minuto",
+  "No settings maze. The app walks you through it.": "Sem labirinto de ajustes. O app guia você passo a passo.",
+  "Turn on blocking": "Ative o bloqueio",
+  "One switch enables the Safari extension.": "Um botão ativa a extensão do Safari.",
+  "Set your start date": "Defina sua data de início",
+  "Already clean a while? Your streak backfills.": "Já está limpo há um tempo? Sua sequência é preenchida.",
+  "Pick a daily reminder": "Escolha um lembrete diário",
+  "A nudge to check in, at a time you choose.": "Um lembrete para registrar, no horário que você escolher."
+ },
+ "de": {
+  "Protection": "Schutz",
+  "Safe Browse": "Sicher surfen",
+  "Buddy": "Buddy",
+  "Streaks": "Serien",
+  "Settings": "Einstellungen",
+  "Protection Center": "Schutzzentrale",
+  "Fully Protected": "Vollständig geschützt",
+  "Your browser is shielded from inappropriate content": "Dein Browser ist vor unangemessenen Inhalten geschützt",
+  "Porn Free<br>Streak": "Pornofreie<br>Serie",
+  "Days<br>Protected": "Tage<br>geschützt",
+  "Attempts<br>Blocked": "Blockierte<br>Versuche",
+  "Protection Database": "Schutzdatenbank",
+  "Up to date": "Aktuell",
+  "sites": "Websites",
+  "keywords": "Stichwörter",
+  "Updated": "Aktualisiert",
+  "PROTECTION ACTIVE": "SCHUTZ AKTIV",
+  "Your Rules": "Deine Regeln",
+  "Custom blocked sites": "Eigene gesperrte Websites",
+  "Blocked keywords": "Blockierte Stichwörter",
+  "Insights": "Einblicke",
+  "DAYS": "TAGE",
+  "Porn Free": "Pornofrei",
+  "24 days logged": "24 Tage erfasst",
+  "Longest Streak": "Längste Serie",
+  "12d": "12 T",
+  "Next Goal": "Nächstes Ziel",
+  "Check In Today": "Heute einchecken",
+  "I slipped today": "Ich bin heute rückfällig geworden",
+  "Milestones": "Meilensteine",
+  "1 Day": "1 Tag",
+  "1 Week": "1 Woche",
+  "1 Month": "1 Monat",
+  "3 Months": "3 Monate",
+  "1 Year": "1 Jahr",
+  "My Habits": "Meine Gewohnheiten",
+  "Add": "Hinzufügen",
+  "Exercise": "Sport",
+  "Meditation": "Meditation",
+  "9 day streak": "9 Tage in Folge",
+  "12 day streak": "12 Tage in Folge",
+  "Swipe the bar to switch tabs": "Wische über die Leiste, um Tabs zu wechseln",
+  "Tabs": "Tabs",
+  "6 open": "6 geöffnet",
+  "Search tabs": "Tabs durchsuchen",
+  "Mindful — Daily Focus": "Mindful — Täglicher Fokus",
+  "Recovery Guide": "Leitfaden zur Genesung",
+  "Morning Run Log": "Lauftagebuch",
+  "Study Playlist": "Lern-Playlist",
+  "Weekly Meal Plan": "Essensplan der Woche",
+  "Beginner Guitar": "Gitarre für Anfänger",
+  "Three weeks in. How are you actually doing?": "Drei Wochen geschafft. Wie geht es dir wirklich?",
+  "Honestly? Better than I expected. The evenings are still hard.": "Ehrlich? Besser als erwartet. Die Abende sind noch schwer.",
+  "Evenings are the common one — tired, alone, nothing scheduled. Worth planning something for that window rather than white-knuckling it.": "Abende sind der Klassiker – müde, allein, nichts geplant. Plan lieber etwas für diese Zeit, statt dich nur durchzubeißen.",
+  "Can't sleep and I'm just scrolling.": "Kann nicht schlafen und scrolle nur rum.",
+  "That's a risky spot, and you already know it — that's why you're here. Put the phone on the charger across the room for two minutes. I'll wait.": "Das ist eine riskante Situation, und das weißt du – deshalb bist du hier. Leg das Handy für zwei Minuten ans Ladekabel am anderen Ende des Zimmers. Ich warte.",
+  "I just had an urge — what should I do?": "Ich habe gerade Verlangen – was soll ich tun?",
+  "First: you noticed it and reached out instead of acting on it. That already counts.": "Erstens: Du hast es bemerkt und dich gemeldet, statt nachzugeben. Das zählt schon.",
+  "Urges peak and fade, usually inside 15&ndash;20 minutes. Let's get you through this one. Can you step outside or change rooms right now?": "Verlangen steigt an und ebbt ab, meist innerhalb von 15&ndash;20 Minuten. Lass uns das hier gemeinsam schaffen. Kannst du gerade rausgehen oder den Raum wechseln?",
+  "Just went out on the balcony.": "Bin gerade auf den Balkon gegangen.",
+  "Good. Feel the cold air for a second. What set it off tonight?": "Gut. Spür kurz die kühle Luft. Was hat es heute Abend ausgelöst?",
+  "Message your buddy": "Schreib deinem Buddy",
+  "Blocklist": "Sperrliste",
+  "sites in your blocklist": "Websites in deiner Sperrliste",
+  "Last checked today, %t": "Zuletzt geprüft: heute, %t",
+  "Auto-update daily": "Täglich aktualisieren",
+  "Wi-Fi only": "Nur über WLAN",
+  "Your additions": "Deine Ergänzungen",
+  "Blocked sites": "Gesperrte Websites",
+  "Allowed sites": "Erlaubte Websites",
+  "Safari extension enabled": "Safari-Erweiterung aktiv",
+  "Blocking is live across Safari": "Die Blockierung ist in ganz Safari aktiv",
+  "Block adult sites": "Seiten für Erwachsene sperren",
+  "Keyword filtering": "Stichwort-Filter",
+  "Force safe search": "SafeSearch erzwingen",
+  "Reminders": "Erinnerungen",
+  "Daily check-in": "Täglicher Check-in",
+  "Milestone alerts": "Meilenstein-Hinweise",
+  "Safari + in-app browser": "Safari + integrierter Browser",
+  "Blocked before<br>you see it": "Blockiert, bevor<br>du es siehst",
+  "Turn it on once. Protection stays on everywhere Safari goes.": "Einmal einschalten. Der Schutz gilt überall in Safari.",
+  "Sites blocked": "Websites blockiert",
+  "Attempts stopped": "Versuche gestoppt",
+  "Streaks & milestones": "Serien & Meilensteine",
+  "Build a streak<br>you're proud of": "Eine Serie, auf die<br>du stolz bist",
+  "Check in once a day. Watch the days add up — and celebrate every milestone.": "Einmal am Tag einchecken. Sieh zu, wie die Tage wachsen – und feiere jeden Meilenstein.",
+  "Milestone!": "Meilenstein!",
+  "7 days porn free": "7 Tage pornofrei",
+  "23 days": "23 Tage",
+  "Longest streak": "Längste Serie",
+  "eyebrow:Safe Browse": "Sicher surfen",
+  "A browser that<br>can't wander": "Ein Browser<br>ohne Umwege",
+  "Real tabs, saved sessions, and safe search locked on — every single time.": "Echte Tabs, gespeicherte Sitzungen und SafeSearch – jedes Mal aktiv.",
+  "Safe search": "SafeSearch",
+  "Forced on Google, Bing & more": "Erzwungen bei Google, Bing & mehr",
+  "Tabs saved": "Tabs gespeichert",
+  "Restored when you return": "Wieder da, wenn du zurückkommst",
+  "AI buddy chat": "KI-Buddy-Chat",
+  "Someone in your<br>corner at 2am": "Jemand an deiner<br>Seite um 2 Uhr",
+  "Private, judgment-free support the moment an urge hits.": "Private Unterstützung ohne Urteil – genau dann, wenn das Verlangen kommt.",
+  "Always awake": "Immer wach",
+  "No appointments, no waiting": "Keine Termine, kein Warten",
+  "Stays private": "Bleibt privat",
+  "Chats live on your device": "Chats bleiben auf deinem Gerät",
+  "Updated every day": "Täglich aktualisiert",
+  "A blocklist that<br>keeps up": "Eine Sperrliste,<br>die mithält",
+  "New sites appear constantly. Yours refreshes automatically.": "Ständig tauchen neue Seiten auf. Deine Liste aktualisiert sich von selbst.",
+  "Adult sites blocked": "Seiten für Erwachsene blockiert",
+  "Keywords filtered": "Gefilterte Stichwörter",
+  "Daily": "Täglich",
+  "Automatic updates": "Automatische Updates",
+  "Add your own sites and keywords too": "Füge auch eigene Websites und Stichwörter hinzu",
+  "Guided setup": "Geführte Einrichtung",
+  "Protected in<br>under a minute": "Geschützt in<br>unter einer Minute",
+  "No settings maze. The app walks you through it.": "Kein Einstellungs-Chaos. Die App führt dich hindurch.",
+  "Turn on blocking": "Blockierung einschalten",
+  "One switch enables the Safari extension.": "Ein Schalter aktiviert die Safari-Erweiterung.",
+  "Set your start date": "Startdatum festlegen",
+  "Already clean a while? Your streak backfills.": "Schon eine Weile clean? Deine Serie wird nachgetragen.",
+  "Pick a daily reminder": "Tägliche Erinnerung wählen",
+  "A nudge to check in, at a time you choose.": "Ein Anstoß zum Einchecken, zur Uhrzeit deiner Wahl."
+ }
+};
+
 /* ============ render ============ */
 const PANELS=[panel1,panel2,panel3,panel4,panel5,panel6];
 const p=q.get('p');
 if(p){
-  if(IPAD) document.body.className='ipad';
+  if(IPAD) document.body.classList.add('ipad');
+  if(L!=='en') document.body.classList.add('l10n');
   document.getElementById('root').innerHTML=PANELS[parseInt(p,10)-1]();
 }else{
   document.body.className='index'+(IPAD?' ipad':'');

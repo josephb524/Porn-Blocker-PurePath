@@ -78,6 +78,36 @@ Rendering **must** happen on macOS with Chrome — the device mockups use
 On another platform the type will fall back and the panels will not match the
 real app.
 
+## Localized sets
+
+`?l=es`, `?l=pt-BR` or `?l=de` renders a panel in that language; output
+lives in `es/`, `pt-BR/`, `de/` with the same file names. Upload each folder
+to the matching App Store Connect locale (Spanish covers es-MX and es-ES).
+
+```sh
+for L in es pt-BR de; do mkdir -p $L; for i in 1 2 3 4 5 6; do
+  "$CHROME" --headless=new --disable-gpu --hide-scrollbars \
+    --force-device-scale-factor=1 --window-size=1290,2796 \
+    --screenshot="$L/s0$i.png" "file://$PWD/screens.html?p=$i&l=$L"
+  "$CHROME" --headless=new --disable-gpu --hide-scrollbars \
+    --force-device-scale-factor=1 --window-size=2064,2752 \
+    --screenshot="$L/ipad0$i.png" "file://$PWD/screens.html?d=ipad&p=$i&l=$L"
+done; done
+```
+
+- Every visible string goes through `t('English')`, looked up in the `I18N`
+  table near the bottom of `screens.html`; a missing key falls back to
+  English. Use a `ctx:` key prefix when one English string needs two
+  translations (`eyebrow:Safe Browse` vs the tab label).
+- Device-UI strings mirror the app's `Localizable.xcstrings` translations —
+  keep them in sync so the store images match what users see.
+- Numbers, dates and times go through `nf`/`cf`/`df`/`tf` (locale-aware).
+  The figures themselves are the `SITES`/`ATTEMPTS`/`KEYWORDS` constants.
+- Translated sets get `text-wrap: balance` on subtitles (`body.l10n`) —
+  English deliberately doesn't, so its PNGs stay byte-identical.
+- Adding a language: add a column to `I18N`, render, and review the
+  headline wraps and floating-card widths — German runs ~30% longer.
+
 ## Constraints baked into these panels
 
 - **No fabricated social proof.** The previous set carried a "Popular Pick —
@@ -93,9 +123,11 @@ real app.
   `HabitManager.allMilestones`. If those screens change materially, update the
   corresponding `screen*()` function so the store images don't misrepresent
   the app.
-- **Numbers shown:** 302,723 sites / 1,200+ keywords / 18-day streak /
-  1,284 attempts blocked. The two blocklist figures should stay consistent
-  with what the app actually ships.
+- **Numbers shown:** 172,912 sites / 100 keywords / 18-day streak /
+  1,284 attempts blocked (`SITES`/`KEYWORDS`/`ATTEMPTS` in `screens.html`).
+  The keyword figure is `KeywordMatcher.predefinedKeywords.count` — it was
+  previously a false "1,200+" (Guideline 2.3.1). Update it whenever the
+  built-in keyword lists change.
 - **Content must clear the tab bar.** Each mock screen is 430×932pt with an
   84pt tab bar. Content that runs past ~848pt gets clipped and reads as a
   rendering bug — the most common thing to break when editing.
