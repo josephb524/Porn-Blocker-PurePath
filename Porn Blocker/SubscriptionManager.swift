@@ -130,13 +130,13 @@ final class SubscriptionManager: ObservableObject {
             let loaded = try await Product.products(for: Self.productIDs)
             products = loaded.sorted { $0.price < $1.price }
             if products.isEmpty {
-                errorMessage = "Subscription products not found"
+                errorMessage = String(localized: "Subscription products not found")
                 Log.debug("❌ No subscription products loaded")
             } else {
                 Log.debug("✅ Loaded \(products.count) products: \(products.map(\.id))")
             }
         } catch {
-            errorMessage = "Failed to load products: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load products: \(error.localizedDescription)")
             Log.debug("❌ Error loading products: \(error)")
         }
         isLoading = false
@@ -205,11 +205,11 @@ final class SubscriptionManager: ObservableObject {
             if isSubscribed {
                 Log.debug("✅ Subscription restored successfully")
             } else {
-                errorMessage = "No active subscription found"
+                errorMessage = String(localized: "No active subscription found")
                 Log.debug("⚠️ No active subscription found")
             }
         } catch {
-            errorMessage = "Failed to restore: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to restore: \(error.localizedDescription)")
             Log.debug("❌ Restore failed: \(error)")
         }
         
@@ -423,17 +423,17 @@ final class SubscriptionManager: ObservableObject {
     var renewalStatusDescription: String {
         switch renewalStatus {
         case .active:
-            return "Active"
+            return String(localized: "Active")
         case .renewingSoon:
-            return "Renewing Soon"
+            return String(localized: "Renewing Soon")
         case .expired:
-            return "Expired"
+            return String(localized: "Expired")
         case .noSubscription:
-            return "No Subscription"
+            return String(localized: "No Subscription")
         case .notAutoRenewable:
-            return "Not Auto-Renewable"
+            return String(localized: "Not Auto-Renewable")
         case .unknown:
-            return "Unknown"
+            return String(localized: "Unknown")
         }
     }
     
@@ -468,15 +468,15 @@ enum SubscriptionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .productNotLoaded:
-            return "Subscription product not available"
+            return String(localized: "Subscription product not available")
         case .failedVerification:
-            return "Failed to verify purchase"
+            return String(localized: "Failed to verify purchase")
         case .userCancelled:
-            return "Purchase was cancelled"
+            return String(localized: "Purchase was cancelled")
         case .purchasePending:
-            return "Purchase is pending approval"
+            return String(localized: "Purchase is pending approval")
         case .unknown:
-            return "An unknown error occurred"
+            return String(localized: "An unknown error occurred")
         }
     }
 }
@@ -509,10 +509,10 @@ extension Product {
         guard let period = subscription?.subscriptionPeriod else { return "" }
         let plural = period.value > 1
         switch period.unit {
-        case .day:   return plural ? "\(period.value) days" : "day"
-        case .week:  return plural ? "\(period.value) weeks" : "week"
-        case .month: return plural ? "\(period.value) months" : "month"
-        case .year:  return plural ? "\(period.value) years" : "year"
+        case .day:   return plural ? String(localized: "\(period.value) days", comment: "Billing period after \"per\", e.g. \"per 3 months\"") : String(localized: "day", comment: "Billing period after \"per\", e.g. \"per day\"")
+        case .week:  return plural ? String(localized: "\(period.value) weeks", comment: "Billing period after \"per\", e.g. \"per 3 months\"") : String(localized: "week", comment: "Billing period after \"per\", e.g. \"per week\"")
+        case .month: return plural ? String(localized: "\(period.value) months", comment: "Billing period after \"per\", e.g. \"per 3 months\"") : String(localized: "month", comment: "Billing period after \"per\", e.g. \"per month\"")
+        case .year:  return plural ? String(localized: "\(period.value) years", comment: "Billing period after \"per\", e.g. \"per 3 months\"") : String(localized: "year", comment: "Billing period after \"per\", e.g. \"per year\"")
         @unknown default: return ""
         }
     }
@@ -520,10 +520,10 @@ extension Product {
     /// A capitalized plan name derived from the period, e.g. "Monthly" / "Yearly".
     var planName: String {
         switch subscription?.subscriptionPeriod.unit {
-        case .day:   return "Daily"
-        case .week:  return "Weekly"
-        case .month: return "Monthly"
-        case .year:  return "Yearly"
+        case .day:   return String(localized: "Daily")
+        case .week:  return String(localized: "Weekly")
+        case .month: return String(localized: "Monthly")
+        case .year:  return String(localized: "Yearly")
         default:     return displayName
         }
     }
@@ -535,10 +535,10 @@ extension Product {
               offer.paymentMode == .freeTrial else { return nil }
         let period = offer.period
         switch period.unit {
-        case .day:   return "\(period.value)-day free trial"
-        case .week:  return "\(period.value)-week free trial"
-        case .month: return "\(period.value)-month free trial"
-        case .year:  return "\(period.value)-year free trial"
+        case .day:   return String(localized: "\(period.value)-day free trial")
+        case .week:  return String(localized: "\(period.value)-week free trial")
+        case .month: return String(localized: "\(period.value)-month free trial")
+        case .year:  return String(localized: "\(period.value)-year free trial")
         @unknown default: return nil
         }
     }

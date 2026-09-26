@@ -17,7 +17,7 @@ struct PaywallScreen: View {
     private let privacyPolicyURL = URL(string: "https://josephb524.github.io/Porn-Blocker-Pure-Path-Privacy/")!
     private let termsOfUseURL    = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 
-    private let features: [(icon: String, text: String, color: Color)] = [
+    private let features: [(icon: String, text: LocalizedStringKey, color: Color)] = [
         ("globe.badge.chevron.backward",        "Block millions of porn sites in Safari", Color(hue: 0.6,  saturation: 0.7, brightness: 0.75)),
         ("bubble.left.and.bubble.right.fill",   "Buddy chat — talk through urges 24/7",   Color(hue: 0.9,  saturation: 0.65, brightness: 0.75)),
         ("shield.fill",                         "Safe, private web browsing",             Color(hue: 0.38, saturation: 0.65, brightness: 0.5)),
@@ -81,7 +81,7 @@ struct PaywallScreen: View {
         .alert("Error", isPresented: $showingError) {
             Button("OK") { }
         } message: {
-            Text(subManager.errorMessage ?? "An unexpected error occurred. Please try again.")
+            Text(subManager.errorMessage ?? String(localized: "An unexpected error occurred. Please try again."))
         }
         .onAppear {
             if !subManager.hasLoadedProducts && !subManager.isLoading {
@@ -231,7 +231,7 @@ struct PaywallScreen: View {
                         }
                     }
                     if let trial = product.freeTrialText {
-                        Text("Includes \(trial.lowercased())")
+                        Text("Includes \(trial)", comment: "Plan card caption, e.g. \"Includes 3-day free trial\"")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
@@ -318,16 +318,16 @@ struct PaywallScreen: View {
     /// 3.1.2(c). The post-trial price is rendered as a secondary line on the
     /// button itself so it's no less prominent than the trial mention.
     private var ctaPrimaryTitle: String {
-        guard let product = activeProduct else { return "Subscribe Now" }
+        guard let product = activeProduct else { return String(localized: "Subscribe Now") }
         if product.freeTrialText != nil {
-            return "Start Free Trial & Subscribe"
+            return String(localized: "Start Free Trial & Subscribe")
         }
-        return "Subscribe Now"
+        return String(localized: "Subscribe Now")
     }
 
     private var ctaSecondaryTitle: String? {
         guard let product = activeProduct, product.freeTrialText != nil else { return nil }
-        return "Then \(product.displayPrice) per \(product.periodUnitText), auto-renews"
+        return String(localized: "Then \(product.displayPrice) per \(product.periodUnitText), auto-renews", comment: "Second line on the trial CTA button (App Store 3.1.2(c)): must say a paid, auto-renewing subscription follows the trial")
     }
 
     /// Below-button disclosure. The total billed amount is the largest, boldest
@@ -352,8 +352,8 @@ struct PaywallScreen: View {
             }
 
             Text(product.freeTrialText != nil
-                 ? "Your subscription begins automatically when the free trial ends. Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date."
-                 : "Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.")
+                 ? String(localized: "Your subscription begins automatically when the free trial ends. Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.", comment: "Legal billing disclosure (App Store 3.1.2(c)) — translate every clause faithfully")
+                 : String(localized: "Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.", comment: "Legal billing disclosure (App Store 3.1.2(c)) — translate every clause faithfully"))
                 .font(.caption2)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

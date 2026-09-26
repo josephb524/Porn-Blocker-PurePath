@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsRow: View {
     let icon: String
-    let title: String
+    let title: LocalizedStringKey
     
     var body: some View {
         HStack {

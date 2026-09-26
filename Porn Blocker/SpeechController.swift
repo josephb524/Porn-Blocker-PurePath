@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import NaturalLanguage
 
 /// Read-aloud controller for assistant messages. Wraps `AVSpeechSynthesizer`
 /// and tracks which message is currently being spoken so the UI can flip
@@ -44,7 +45,7 @@ final class SpeechController: NSObject, ObservableObject {
         try? session.setActive(true)
         let clean = Self.stripMarkdown(text)
         let utterance = AVSpeechUtterance(string: clean)
-        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        utterance.voice = Self.voice(for: clean)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         synthesizer.speak(utterance)
         speakingMessageID = messageID
@@ -61,6 +62,28 @@ final class SpeechController: NSObject, ObservableObject {
 
     private func deactivateAudioSession() {
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    /// A voice matching the message's language — the buddy mirrors the user,
+    /// so a reply may differ from the device language. Falls back to the
+    /// device language, then en-US.
+    static func voice(for text: String) -> AVSpeechSynthesisVoice? {
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(text)
+        var candidates: [String] = []
+        if let detected = recognizer.dominantLanguage?.rawValue {
+            // Prefer the device's regional variant when it's the same language
+            // (pt-BR over pt-PT for a Brazilian device).
+            if let preferred = Locale.preferredLanguages.first(where: { $0.hasPrefix(detected) }) {
+                candidates.append(preferred)
+            }
+            candidates.append(detected)
+        }
+        candidates += Locale.preferredLanguages.prefix(1) + ["en-US"]
+        for code in candidates {
+            if let voice = AVSpeechSynthesisVoice(language: code) { return voice }
+        }
+        return nil
     }
 
     /// Strips markdown noise that shouldn't be spoken aloud.

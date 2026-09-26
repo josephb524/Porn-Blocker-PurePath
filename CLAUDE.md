@@ -545,6 +545,54 @@ The `appStoreID` (`6749251520`) is **not** passed to the native sheet —
 that API looks the app up by bundle ID. The ID is only used by the
 custom prompt's `?action=write-review` deep link.
 
+### Localization
+
+Shipped: English (source), Spanish (`es`), Brazilian Portuguese (`pt-BR`),
+German (`de`). Wave 2 (planned): French, Arabic, Indonesian, Polish,
+Italian, Turkish.
+
+- **`Porn Blocker/Localizable.xcstrings`** holds every UI string.
+  `xcodebuild build` does **not** sync new keys into it; run
+  `xcodebuild -exportLocalizations -project "Porn Blocker.xcodeproj" -localizationPath <tmp> -exportLanguage es -sdk iphonesimulator`
+  (or build in the Xcode IDE) to extract them, then translate.
+- **App name is translated**: `InfoPlist.xcstrings` in **both** `Porn Blocker/`
+  and `ContentBlocker/` ("Bloqueador de Porno" / "Bloqueador de Pornô" /
+  "Porno-Blocker"). The extension's name is what users look for in
+  Settings → Safari → Extensions, so every setup-instruction string that
+  names it ("Choose Porn Blocker", "Tap 'Porn Blocker'…") must use the same
+  translated name. Change them together.
+- **Only literals passed to `Text`/`Button`/etc. are auto-localized.** A
+  `String` variable is shown verbatim — wrap computed strings in
+  `String(localized:)`, or type view parameters as `LocalizedStringKey`
+  (`SettingsRow.title`, `LockedFeaturePill.text`, …).
+- **Plurals** live as plural variations in the catalog (`%lld days logged`).
+  A variation **must contain the number** or `xcstringstool` fails the build;
+  labels that hide the number use separate keys (`"DAY"` / `"DAYS"`).
+- **Stored English sentinels are translated at display time**, not
+  migrated: the built-in habit's `"Porn Free"` (`TrackedHabit.displayName`)
+  and the default chat title `"New chat"`. Keep comparing against the
+  English value.
+- **Paywall strings are 3.1.2(c)-critical** — the trial CTA's second line
+  and the billing disclosure must keep every clause (auto-starts after the
+  trial, auto-renews, cancel in Settings ≥24h before renewal) in every
+  language. Free-trial text is shaped per language to read inside
+  "Includes %@", "per year after %@" and "%@ · Cancel anytime".
+- **Blocking keywords are per language but apply to everyone** (see
+  `KeywordMatcher`). Entries must be lowercase ASCII — URLs arrive
+  percent-encoded and Safari's boundary is `[^a-z]` — enforced by
+  `testKeywordsAreLowercaseASCII`. Adding keywords changes
+  `predefinedKeywordRuleCount` in `ContentBlockerRuleBuilderTests`.
+- Read-aloud picks its voice from the message's detected language
+  (`SpeechController.voice(for:)`), since the buddy mirrors the user.
+- Screenshot a language without changing the simulator:
+  `simctl launch <udid> <bundle-id> -AppleLanguages "(de)" -AppleLocale de_DE -hasSeenOnboarding YES`
+  (the last flag skips onboarding via the UserDefaults argument domain).
+- App Store listing drafts: `AppStoreLocalization.md`.
+- **Wave 2 checklist:** add the language to `knownRegions` + both
+  `InfoPlist.xcstrings`, translate the catalog, add keywords + tests, and
+  for **Arabic** review every screen right-to-left (custom `HStack`
+  layouts, chevrons, the tab-swipe gesture direction).
+
 ### Logging
 
 - **`Log`** — logging facade over `os.Logger`. Use `Log.debug(...)` and
@@ -554,9 +602,9 @@ custom prompt's `?action=write-review` deep link.
 
 ## Tests
 
-`Porn BlockerTests` is an **app-hosted** XCTest unit-test target (~50 tests)
+`Porn BlockerTests` is an **app-hosted** XCTest unit-test target (~70 tests)
 covering the pure-logic invariants: keyword word-boundaries, ruleset
-composition (whitelist-rule-last, 100k cap, keyword exemptions), safe-search
+composition (whitelist-rule-last, 100k cap, keyword exemptions), non-English keywords, safe-search
 enforcement + its idempotency loop guard, streak/relapse/backdate semantics
 and the tolerant habit decoder, tab-session persistence, host matching, and the
 subscription-cache seed rule.
@@ -579,7 +627,7 @@ Non-obvious constraints:
   never the built-in Porn Free habit.
 - `BlocklistManager.cleanURL` is internal (not private) specifically so the
   normalization tests can call it.
-- The baseline rule counts (264 core / 50 keyword / 22 cosmetic) are
+- The baseline rule counts (264 core / 100 keyword / 22 cosmetic) are
   asserted as constants in `ContentBlockerRuleBuilderTests` — update them
   when the core bundle or keyword lists change.
 - **The scheme's `<Testables>` block is load-bearing.** Xcode drops it from

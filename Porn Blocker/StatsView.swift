@@ -107,9 +107,9 @@ struct StatsView: View {
     private var relapseMessage: String {
         let longest = pornFreeHabit?.longestStreak ?? 0
         if longest > 0 {
-            return "A slip doesn't erase your progress — your history stays. Your longest streak was \(longest) \(longest == 1 ? "day" : "days"). You got there before, and you can get back there."
+            return String(localized: "A slip doesn't erase your progress — your history stays. Your longest streak was \(longest) days. You got there before, and you can get back there.")
         }
-        return "Every restart is part of the journey. Your history stays — only the current streak resets."
+        return String(localized: "Every restart is part of the journey. Your history stays — only the current streak resets.")
     }
 
     // MARK: - Porn Free Hero Card
@@ -166,11 +166,11 @@ struct StatsView: View {
 
                     // Label
                     VStack(spacing: 4) {
-                        Text("\(habit.emoji) \(habit.name)")
+                        Text("\(habit.emoji) \(habit.displayName)")
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
-                        Text("\(habit.checkIns.count) \(habit.checkIns.count == 1 ? "day" : "days") logged")
+                        Text("\(habit.checkIns.count) days logged")
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.65))
                     }
@@ -255,7 +255,7 @@ struct StatsView: View {
         .shadow(color: Color(hue: 0.38, saturation: 0.5, brightness: 0.3).opacity(0.3), radius: 16, x: 0, y: 8)
     }
 
-    private func pornFreeStat(value: String, label: String) -> some View {
+    private func pornFreeStat(value: String, label: LocalizedStringKey) -> some View {
         VStack(spacing: 3) {
             Text(value)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
@@ -365,13 +365,13 @@ struct StatsView: View {
     private func streakStartLabel(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
-        return "since \(formatter.localizedString(for: date, relativeTo: Date()))"
+        return String(localized: "since \(formatter.localizedString(for: date, relativeTo: Date()))")
     }
 
     private func nextMilestoneLabel(_ streak: Int) -> String {
-        guard let next = allMilestones.first(where: { $0.days > streak }) else { return "🏆 All!" }
+        guard let next = allMilestones.first(where: { $0.days > streak }) else { return String(localized: "🏆 All!") }
         let diff = next.days - streak
-        return "\(diff)d"
+        return String(localized: "\(diff)d", comment: "Days remaining to the next milestone, abbreviated")
     }
 }
 
@@ -436,7 +436,7 @@ struct HabitCard: View {
 
                 // Info
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(habit.name)
+                    Text(habit.displayName)
                         .font(.body)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
@@ -697,7 +697,7 @@ struct EditHabitView: View {
 
     init(habit: TrackedHabit) {
         self.habit = habit
-        _name          = State(initialValue: habit.name)
+        _name          = State(initialValue: habit.displayName)
         _selectedEmoji = State(initialValue: habit.emoji)
         _selectedHue   = State(initialValue: habit.colorHue)
         _localCheckIns  = State(initialValue: habit.checkIns)
@@ -723,7 +723,7 @@ struct EditHabitView: View {
                                 .font(.title2)
                         }
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(name.isEmpty ? "Habit Name" : name)
+                            Text(name.isEmpty ? String(localized: "Habit Name") : name)
                                 .font(.headline)
                                 .foregroundColor(name.isEmpty ? .secondary : .primary)
                             Text("\(habit.currentStreak) day streak · Best: \(habit.longestStreak)")
@@ -841,7 +841,10 @@ struct EditHabitView: View {
                     Button("Save") {
                         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                         var updated = habit
-                        updated.name            = name.trimmingCharacters(in: .whitespaces)
+                        let trimmed = name.trimmingCharacters(in: .whitespaces)
+                        // Unrenamed built-in keeps its stored English default so
+                        // `displayName` keeps following the device language.
+                        if trimmed != habit.displayName { updated.name = trimmed }
                         updated.emoji           = selectedEmoji
                         updated.colorHue        = selectedHue
                         updated.checkIns        = localCheckIns
@@ -855,7 +858,7 @@ struct EditHabitView: View {
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-            .alert("Delete \"\(habit.name)\"?", isPresented: $showDeleteConfirm) {
+            .alert("Delete \"\(habit.displayName)\"?", isPresented: $showDeleteConfirm) {
                 Button("Delete", role: .destructive) {
                     habitManager.deleteHabit(id: habit.id)
                     dismiss()
@@ -1034,7 +1037,7 @@ struct MilestoneCelebrationView: View {
                     Text("\(milestone.label) Milestone!")
                         .font(.title2.bold())
                         .foregroundColor(.primary)
-                    Text("\(milestone.days) \(milestone.days == 1 ? "day" : "days") porn free — keep going.")
+                    Text("\(milestone.days) days porn free — keep going.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

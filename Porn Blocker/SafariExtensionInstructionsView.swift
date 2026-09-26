@@ -133,8 +133,8 @@ struct SafariExtensionInstructionsView: View {
 // Helper row
 private struct StepRow: View {
     let number: Int
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -164,8 +164,8 @@ private struct SafariExtensionGuideView: View {
     private struct GuideStep: Identifiable {
         let id = UUID()
         let number: Int
-        let title: String
-        let description: String
+        let title: LocalizedStringKey
+        let description: LocalizedStringKey
         let imageName: String
     }
     

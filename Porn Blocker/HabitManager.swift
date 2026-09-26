@@ -30,6 +30,14 @@ struct TrackedHabit: Identifiable, Codable {
     var bestStreakRecord: Int    // best streak ever seen — survives relapse key removal
     var lastCelebratedMilestone: Int   // highest milestone celebrated this run; reset on relapse
 
+    /// Name to show in the UI. The built-in habit is persisted with its
+    /// English default ("Porn Free"); that stored value is translated at
+    /// display time so existing users see their language without a data
+    /// migration. A user-renamed built-in shows exactly what they typed.
+    var displayName: String {
+        isBuiltIn && name == "Porn Free" ? String(localized: "Porn Free") : name
+    }
+
     // MARK: Init
 
     init(id: UUID = UUID(),
@@ -207,11 +215,11 @@ struct Milestone {
 }
 
 let allMilestones: [Milestone] = [
-    Milestone(days: 1,   icon: "sunrise.fill", label: "1 Day",    colorHue: 0.13),
-    Milestone(days: 7,   icon: "star.fill",    label: "1 Week",   colorHue: 0.15),
-    Milestone(days: 30,  icon: "crown.fill",   label: "1 Month",  colorHue: 0.55),
-    Milestone(days: 90,  icon: "shield.fill",  label: "3 Months", colorHue: 0.38),
-    Milestone(days: 365, icon: "trophy.fill",  label: "1 Year",   colorHue: 0.13),
+    Milestone(days: 1,   icon: "sunrise.fill", label: String(localized: "1 Day"),    colorHue: 0.13),
+    Milestone(days: 7,   icon: "star.fill",    label: String(localized: "1 Week"),   colorHue: 0.15),
+    Milestone(days: 30,  icon: "crown.fill",   label: String(localized: "1 Month"),  colorHue: 0.55),
+    Milestone(days: 90,  icon: "shield.fill",  label: String(localized: "3 Months"), colorHue: 0.38),
+    Milestone(days: 365, icon: "trophy.fill",  label: String(localized: "1 Year"),   colorHue: 0.13),
 ]
 
 // MARK: - Habit Notification Manager
@@ -262,8 +270,8 @@ struct HabitNotificationManager {
                                    on center: UNUserNotificationCenter,
                                    identifier: String) {
         let content = UNMutableNotificationContent()
-        content.title  = "\(habit.emoji) \(habit.name)"
-        content.body   = "Don't break your streak — check in for today! 🔥"
+        content.title  = "\(habit.emoji) \(habit.displayName)"
+        content.body   = String(localized: "Don't break your streak — check in for today! 🔥")
         content.sound  = .default
         // Round-trip the habit ID in userInfo too, so the tap handler
         // doesn't have to rely solely on parsing the identifier.

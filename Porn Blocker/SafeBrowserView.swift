@@ -25,9 +25,9 @@ struct SafeBrowserView: View {
     /// otherwise just say "Cancel anytime".
     private var trialTeaserText: String {
         if let trial = subManager.yearlyProduct?.freeTrialText {
-            return "\(trial) · Cancel anytime"
+            return String(localized: "\(trial) · Cancel anytime")
         }
-        return "Cancel anytime"
+        return String(localized: "Cancel anytime")
     }
 
     // MARK: - Locked Gate (non-subscribers)
@@ -788,7 +788,7 @@ private struct TabMonogram: View {
 
 struct LockedFeaturePill: View {
     let icon: String
-    let text: String
+    let text: LocalizedStringKey
 
     var body: some View {
         HStack(spacing: 12) {

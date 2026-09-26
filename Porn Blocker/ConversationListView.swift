@@ -19,7 +19,9 @@ struct ConversationListView: View {
                                 onSelect(conv)
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(conv.title.isEmpty ? "New chat" : conv.title)
+                                    // "New chat" is the stored English sentinel (see BuddyChatViewModel);
+                                    // translate it only at display time.
+                                    Text(conv.title.isEmpty || conv.title == "New chat" ? String(localized: "New chat") : conv.title)
                                         .font(.subheadline)
                                         .foregroundColor(.primary)
                                         .lineLimit(1)

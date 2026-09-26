@@ -16,9 +16,24 @@ import Foundation
 enum KeywordMatcher {
 
     // MARK: - Keyword data
+    //
+    // Every language's list applies to every user regardless of device
+    // language — bilingual users browse in more than one.
+    //
+    // Keep entries lowercase ASCII. URLs reach both engines percent-encoded,
+    // so an accented keyword ("lésbicas") would never match, and Safari's
+    // `[^a-z]` word boundary treats accented letters as delimiters. Use the
+    // accent-free spelling people actually type into URLs.
 
     /// Safe to match anywhere in a URL.
-    static let substringKeywords: [String] = [
+    static let substringKeywords: [String] =
+        englishSubstring + portugueseSubstring + germanSubstring
+
+    /// Must be delimited by a non-letter on both sides.
+    static let wordKeywords: [String] =
+        englishWord + spanishWord + portugueseWord + germanWord
+
+    private static let englishSubstring = [
         "porn", "xxx", "hentai", "creampie", "blowjob", "deepthroat", "cumshot",
         "gangbang", "bukkake", "fisting", "handjob", "shemale", "tranny", "tgirl",
         "ladyboy", "tsescort", "bdsm", "camgirl", "camsex", "sexcam", "livesex",
@@ -26,11 +41,37 @@ enum KeywordMatcher {
         "erotica", "upskirt"
     ]
 
-    /// Must be delimited by a non-letter on both sides.
-    static let wordKeywords: [String] = [
+    private static let englishWord = [
         "sex", "anal", "cum", "nude", "naked", "escort", "fetish", "bondage",
         "spank", "hardcore", "softcore", "lesbian", "gay", "trans", "adult",
         "strip", "hooker", "orgy", "kinky", "horny"
+    ]
+
+    // "porno"/"pornografia"/"pornô" are already caught by "porn".
+
+    /// Spanish. Word-bounded throughout — "puta" sits inside "computadora".
+    private static let spanishWord = [
+        "sexo", "desnudo", "desnuda", "desnudos", "desnudas", "puta", "putas",
+        "prostituta", "prostitutas", "follar", "follando", "follada",
+        "cachonda", "cachondas", "tetona", "tetonas", "culonas", "lesbianas"
+    ]
+
+    private static let portugueseSubstring = ["buceta", "xoxota", "punheta"]
+
+    /// Portuguese (shares "sexo"/"puta"/"prostituta" with Spanish).
+    /// "transando" is bounded because of "transandino".
+    private static let portugueseWord = [
+        "nua", "nuas", "putaria", "sacanagem", "boquete", "transando",
+        "fodendo", "safadas", "lesbicas"
+    ]
+
+    private static let germanSubstring = ["titten", "erotik", "sexfilm", "sexkontakt", "sextreff"]
+
+    /// German. "fick" is bounded because of English "fickle".
+    private static let germanWord = [
+        "nackt", "nackte", "nackten", "fick", "ficken", "gefickt", "muschi",
+        "schlampe", "schlampen", "nutte", "nutten", "hure", "huren", "bumsen",
+        "lesben"
     ]
 
     /// Flat list of every predefined keyword — used for UI counts.

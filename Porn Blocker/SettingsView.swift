@@ -130,7 +130,7 @@ struct SettingsView: View {
     }
 
     private func shareApp() {
-        var items: [Any] = ["Check out this great app for blocking adult content!"]
+        var items: [Any] = [String(localized: "Check out this great app for blocking adult content!")]
         if let storeURL = URL(string: "https://apps.apple.com/app/id6749251520") {
             items.append(storeURL)
         }

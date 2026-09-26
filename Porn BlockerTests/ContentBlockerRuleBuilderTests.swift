@@ -7,7 +7,7 @@ import XCTest
 final class ContentBlockerRuleBuilderTests: XCTestCase {
 
     private let coreRuleCount = 264
-    private let predefinedKeywordRuleCount = 50
+    private let predefinedKeywordRuleCount = 100
     private let baseCosmeticRuleCount = 22
 
     private func input(

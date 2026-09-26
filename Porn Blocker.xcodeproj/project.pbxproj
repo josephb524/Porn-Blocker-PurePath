@@ -27,6 +27,8 @@
 		BB4378DD2E2742A800534EED /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378CB2E2742A800534EED /* SettingsView.swift */; };
 		BB4378E02E2742A800534EED /* KeywordEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4378C52E2742A800534EED /* KeywordEditorView.swift */; };
 		BB4379382E444A3400534EED /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BB4379372E444A3400534EED /* LaunchScreen.storyboard */; };
+		BB1A00002E5555550053EED1 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = BB1A00012E5555550053EED1 /* Localizable.xcstrings */; };
+		BB1A00042E5555550053EED1 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = BB1A00032E5555550053EED1 /* InfoPlist.xcstrings */; };
 		BB4380022E60010100534EED /* blockerList.json in Resources */ = {isa = PBXBuildFile; fileRef = BB4380012E60010100534EED /* blockerList.json */; };
 		BB6600006600006600006600 /* SafeBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5500005500005500005500 /* SafeBrowserView.swift */; };
 		BB8800008800008800008800 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7700007700007700007700 /* OnboardingView.swift */; };
@@ -117,6 +119,8 @@
 		BB43791D2E34701900534EED /* Porn BlockerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Porn BlockerDebug.entitlements"; sourceTree = "<group>"; };
 		BB43791F2E35C8B500534EED /* Porn Blocker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Porn Blocker.entitlements"; sourceTree = "<group>"; };
 		BB4379372E444A3400534EED /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		BB1A00012E5555550053EED1 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		BB1A00032E5555550053EED1 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		BB4380012E60010100534EED /* blockerList.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = blockerList.json; path = ContentBlocker/blockerList.json; sourceTree = "<group>"; };
 		BB4380032E60010100534EED /* Porn Blocker.storekit */ = {isa = PBXFileReference; lastKnownFileType = file.storekit; path = "Porn Blocker.storekit"; sourceTree = "<group>"; };
 		BB5500005500005500005500 /* SafeBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeBrowserView.swift; sourceTree = "<group>"; };
@@ -279,6 +283,8 @@
 				BBC567EF2A2EA0470017E798 /* Assets.xcassets */,
 				BBC567F12A2EA0470017E798 /* Preview Content */,
 				BB4379372E444A3400534EED /* LaunchScreen.storyboard */,
+				BB1A00012E5555550053EED1 /* Localizable.xcstrings */,
+				BB1A00032E5555550053EED1 /* InfoPlist.xcstrings */,
 			);
 			path = "Porn Blocker";
 			sourceTree = "<group>";
@@ -382,6 +388,9 @@
 			knownRegions = (
 				en,
 				Base,
+				es,
+				"pt-BR",
+				de,
 			);
 			mainGroup = BBC567DF2A2EA0460017E798;
 			productRefGroup = BBC567E92A2EA0460017E798 /* Products */;
@@ -410,6 +419,8 @@
 				BBAAAA222E5555550053EED1 /* PrivacyInfo.xcprivacy in Resources */,
 				BBC567F32A2EA0470017E798 /* Preview Assets.xcassets in Resources */,
 				BB4379382E444A3400534EED /* LaunchScreen.storyboard in Resources */,
+				BB1A00002E5555550053EED1 /* Localizable.xcstrings in Resources */,
+				BB1A00042E5555550053EED1 /* InfoPlist.xcstrings in Resources */,
 				BBC567F02A2EA0470017E798 /* Assets.xcassets in Resources */,
 				BB4380022E60010100534EED /* blockerList.json in Resources */,
 			);
@@ -737,6 +748,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Porn Blocker/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Porn Blocker";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -769,6 +781,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Porn Blocker/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Porn Blocker";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -31,6 +31,37 @@ final class KeywordMatcherTests: XCTestCase {
         XCTAssertFalse(KeywordMatcher.isBlocked(url: "https://gaylord-hotels.example", customKeywords: [])) // "gay"
     }
 
+    // MARK: - Non-English keywords
+
+    func testSpanishPortugueseGermanKeywordsBlock() {
+        for url in ["https://example.com/videos/sexo-casero",        // es/pt word
+                    "https://example.com/chicas-desnudas/",          // es
+                    "https://example.com/buceta-gratis",             // pt substring
+                    "https://example.com/putaria/",                  // pt word
+                    "https://example.com/nackte-frauen",             // de word
+                    "https://example.com/grossetitten"] {            // de substring
+            XCTAssertTrue(KeywordMatcher.isBlocked(url: url, customKeywords: []), url)
+        }
+    }
+
+    func testNonEnglishFalsePositivesAreNotBlocked() {
+        for url in ["https://www.computadora.example/ofertas",       // "puta"
+                    "https://turismo.example/tren-transandino",      // "transando"
+                    "https://example.com/fickle-weather",            // "fick"
+                    "https://de.wikipedia.org/wiki/Nacktschnecke",   // "nackt"
+                    "https://example.com/sexologia"] {               // "sexo"
+            XCTAssertFalse(KeywordMatcher.isBlocked(url: url, customKeywords: []), url)
+        }
+    }
+
+    func testKeywordsAreLowercaseASCII() {
+        // URLs arrive percent-encoded and Safari's boundary is [^a-z], so an
+        // accented or uppercase keyword could never match.
+        for keyword in KeywordMatcher.predefinedKeywords {
+            XCTAssertTrue(keyword.allSatisfy { ("a"..."z").contains($0) }, keyword)
+        }
+    }
+
     // MARK: - Custom keywords
 
     func testCustomKeywordsAreWordBounded() {

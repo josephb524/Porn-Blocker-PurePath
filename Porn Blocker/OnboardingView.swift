@@ -103,6 +103,9 @@ struct OnboardingView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
+                    // Translated app names are longer ("Bloqueador de Porno").
+                    .padding(.horizontal, 24)
+                    .minimumScaleFactor(0.8)
 
                 Text("Take back control. Block adult content in Safari, browse safely, and build a porn-free streak — one day at a time.")
                     .font(.body)
@@ -415,7 +418,7 @@ private struct OnboardingIconBadge: View {
 }
 
 private struct OnboardingCTAButton: View {
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let action: () -> Void
 

@@ -28,9 +28,9 @@ private struct BuddyLockedView: View {
     /// otherwise just say "Cancel anytime".
     private var trialTeaserText: String {
         if let trial = subManager.yearlyProduct?.freeTrialText {
-            return "\(trial) · Cancel anytime"
+            return String(localized: "\(trial) · Cancel anytime")
         }
-        return "Cancel anytime"
+        return String(localized: "Cancel anytime")
     }
 
     var body: some View {
@@ -147,7 +147,7 @@ private struct BuddyLockedView: View {
 
 private struct LockedFeatureRow: View {
     let icon: String
-    let text: String
+    let text: LocalizedStringKey
 
     var body: some View {
         HStack(spacing: 12) {
@@ -189,10 +189,10 @@ private struct BuddyChatContent: View {
     private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
 
     private let suggestedPrompts: [String] = [
-        "I just had an urge — what should I do?",
-        "I relapsed last night. Can we talk?",
-        "How do I tell my partner I'm struggling with this?",
-        "What's a healthier way to deal with stress?"
+        String(localized: "I just had an urge — what should I do?"),
+        String(localized: "I relapsed last night. Can we talk?"),
+        String(localized: "How do I tell my partner I'm struggling with this?"),
+        String(localized: "What's a healthier way to deal with stress?")
     ]
 
     var body: some View {

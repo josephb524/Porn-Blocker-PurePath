@@ -164,7 +164,7 @@ struct DashboardView: View {
                 .first(where: { $0.id == HabitManager.pornFreeID })?.currentStreak ?? 0
             QuickStatCard(
                 value: "\(pornFreeStreak)",
-                label: "Porn Free\nStreak",
+                label: String(localized: "Porn Free\nStreak"),
                 icon: "heart.fill",
                 color: Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
             )
@@ -173,7 +173,7 @@ struct DashboardView: View {
             // blocker were both active. Stays at 0 until that's true at least once.
             QuickStatCard(
                 value: "\(daysProtected)",
-                label: "Days\nProtected",
+                label: String(localized: "Days\nProtected"),
                 icon: "calendar.badge.checkmark",
                 color: Color(hue: 0.6, saturation: 0.7, brightness: 0.75)
             )
@@ -183,7 +183,7 @@ struct DashboardView: View {
             // the only block event the app can actually observe.)
             QuickStatCard(
                 value: formatCount(blockedAttempts),
-                label: "Attempts\nBlocked",
+                label: String(localized: "Attempts\nBlocked"),
                 icon: "shield.slash.fill",
                 color: Color(hue: 0.08, saturation: 0.8, brightness: 0.85)
             )
@@ -195,10 +195,10 @@ struct DashboardView: View {
     /// Honest status line — previously "Up to date" was a hardcoded string
     /// shown even when the list had never downloaded or the refresh failed.
     private var databaseStatusText: String {
-        if blocklistManager.isLoading { return "Updating…" }
-        if blocklistManager.lastRefreshFailed { return "Update failed" }
-        guard let last = blocklistManager.lastUpdated else { return "Waiting for first update" }
-        return Date().timeIntervalSince(last) < 48 * 3600 ? "Up to date" : "Update available"
+        if blocklistManager.isLoading { return String(localized: "Updating…") }
+        if blocklistManager.lastRefreshFailed { return String(localized: "Update failed") }
+        guard let last = blocklistManager.lastUpdated else { return String(localized: "Waiting for first update") }
+        return Date().timeIntervalSince(last) < 48 * 3600 ? String(localized: "Up to date") : String(localized: "Update available")
     }
 
     private var databaseStatusIsHealthy: Bool {
@@ -357,17 +357,17 @@ struct DashboardView: View {
     }
 
     private var statusTitle: String {
-        if statusUnknown             { return "Checking Protection…" }
-        if !subManager.isSubscribed  { return "Protection Inactive" }
-        if !contentBlockerEnabled    { return "Setup Required" }
-        return "Fully Protected"
+        if statusUnknown             { return String(localized: "Checking Protection…") }
+        if !subManager.isSubscribed  { return String(localized: "Protection Inactive") }
+        if !contentBlockerEnabled    { return String(localized: "Setup Required") }
+        return String(localized: "Fully Protected")
     }
 
     private var statusSubtitle: String {
-        if statusUnknown             { return "Confirming your subscription status" }
-        if !subManager.isSubscribed  { return "Subscribe to activate comprehensive browser protection" }
-        if !contentBlockerEnabled    { return "Enable Safari extension to complete setup" }
-        return "Your browser is shielded from inappropriate content"
+        if statusUnknown             { return String(localized: "Confirming your subscription status") }
+        if !subManager.isSubscribed  { return String(localized: "Subscribe to activate comprehensive browser protection") }
+        if !contentBlockerEnabled    { return String(localized: "Enable Safari extension to complete setup") }
+        return String(localized: "Your browser is shielded from inappropriate content")
     }
 
     private var buttonColor: Color {
@@ -393,10 +393,10 @@ struct DashboardView: View {
     }
 
     private var buttonText: String {
-        if statusUnknown                                    { return "CHECKING…" }
-        if subManager.isSubscribed && contentBlockerEnabled { return "PROTECTION ACTIVE" }
-        if subManager.isSubscribed                          { return "COMPLETE SETUP" }
-        return "ACTIVATE PROTECTION"
+        if statusUnknown                                    { return String(localized: "CHECKING…") }
+        if subManager.isSubscribed && contentBlockerEnabled { return String(localized: "PROTECTION ACTIVE") }
+        if subManager.isSubscribed                          { return String(localized: "COMPLETE SETUP") }
+        return String(localized: "ACTIVATE PROTECTION")
     }
     
     // MARK: - Status Monitoring
@@ -460,9 +460,8 @@ struct DashboardView: View {
     // MARK: - Helpers
 
     private func formatCount(_ n: Int) -> String {
-        if n >= 1_000_000 { return String(format: "%.1fM", Double(n) / 1_000_000) }
-        if n >= 1_000     { return String(format: "%.0fK", Double(n) / 1_000) }
-        return "\(n)"
+        // Locale-aware compact form ("12K", "12 mil", "12.000").
+        n.formatted(.number.notation(.compactName).precision(.fractionLength(0...1)))
     }
 
     // MARK: - Pulse Animation

@@ -106,14 +106,14 @@ enum BuddyChatError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidResponse:
-            return "The server response was invalid."
+            return String(localized: "The server response was invalid.")
         case .http(let status, let body):
             if body.isEmpty {
-                return "Server error \(status)."
+                return String(localized: "Server error \(status).")
             }
-            return "Server error \(status): \(body)"
+            return String(localized: "Server error \(status): \(body)")
         case .notSubscribed:
-            return "Subscribe to chat with your buddy."
+            return String(localized: "Subscribe to chat with your buddy.")
         }
     }
 }
