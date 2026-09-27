@@ -125,7 +125,7 @@ struct ReviewPromptView: View {
                         }
                     
                     VStack(spacing: 8) {
-                        Text("Enjoying Porn Blocker?")
+                        Text("Enjoying Adult Blocker?")
                             .font(.title2)
                             .fontWeight(.semibold)
                             .multilineTextAlignment(.center)

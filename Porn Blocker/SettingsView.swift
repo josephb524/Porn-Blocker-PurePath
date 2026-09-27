@@ -115,7 +115,7 @@ struct SettingsView: View {
     private func contactSupport() {
         let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
             ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
-            ?? "Porn Blocker"
+            ?? "Adult Blocker"
 
         var components = URLComponents()
         components.scheme = "mailto"

@@ -14,7 +14,7 @@ struct TermsView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Terms of Use (EULA) — Porn Blocker: PurePath")
+                    Text("Terms of Use (EULA) — Adult Blocker")
                         .font(.title)
                         .bold()
                         .padding(.bottom, 8)
@@ -24,7 +24,7 @@ struct TermsView: View {
                         .foregroundColor(.secondary)
                         .padding(.bottom, 16)
                     
-                    Text("By downloading, installing, or using Porn Blocker: PurePath (the “App”), you agree to these Terms of Use (“Terms”). If you do not agree, do not use the App. These Terms supplement and incorporate Apple’s Licensed Application End User License Agreement (“Apple Standard EULA”). Where a conflict exists, these Terms control to the extent permitted by law.")
+                    Text("By downloading, installing, or using Adult Blocker (the “App”), you agree to these Terms of Use (“Terms”). If you do not agree, do not use the App. These Terms supplement and incorporate Apple’s Licensed Application End User License Agreement (“Apple Standard EULA”). Where a conflict exists, these Terms control to the extent permitted by law.")
                         .padding(.bottom, 16)
                     
                     Text("Apple Standard EULA: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
@@ -139,7 +139,7 @@ struct TermsView: View {
                         .font(.headline)
                         .padding(.bottom, 4)
                     
-                    Text("By using Porn Blocker: PurePath, you acknowledge that you have read and agree to these Terms, the Apple Standard EULA, and our Privacy Policy.")
+                    Text("By using Adult Blocker, you acknowledge that you have read and agree to these Terms, the Apple Standard EULA, and our Privacy Policy.")
                         .padding(.bottom, 16)
                 }
                 .padding()

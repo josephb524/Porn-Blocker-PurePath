@@ -5,22 +5,87 @@ checked: name ≤ 30, subtitle ≤ 30, keywords ≤ 100 characters. Keywords
 are comma-separated with no spaces after commas and skip words already in
 the name/subtitle (Apple indexes those anyway).
 
+### Why these names (researched 2026-09-27)
+
+Apple **blocks App Store searches containing "porn" / "porno" / "pornô" /
+"nsfw"** — they return zero apps in every storefront ("porn blocker", "quit
+porn", "bloqueador de porno", "dejar el porno", "porno aufhören", …). The old
+names ("Porn Blocker: PurePath", "Bloqueador de Porno") therefore earned no
+search traffic; the app ranked in the US top 12 only for "pornblocker" (#8)
+and "purepath" (#2). So each language now gets a store name built from
+searchable phrases, taken from Apple's own search suggestions and checked to
+return blocker/recovery apps. Popularity scores (Apple Search Ads) were not
+available; revisit with App Store Connect search impressions after launch.
+
+- **Works in phrases only:** "pornografía"/"pornografia" and German "pornos"
+  ("dejar pornografía", "vício em pornografia", "pornos blockieren").
+- **English:** adult content blocker, adult blocker, content blocker, block
+  adult content, website blocker, block websites, quit pmo, quit lust,
+  overcome lust, quit masturbation, semen retention, addiction/relapse tracker.
+- **Spanish:** bloqueador (de contenido / de sitios / adultos), bloquear
+  sitios/páginas, dejar lujuria, dejar pornografía, dejar adicciones.
+- **Portuguese:** bloqueador de sites adultos (top suggestion), bloquear sites
+  adultos, parar pornografia, luxúria, vício em pornografia, largar vícios.
+- **German:** pornos blockieren, webseiten blockieren, website blocker,
+  sexsucht, sucht/suchtfrei, erwachseneninhalte, jugendschutz, kindersicherung.
+
+Rules followed: a word counts once across name + subtitle + keywords (no
+repeats); words combine into phrases only within one localization; keywords
+are written without accents (search ignores them). "nofap" is a registered
+trademark (NoFap LLC) — it is kept **only** in the keyword field, by choice;
+never put it in a name or subtitle. If App Review objects to it, delete it.
+
+**Home-screen / Safari extension name** (guideline 2.3.8 wants it to resemble
+the store name): English "Adult Blocker", Spanish and Portuguese "Bloqueador
+Adulto", German "Porno-Blocker". Set in the app's `InfoPlist.xcstrings`; the
+new names ship with the next binary, so submit the metadata with that build.
+
+**Support URL (every language):** https://josephb524.github.io/Porn-Blocker-Pure-Path-Privacy/
+It's the hosted privacy page, which has the contact email. Apple only requires
+that the support URL leads to a way to contact you.
+
 Also translate the two subscriptions (Subscriptions → each product →
 App Store Localization): display name + description.
 
 ---
 
+## English (U.S.) — and English (U.K.)
+
+Previous: Porn Blocker: PurePath / "Adult Content Filter & Streaks" /
+`nofap,quit,recovery,accountability,safe,browser,parental,addiction,habit,nsfw,sober,relapse,tracker`.
+
+**Name:** Adult Content Blocker・Quit PMO
+**Subtitle:** Block Websites, Overcome Lust
+**Keywords:** nofap,pornblocker,site,website,masturbation,semen,retention,sex,addiction,relapse,recovery,tracker
+
+Dropped from the old keywords: nsfw (blocked search), sober and habit (alcohol
+and generic habit apps own those), parental (Family Link etc.), safe + browser
+(Brave and DuckDuckGo own "safe browser"), accountability (generic habit apps).
+
+Paste the same set into **English (U.K.)** too: the UK store searches it, and
+so do Mexico, Spain, Brazil and Germany. In the existing English description,
+replace "Porn Blocker: PurePath" / "PurePath" with "Adult Blocker".
+
+If App Store Connect says a name is taken, swap the separator (・ → " - ").
+
+**Promotional text:**
+Take back control. Block adult content in Safari, talk to your recovery buddy when an urge hits, and build your streak one day at a time.
+
+---
+
 ## Spanish (es-MX and es-ES)
 
-**Name:** Bloqueador de Porno: PurePath
-**Subtitle:** Bloquea sitios y deja el porno
-**Keywords:** nofap,adicción,filtro,safari,adultos,control parental,racha,recaída,hábitos,sin porno,bloqueo web
+**Name:** Bloqueador de Contenido Adulto
+**Subtitle:** Bloquear sitios, dejar lujuria
+**Keywords:** nofap,pornografia,paginas,web,adultos,adicciones,masturbacion,racha,control,parental,safari,habitos
+
+Use the same text in **both** Spanish (Mexico) and Spanish (Spain) — they are separate localizations in App Store Connect and each store only indexes its own. Spanish (Mexico) is also indexed in the **US** store.
 
 **Promotional text:**
 Recupera el control. Bloquea contenido para adultos en Safari, habla con tu compañero de apoyo cuando llegue un impulso y construye tu racha día a día.
 
 **Description:**
-Bloqueador de Porno te ayuda a dejar el porno y a mantenerte limpio.
+Bloqueador Adulto te ayuda a dejar el porno y a mantenerte limpio.
 
 • Bloquea millones de sitios para adultos en Safari con una extensión de bloqueo de contenido que funciona en tu dispositivo.
 • Navegador seguro integrado que bloquea sitios para adultos, difumina imágenes inapropiadas y activa la búsqueda segura.
@@ -40,15 +105,17 @@ Términos de uso: https://www.apple.com/legal/internet-services/itunes/dev/stdeu
 
 ## Portuguese (Brazil)
 
-**Name:** Bloqueador de Pornô: PurePath
-**Subtitle:** Bloqueie sites e largue pornô
-**Keywords:** nofap,vício,filtro,safari,adulto,controle parental,sequência,recaída,hábitos,sem pornô,bloqueio
+**Name:** Bloqueador de Sites Adultos
+**Subtitle:** Parar pornografia e luxúria
+**Keywords:** nofap,conteudo,bloquear,largar,vicio,vicios,controle,parental,masturbacao,sequencia,habitos,adulto
+
+Portuguese (Brazil) is also indexed in the **US** store.
 
 **Promotional text:**
 Retome o controle. Bloqueie conteúdo adulto no Safari, converse com seu parceiro de apoio quando a vontade bater e construa sua sequência dia após dia.
 
 **Description:**
-O Bloqueador de Pornô ajuda você a largar o pornô e a continuar limpo.
+O Bloqueador Adulto ajuda você a largar o pornô e a continuar limpo.
 
 • Bloqueia milhões de sites adultos no Safari com uma extensão de bloqueio de conteúdo que funciona no seu dispositivo.
 • Navegador seguro integrado que bloqueia sites adultos, desfoca imagens impróprias e ativa a pesquisa segura.
@@ -68,9 +135,9 @@ Termos de Uso: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 ## German
 
-**Name:** Porno-Blocker: PurePath
-**Subtitle:** Pornoseiten sperren & aufhören
-**Keywords:** nofap,sucht,filter,safari,jugendschutz,erwachsene,serie,rückfall,gewohnheiten,pornofrei,sperre
+**Name:** Pornos & Webseiten blockieren
+**Subtitle:** Website Blocker gegen Sexsucht
+**Keywords:** nofap,sucht,suchtfrei,erwachseneninhalte,pornografie,jugendschutz,kindersicherung,streak,rückfall
 
 **Promotional text:**
 Hol dir die Kontrolle zurück. Blockiere Inhalte für Erwachsene in Safari, sprich mit deinem Buddy, wenn das Verlangen kommt, und baue deine Serie Tag für Tag auf.

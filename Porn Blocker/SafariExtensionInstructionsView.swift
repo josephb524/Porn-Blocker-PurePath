@@ -42,7 +42,7 @@ struct SafariExtensionInstructionsView: View {
             Text("Enable Safari Extension")
                 .font(.title2)
                 .bold()
-            Text("Turn on the Porn Blocker extension in Safari to start blocking adult content.")
+            Text("Turn on the Adult Blocker extension in Safari to start blocking adult content.")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
         }
@@ -84,7 +84,7 @@ struct SafariExtensionInstructionsView: View {
             StepRow(number: 1, title: "Open Settings", description: "Open the iPhone Settings app.")
             StepRow(number: 2, title: "Apps → Safari", description: "Scroll down, tap 'Apps', then choose 'Safari'.")
             StepRow(number: 3, title: "Extensions", description: "Tap 'Extensions' in the General section.")
-            StepRow(number: 4, title: "Porn Blocker", description: "Select 'Porn Blocker' from the list.")
+            StepRow(number: 4, title: "Adult Blocker", description: "Select 'Adult Blocker' from the list.")
             StepRow(number: 5, title: "Allow Extension", description: "Toggle ON 'Allow Extension'.")
             StepRow(number: 6, title: "Private Browsing (optional)", description: "Toggle ON 'Allow in Private Browsing' if desired.")
         }
@@ -175,7 +175,7 @@ private struct SafariExtensionGuideView: View {
             GuideStep(number: 2, title: "Go to Apps", description: "Scroll down and tap 'Apps'.", imageName: "2"),
             GuideStep(number: 3, title: "Select Safari", description: "In Apps, tap 'Safari'.", imageName: "3"),
             GuideStep(number: 4, title: "Open Extensions", description: "Scroll to the General section and tap 'Extensions'.", imageName: "4"),
-            GuideStep(number: 5, title: "Choose Porn Blocker", description: "Tap 'Porn Blocker' from the list (it may show Off).", imageName: "5"),
+            GuideStep(number: 5, title: "Choose Adult Blocker", description: "Tap 'Adult Blocker' from the list (it may show Off).", imageName: "5"),
             GuideStep(number: 6, title: "Enable Extension", description: "Toggle 'Allow Extension' to ON.", imageName: "6"),
             GuideStep(number: 7, title: "All Set", description: "Return to Safari and browse—adult content will now be blocked.", imageName: "7")
         ]

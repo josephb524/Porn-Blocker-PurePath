@@ -17,7 +17,7 @@ struct ContactView: View {
             Text("If you have any questions or need support, please contact us:")
             
             Button("Email Support") {
-                if let url = URL(string: "mailto:support@pornblocker.com") {
+                if let url = URL(string: "mailto:eltercerelias3@hotmail.com") {
                     UIApplication.shared.open(url)
                 }
             }

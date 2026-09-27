@@ -5,20 +5,60 @@
       "comment" : "App name under the home-screen icon",
       "extractionState" : "extracted_with_value",
       "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Porno-Blocker" } },
-        "en" : { "stringUnit" : { "state" : "new", "value" : "Porn Blocker" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Bloqueador de Porno" } },
-        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Bloqueador de Pornô" } }
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porno-Blocker"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Adult Blocker"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueador Adulto"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueador Adulto"
+          }
+        }
       }
     },
     "CFBundleName" : {
       "comment" : "Bundle name",
       "extractionState" : "extracted_with_value",
       "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Porno-Blocker" } },
-        "en" : { "stringUnit" : { "state" : "new", "value" : "Porn Blocker" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Bloqueador de Porno" } },
-        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Bloqueador de Pornô" } }
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porno-Blocker"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Porn Blocker"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueador Adulto"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueador Adulto"
+          }
+        }
       }
     }
   },

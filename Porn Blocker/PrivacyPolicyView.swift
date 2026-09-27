@@ -14,7 +14,7 @@ struct PrivacyPolicyView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("📜 Privacy Policy for Porn Blocker: PurePath")
+                    Text("📜 Privacy Policy for Adult Blocker")
                         .font(.title)
                         .bold()
                         .padding(.bottom, 8)
@@ -24,7 +24,7 @@ struct PrivacyPolicyView: View {
                         .foregroundColor(.secondary)
                         .padding(.bottom, 16)
                     
-                    Text("Thank you for choosing Porn Blocker: PurePath (“the App”). Your privacy is very important to us. This Privacy Policy explains how our app handles information.")
+                    Text("Thank you for choosing Adult Blocker (“the App”). Your privacy is very important to us. This Privacy Policy explains how our app handles information.")
                         .padding(.bottom, 16)
                     
                     Text("⸻")
@@ -33,7 +33,7 @@ struct PrivacyPolicyView: View {
                     Text("Information We Do Not Collect")
                         .font(.headline)
                         .padding(.bottom, 4)
-                    Text("• Porn Blocker: PurePath does not collect, store, or share any personal data from users.")
+                    Text("• Adult Blocker does not collect, store, or share any personal data from users.")
                     Text("• We do not track your browsing activity or monitor your online behavior.")
                     Text("• All blocking functionality is performed locally on your device.")
                         .padding(.bottom, 16)
@@ -65,7 +65,7 @@ struct PrivacyPolicyView: View {
                     Text("Children’s Privacy")
                         .font(.headline)
                         .padding(.bottom, 4)
-                    Text("• Porn Blocker: PurePath is intended for users 4 years and older.")
+                    Text("• Adult Blocker is intended for users 4 years and older.")
                     Text("• We do not knowingly collect personal data from children.")
                         .padding(.bottom, 16)
                     

@@ -14,19 +14,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Porn Blocker"
+            "value" : "Adult Blocker"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bloqueador de Porno"
+            "value" : "Bloqueador Adulto"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bloqueador de Pornô"
+            "value" : "Bloqueador Adulto"
           }
         }
       }
@@ -37,7 +37,7 @@
       "localizations" : {
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Porno-Blocker"
           }
         },
@@ -49,14 +49,14 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Bloqueador de Porno"
+            "state" : "translated",
+            "value" : "Bloqueador Adulto"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Bloqueador de Pornô"
+            "state" : "translated",
+            "value" : "Bloqueador Adulto"
           }
         }
       }
