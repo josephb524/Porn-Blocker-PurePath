@@ -95,10 +95,10 @@ struct OnboardingView: View {
         VStack(spacing: 28) {
             Spacer()
 
-            OnboardingIconBadge(systemName: "checkmark.shield.fill")
+            WelcomeArt()
 
             VStack(spacing: 10) {
-                Text("Welcome to Porn Blocker")
+                Text("Welcome to Adult Blocker")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -127,7 +127,7 @@ struct OnboardingView: View {
         VStack(spacing: 28) {
             Spacer()
 
-            OnboardingIconBadge(systemName: "sparkles")
+            HowItWorksArt()
 
             VStack(spacing: 10) {
                 Text("How It Works")
@@ -143,10 +143,10 @@ struct OnboardingView: View {
             }
 
             VStack(spacing: 10) {
-                LockedFeaturePill(icon: "globe.badge.chevron.backward", text: "Blocks porn sites in Safari")
-                LockedFeaturePill(icon: "safari.fill",                  text: "Built-in Safe Browser")
-                LockedFeaturePill(icon: "bubble.left.and.bubble.right.fill", text: "Buddy chat for tough moments")
-                LockedFeaturePill(icon: "flame.fill",                   text: "Streak tracking & milestones")
+                LockedFeaturePill(art: .safariBlocking, text: "Blocks porn sites in Safari")
+                LockedFeaturePill(art: .safeBrowser, text: "Built-in Safe Browser")
+                LockedFeaturePill(art: .buddyChat, text: "Buddy chat for tough moments")
+                LockedFeaturePill(art: .streaks, text: "Streak tracking & milestones")
             }
             .padding(.horizontal, 24)
 
@@ -234,8 +234,8 @@ struct OnboardingView: View {
     private var reminderPage: some View {
         ScrollView {
             VStack(spacing: 20) {
-                OnboardingIconBadge(systemName: "bell.badge.fill")
-                    .padding(.top, 64)
+                ReminderArt()
+                    .padding(.top, 48)
 
                 VStack(spacing: 10) {
                     Text("Daily check-in reminder")
@@ -390,29 +390,6 @@ private struct OnboardingBackground: View {
                 .frame(width: 250, height: 250)
                 .blur(radius: 50)
                 .offset(x: 100, y: 200)
-        }
-    }
-}
-
-private struct OnboardingIconBadge: View {
-    let systemName: String
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.white.opacity(0.08))
-                .frame(width: 110, height: 110)
-            Circle()
-                .fill(Color.white.opacity(0.05))
-                .frame(width: 80, height: 80)
-            Image(systemName: systemName)
-                .font(.system(size: 42, weight: .medium))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.white, Color(hue: 0.6, saturation: 0.3, brightness: 0.9)],
-                        startPoint: .top, endPoint: .bottom
-                    )
-                )
         }
     }
 }

@@ -24,7 +24,7 @@ struct SafeBrowserView: View {
     /// if the default plan (yearly) has a free-trial offer, mention it;
     /// otherwise just say "Cancel anytime".
     private var trialTeaserText: String {
-        if let trial = subManager.yearlyProduct?.freeTrialText {
+        if let trial = subManager.trialText(for: subManager.yearlyProduct) {
             return String(localized: "\(trial) · Cancel anytime")
         }
         return String(localized: "Cancel anytime")
@@ -787,15 +787,21 @@ private struct TabMonogram: View {
 // MARK: - Locked Feature Pill
 
 struct LockedFeaturePill: View {
-    let icon: String
+    var icon: String = ""
+    /// Drawn emblem (`OnboardingArt.swift`); replaces the SF Symbol when set.
+    var art: FeatureArtKind? = nil
     let text: LocalizedStringKey
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(Color(hue: 0.6, saturation: 0.4, brightness: 0.85))
-                .frame(width: 24)
+            if let art {
+                FeatureEmblem(kind: art, size: 30)
+            } else {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(Color(hue: 0.6, saturation: 0.4, brightness: 0.85))
+                    .frame(width: 24)
+            }
             Text(text)
                 .font(.subheadline)
                 .fontWeight(.medium)
@@ -848,7 +854,7 @@ struct BlockedOverlayView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
 
-                    Text("This website has been blocked by Porn Blocker because it contains adult content.")
+                    Text("This website has been blocked by Adult Blocker because it contains adult content.")
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

@@ -2256,6 +2256,50 @@
         }
       }
     },
+    "Adult Blocker" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porno-Blocker"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueador Adulto"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueador Adulto"
+          }
+        }
+      }
+    },
+    "Adult Blocker Premium" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porno-Blocker Premium"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueador Adulto Premium"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueador Adulto Premium"
+          }
+        }
+      }
+    },
     "After enabling, fully quit and reopen Safari to make sure the content blocker reloads its rules." : {
       "localizations" : {
         "de" : {
@@ -2605,28 +2649,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A renovação é automática até que você cancele — cancele quando quiser nos Ajustes com pelo menos 24 horas de antecedência da data de renovação."
-          }
-        }
-      }
-    },
-    "Automatic database updates" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatische Datenbank-Updates"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actualizaciones automáticas de la base de datos"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atualizações automáticas do banco de dados"
           }
         }
       }
@@ -3027,46 +3049,46 @@
         }
       }
     },
-    "By downloading, installing, or using Porn Blocker: PurePath (the “App”), you agree to these Terms of Use (“Terms”). If you do not agree, do not use the App. These Terms supplement and incorporate Apple’s Licensed Application End User License Agreement (“Apple Standard EULA”). Where a conflict exists, these Terms control to the extent permitted by law." : {
+    "By downloading, installing, or using Adult Blocker (the “App”), you agree to these Terms of Use (“Terms”). If you do not agree, do not use the App. These Terms supplement and incorporate Apple’s Licensed Application End User License Agreement (“Apple Standard EULA”). Where a conflict exists, these Terms control to the extent permitted by law." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Durch das Herunterladen, Installieren oder Verwenden von Porn Blocker: PurePath (die „App“) stimmst du diesen Nutzungsbedingungen („Bedingungen“) zu. Wenn du nicht zustimmst, verwende die App nicht. Diese Bedingungen ergänzen den Endbenutzer-Lizenzvertrag für lizenzierte Anwendungen von Apple („Apple-Standard-EULA“) und schließen ihn ein. Bei Widersprüchen gelten diese Bedingungen, soweit gesetzlich zulässig."
+            "value" : "Durch das Herunterladen, Installieren oder Verwenden von Porno-Blocker (die „App“) stimmst du diesen Nutzungsbedingungen („Bedingungen“) zu. Wenn du nicht zustimmst, verwende die App nicht. Diese Bedingungen ergänzen den Endbenutzer-Lizenzvertrag für lizenzierte Anwendungen von Apple („Apple-Standard-EULA“) und schließen ihn ein. Bei Widersprüchen gelten diese Bedingungen, soweit gesetzlich zulässig."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Al descargar, instalar o usar Porn Blocker: PurePath (la «App»), aceptas estos Términos de uso (los «Términos»). Si no estás de acuerdo, no uses la App. Estos Términos complementan e incorporan el Contrato de licencia de usuario final de aplicaciones con licencia de Apple (el «EULA estándar de Apple»). En caso de conflicto, prevalecen estos Términos en la medida en que lo permita la ley."
+            "value" : "Al descargar, instalar o usar Bloqueador Adulto (la «App»), aceptas estos Términos de uso (los «Términos»). Si no estás de acuerdo, no uses la App. Estos Términos complementan e incorporan el Contrato de licencia de usuario final de aplicaciones con licencia de Apple (el «EULA estándar de Apple»). En caso de conflicto, prevalecen estos Términos en la medida en que lo permita la ley."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ao baixar, instalar ou usar o Porn Blocker: PurePath (o “App”), você concorda com estes Termos de Uso (“Termos”). Se não concordar, não use o App. Estes Termos complementam e incorporam o Contrato de Licença de Usuário Final de Aplicativos Licenciados da Apple (“EULA Padrão da Apple”). Em caso de conflito, estes Termos prevalecem na medida permitida por lei."
+            "value" : "Ao baixar, instalar ou usar o Bloqueador Adulto (o “App”), você concorda com estes Termos de Uso (“Termos”). Se não concordar, não use o App. Estes Termos complementam e incorporam o Contrato de Licença de Usuário Final de Aplicativos Licenciados da Apple (“EULA Padrão da Apple”). Em caso de conflito, estes Termos prevalecem na medida permitida por lei."
           }
         }
       }
     },
-    "By using Porn Blocker: PurePath, you acknowledge that you have read and agree to these Terms, the Apple Standard EULA, and our Privacy Policy." : {
+    "By using Adult Blocker, you acknowledge that you have read and agree to these Terms, the Apple Standard EULA, and our Privacy Policy." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mit der Nutzung von Porn Blocker: PurePath bestätigst du, dass du diese Bedingungen, die Apple-Standard-EULA und unsere Datenschutzerklärung gelesen hast und ihnen zustimmst."
+            "value" : "Mit der Nutzung von Porno-Blocker bestätigst du, dass du diese Bedingungen, die Apple-Standard-EULA und unsere Datenschutzerklärung gelesen hast und ihnen zustimmst."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Al usar Porn Blocker: PurePath, confirmas que has leído y aceptas estos Términos, el EULA estándar de Apple y nuestra Política de privacidad."
+            "value" : "Al usar Bloqueador Adulto, confirmas que has leído y aceptas estos Términos, el EULA estándar de Apple y nuestra Política de privacidad."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ao usar o Porn Blocker: PurePath, você confirma que leu e concorda com estes Termos, com o EULA Padrão da Apple e com nossa Política de Privacidade."
+            "value" : "Ao usar o Bloqueador Adulto, você confirma que leu e concorda com estes Termos, com o EULA Padrão da Apple e com nossa Política de Privacidade."
           }
         }
       }
@@ -3379,7 +3401,7 @@
         }
       }
     },
-    "Choose Porn Blocker" : {
+    "Choose Adult Blocker" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3390,13 +3412,13 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elige Bloqueador de Porno"
+            "value" : "Elige Bloqueador Adulto"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escolha Bloqueador de Pornô"
+            "value" : "Escolha Bloqueador Adulto"
           }
         }
       }
@@ -4501,7 +4523,7 @@
         }
       }
     },
-    "Enjoying Porn Blocker?" : {
+    "Enjoying Adult Blocker?" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4512,13 +4534,13 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Te gusta Bloqueador de Porno?"
+            "value" : "¿Te gusta Bloqueador Adulto?"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Está gostando do Bloqueador de Pornô?"
+            "value" : "Está gostando do Bloqueador Adulto?"
           }
         }
       }
@@ -4871,28 +4893,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Totalmente protegido"
-          }
-        }
-      }
-    },
-    "Fully customizable block list" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vollständig anpassbare Sperrliste"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lista de bloqueo totalmente personalizable"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lista de bloqueio totalmente personalizável"
           }
         }
       }
@@ -6460,50 +6460,6 @@
         }
       }
     },
-    "Porn Blocker" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Porno-Blocker"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bloqueador de Porno"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bloqueador de Pornô"
-          }
-        }
-      }
-    },
-    "Porn Blocker Premium" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Porno-Blocker Premium"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bloqueador de Porno Premium"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bloqueador de Pornô Premium"
-          }
-        }
-      }
-    },
     "Porn Free" : {
       "localizations" : {
         "de" : {
@@ -7428,7 +7384,7 @@
         }
       }
     },
-    "Select 'Porn Blocker' from the list." : {
+    "Select 'Adult Blocker' from the list." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7439,13 +7395,13 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecciona 'Bloqueador de Porno' en la lista."
+            "value" : "Selecciona 'Bloqueador Adulto' en la lista."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecione 'Bloqueador de Pornô' na lista."
+            "value" : "Selecione 'Bloqueador Adulto' na lista."
           }
         }
       }
@@ -7830,24 +7786,24 @@
         }
       }
     },
-    "Start Free Trial & Subscribe" : {
+    "Start Free Trial" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gratis testen & abonnieren"
+            "value" : "Kostenlos testen"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Iniciar prueba gratis y suscribirme"
+            "value" : "Comenzar prueba gratis"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Iniciar teste grátis e assinar"
+            "value" : "Começar teste grátis"
           }
         }
       }
@@ -8408,6 +8364,28 @@
         }
       }
     },
+    "Tap 'Adult Blocker' from the list (it may show Off)." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippe in der Liste auf 'Porno-Blocker' (evtl. steht dort Aus)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca 'Bloqueador Adulto' en la lista (puede aparecer como Desactivado)."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque em 'Bloqueador Adulto' na lista (pode aparecer como Desativado)."
+          }
+        }
+      }
+    },
     "Tap 'Extensions' in the General section." : {
       "localizations" : {
         "de" : {
@@ -8426,28 +8404,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toque em 'Extensões' na seção Geral."
-          }
-        }
-      }
-    },
-    "Tap 'Porn Blocker' from the list (it may show Off)." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tippe in der Liste auf 'Porno-Blocker' (evtl. steht dort Aus)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toca 'Bloqueador de Porno' en la lista (puede aparecer como Desactivado)."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toque em 'Bloqueador de Pornô' na lista (pode aparecer como Desativado)."
           }
         }
       }
@@ -8562,46 +8518,46 @@
         }
       }
     },
-    "Terms of Use (EULA) — Porn Blocker: PurePath" : {
+    "Terms of Use (EULA) — Adult Blocker" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nutzungsbedingungen (EULA) — Porn Blocker: PurePath"
+            "value" : "Nutzungsbedingungen (EULA) — Porno-Blocker"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Términos de uso (EULA) — Porn Blocker: PurePath"
+            "value" : "Términos de uso (EULA) — Bloqueador Adulto"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Termos de Uso (EULA) — Porn Blocker: PurePath"
+            "value" : "Termos de Uso (EULA) — Bloqueador Adulto"
           }
         }
       }
     },
-    "Thank you for choosing Porn Blocker: PurePath (“the App”). Your privacy is very important to us. This Privacy Policy explains how our app handles information." : {
+    "Thank you for choosing Adult Blocker (“the App”). Your privacy is very important to us. This Privacy Policy explains how our app handles information." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Danke, dass du dich für Porn Blocker: PurePath („die App“) entschieden hast. Deine Privatsphäre ist uns sehr wichtig. Diese Datenschutzerklärung erklärt, wie unsere App mit Informationen umgeht."
+            "value" : "Danke, dass du dich für Porno-Blocker („die App“) entschieden hast. Deine Privatsphäre ist uns sehr wichtig. Diese Datenschutzerklärung erklärt, wie unsere App mit Informationen umgeht."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gracias por elegir Porn Blocker: PurePath («la App»). Tu privacidad es muy importante para nosotros. Esta Política de privacidad explica cómo nuestra app maneja la información."
+            "value" : "Gracias por elegir Bloqueador Adulto («la App»). Tu privacidad es muy importante para nosotros. Esta Política de privacidad explica cómo nuestra app maneja la información."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obrigado por escolher o Porn Blocker: PurePath (“o App”). Sua privacidade é muito importante para nós. Esta Política de Privacidade explica como nosso app lida com as informações."
+            "value" : "Obrigado por escolher o Bloqueador Adulto (“o App”). Sua privacidade é muito importante para nós. Esta Política de Privacidade explica como nosso app lida com as informações."
           }
         }
       }
@@ -8738,35 +8694,6 @@
         }
       }
     },
-    "Then %@ per %@, auto-renews" : {
-      "comment" : "Second line on the trial CTA button (App Store 3.1.2(c)): must say a paid, auto-renewing subscription follows the trial",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Danach %1$@ pro %2$@, verlängert sich automatisch"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Then %1$@ per %2$@, auto-renews"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Luego %1$@ por %2$@, renovación automática"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Depois %1$@ por %2$@, renovação automática"
-          }
-        }
-      }
-    },
     "These Terms are governed by the laws of the United States, without regard to conflict‑of‑law principles. Courts located in the United States will have exclusive jurisdiction, unless mandatory local law provides otherwise. If you are an EU/UK consumer, you may benefit from mandatory local consumer protections." : {
       "localizations" : {
         "de" : {
@@ -8855,7 +8782,7 @@
         }
       }
     },
-    "This website has been blocked by Porn Blocker because it contains adult content." : {
+    "This website has been blocked by Adult Blocker because it contains adult content." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8866,13 +8793,13 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bloqueador de Porno ha bloqueado este sitio web porque contiene contenido para adultos."
+            "value" : "Bloqueador Adulto ha bloqueado este sitio web porque contiene contenido para adultos."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este site foi bloqueado pelo Bloqueador de Pornô porque contém conteúdo adulto."
+            "value" : "Este site foi bloqueado pelo Bloqueador Adulto porque contém conteúdo adulto."
           }
         }
       }
@@ -9009,7 +8936,7 @@
         }
       }
     },
-    "Turn on the Porn Blocker extension in Safari to start blocking adult content." : {
+    "Turn on the Adult Blocker extension in Safari to start blocking adult content." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9020,13 +8947,13 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activa la extensión Bloqueador de Porno en Safari para empezar a bloquear contenido para adultos."
+            "value" : "Activa la extensión Bloqueador Adulto en Safari para empezar a bloquear contenido para adultos."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ative a extensão Bloqueador de Pornô no Safari para começar a bloquear conteúdo adulto."
+            "value" : "Ative a extensão Bloqueador Adulto no Safari para começar a bloquear conteúdo adulto."
           }
         }
       }
@@ -9449,7 +9376,7 @@
         }
       }
     },
-    "Welcome to Porn Blocker" : {
+    "Welcome to Adult Blocker" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9460,13 +9387,13 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bienvenido a Bloqueador de Porno"
+            "value" : "Bienvenido a Bloqueador Adulto"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Boas-vindas ao Bloqueador de Pornô"
+            "value" : "Boas-vindas ao Bloqueador Adulto"
           }
         }
       }
@@ -9994,6 +9921,50 @@
     "•" : {
       "shouldTranslate" : false
     },
+    "• Adult Blocker does not collect, store, or share any personal data from users." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Porno-Blocker erhebt, speichert und teilt keine personenbezogenen Daten der Nutzer."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Bloqueador Adulto no recopila, almacena ni comparte datos personales de los usuarios."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• O Bloqueador Adulto não coleta, armazena nem compartilha dados pessoais dos usuários."
+          }
+        }
+      }
+    },
+    "• Adult Blocker is intended for users 4 years and older." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Porno-Blocker ist für Nutzer ab 4 Jahren bestimmt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Bloqueador Adulto está destinada a usuarios de 4 años o más."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• O Bloqueador Adulto é destinado a usuários a partir de 4 anos."
+          }
+        }
+      }
+    },
     "• All blocking functionality is performed locally on your device." : {
       "localizations" : {
         "de" : {
@@ -10034,50 +10005,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "• Todo o processamento de pagamentos e o gerenciamento da conta são feitos diretamente pela Apple."
-          }
-        }
-      }
-    },
-    "• Porn Blocker: PurePath does not collect, store, or share any personal data from users." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• Porn Blocker: PurePath erhebt, speichert und teilt keine personenbezogenen Daten der Nutzer."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• Porn Blocker: PurePath no recopila, almacena ni comparte datos personales de los usuarios."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• O Porn Blocker: PurePath não coleta, armazena nem compartilha dados pessoais dos usuários."
-          }
-        }
-      }
-    },
-    "• Porn Blocker: PurePath is intended for users 4 years and older." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• Porn Blocker: PurePath ist für Nutzer ab 4 Jahren bestimmt."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• Porn Blocker: PurePath está destinada a usuarios de 4 años o más."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "• O Porn Blocker: PurePath é destinado a usuários a partir de 4 anos."
           }
         }
       }
@@ -10305,24 +10232,24 @@
         }
       }
     },
-    "📜 Privacy Policy for Porn Blocker: PurePath" : {
+    "📜 Privacy Policy for Adult Blocker" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📜 Datenschutzerklärung für Porn Blocker: PurePath"
+            "value" : "📜 Datenschutzerklärung für Porno-Blocker"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📜 Política de privacidad de Porn Blocker: PurePath"
+            "value" : "📜 Política de privacidad de Bloqueador Adulto"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📜 Política de Privacidade do Porn Blocker: PurePath"
+            "value" : "📜 Política de Privacidade do Bloqueador Adulto"
           }
         }
       }

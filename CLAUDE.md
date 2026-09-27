@@ -4,7 +4,7 @@ Guidance for working in this repository.
 
 ## Overview
 
-"Porn Blocker" is a SwiftUI iOS app (iOS 16.4+) that blocks adult content and
+"Adult Blocker" (formerly "Porn Blocker"; Xcode project/target names unchanged) is a SwiftUI iOS app (iOS 16.4+) that blocks adult content and
 includes a subscription-gated AI buddy chat for users on a recovery journey.
 
 The repo has two iOS targets that share an App Group
@@ -195,10 +195,17 @@ second row = back/forward + ellipsis menu (Reload/Stop, Close Tab).
   `signedTransactionJWS` (Apple-signed JWS sent to the chat Worker as
   `signedTransaction`), and `originalTransactionID`. Listens to
   `Transaction.updates`; hourly expiration check timer.
-- **`PaywallScreen`** — solid-accent hero, features list (Safari blocking,
-  buddy chat, customizable list, etc.), plan picker (monthly + yearly,
-  yearly selected by default with a dynamic "SAVE X%" badge), Subscribe +
-  Restore buttons. Dynamically shows free-trial copy if a product has an
+- **`PaywallScreen`** — laid out after Cairn's house paywall, in the
+  onboarding artwork's style (2026-09-27): dark navy field, `BrandShield`
+  hero, four paid features as `FeatureEmblem` rows (streaks are free, so
+  not sold here), **two side-by-side plan cards** (monthly + yearly, yearly
+  selected by default, "SAVE X%" ribbon), a breathing CTA (scaleEffect),
+  billing disclosure, Terms · Privacy. Later / Restore stay in the toolbar;
+  the hero's top padding clears them (German "Wiederherstellen" is long).
+  **Trial copy is eligibility-gated**: every trial mention goes through
+  `SubscriptionManager.trialText(for:)`, backed by `trialEligibleProductIDs`
+  (`isEligibleForIntroOffer`, filled in `loadProducts()`), so someone who
+  already used the trial never sees "Start Free Trial" and gets charged. Dynamically shows free-trial copy if a product has an
   introductory offer. The layout is tuned for App Store guideline
   **3.1.2(c)** compliance — see "Paywall layout (App Store 3.1.2(c))" below
   before changing fonts, button copy, or pricing prominence.
@@ -293,13 +300,16 @@ re-reading the rejection notice:
 - **`.toolbarColorScheme(.dark, for: .navigationBar)` is load-bearing** —
   iOS 26's glass toolbar buttons ignore `.foregroundColor(.white)` and
   render dark labels over the header gradient without it.
-- **CTA button must state that a subscription follows the trial.** When a
-  trial is available, the button shows two lines: primary "Start Free
-  Trial & Subscribe" (`.headline`) and secondary "Then $X.XX per year,
-  auto-renews" (`.subheadline.semibold`, same white color). The secondary
-  line is **on the button itself** — Apple specifically called out that
-  the trial CTA must indicate "no less prominently" that a subscription
-  follows. Don't move that line off the button.
+- **Trial CTA is one line, "Start Free Trial" (Cairn's pattern — owner's
+  call 2026-09-27, the two-line button was too long).** The subscription
+  that follows is stated **directly under the button**: `billingDisclosure`
+  opens with the billed price in `.title3.bold` ("$X per year after 3-day
+  free trial"), then the full auto-renew terms. Known risk: the first
+  submission was rejected under 3.1.2(c) and Apple then asked that the
+  trial CTA indicate "no less prominently" that a subscription follows —
+  the fix at the time was a second line **on** the button ("Then $X.XX per
+  year, auto-renews"). If App Review flags it again, put that line back on
+  the button (git history has it) rather than arguing.
 - **Disclosure paragraph below the CTA** must mention that the
   subscription begins automatically at trial end, that it auto-renews,
   and that cancellation happens in Settings ≥24 hours before renewal.
@@ -354,6 +364,11 @@ reminder → paywall. Non-obvious rules:
   sheet dismisses (would unmount the sheet). Kill mid-flow → flow restarts
   next launch; that's intentional and safe because the side effects are
   idempotent.
+- **Artwork is drawn, not SF Symbols** (`OnboardingArt.swift`): the page
+  heroes (`WelcomeArt`, `HowItWorksArt`, `ReminderArt`) and the feature-row
+  emblems (`FeatureEmblem`, used via `LockedFeaturePill(art:)`) are SwiftUI
+  shapes in the icon's language — red `BrandShield` with a white check,
+  four-point sparks, soft bubbles. No assets, no text, so nothing to localize.
 - Cold-launch notification taps survive onboarding:
   `HabitNotificationRouter.pendingHabitID` persists until `MainTabView`
   finally mounts and consumes it in `.onAppear`.
@@ -555,12 +570,17 @@ Italian, Turkish.
   `xcodebuild build` does **not** sync new keys into it; run
   `xcodebuild -exportLocalizations -project "Porn Blocker.xcodeproj" -localizationPath <tmp> -exportLanguage es -sdk iphonesimulator`
   (or build in the Xcode IDE) to extract them, then translate.
-- **App name is translated**: `InfoPlist.xcstrings` in **both** `Porn Blocker/`
-  and `ContentBlocker/` ("Bloqueador de Porno" / "Bloqueador de Pornô" /
-  "Porno-Blocker"). The extension's name is what users look for in
+- **App name per language**: `CFBundleDisplayName` is "Adult Blocker"
+  (pbxproj, both targets) and `InfoPlist.xcstrings` in **both** `Porn Blocker/`
+  and `ContentBlocker/` gives "Bloqueador Adulto" (es, pt-BR) /
+  "Porno-Blocker" (de). Not "Porn Blocker": Apple blocks App Store searches
+  containing "porn"/"porno", so the store names are built from searchable
+  phrases (see `AppStoreLocalization.md`) and guideline 2.3.8 wants the icon
+  name to resemble them. The extension's name is what users look for in
   Settings → Safari → Extensions, so every setup-instruction string that
-  names it ("Choose Porn Blocker", "Tap 'Porn Blocker'…") must use the same
-  translated name. Change them together.
+  names it ("Choose Adult Blocker", "Tap 'Adult Blocker'…") must use the same
+  name per language. Change them together. The Xcode target/scheme and
+  bundle ID keep "Porn Blocker".
 - **Only literals passed to `Text`/`Button`/etc. are auto-localized.** A
   `String` variable is shown verbatim — wrap computed strings in
   `String(localized:)`, or type view parameters as `LocalizedStringKey`

@@ -1,14 +1,20 @@
 import SwiftUI
 import StoreKit
 
+/// The paywall, in the onboarding artwork's style (dark field, the brand
+/// shield) and laid out after Cairn's house paywall: hero, emblem feature
+/// rows, two side-by-side plan cards, a breathing CTA, billing disclosure,
+/// legal links. Every 3.1.2(c) rule in CLAUDE.md still holds — see
+/// "Paywall layout (App Store 3.1.2(c))" before changing anything here.
 struct PaywallScreen: View {
     @StateObject private var subManager = SubscriptionManager.shared
     @Binding var isPresented: Bool
     @State private var showingError = false
     @State private var featuresAppeared = false
     @State private var selectedProduct: Product?
+    @State private var ctaPulse = false
 
-    private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
+    private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.62)
 
     // Legal links open externally (Safari) rather than as in-app sheets,
     // so the App Store reviewer and users see canonical hosted documents.
@@ -17,13 +23,12 @@ struct PaywallScreen: View {
     private let privacyPolicyURL = URL(string: "https://josephb524.github.io/Porn-Blocker-Pure-Path-Privacy/")!
     private let termsOfUseURL    = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 
-    private let features: [(icon: String, text: LocalizedStringKey, color: Color)] = [
-        ("globe.badge.chevron.backward",        "Block millions of porn sites in Safari", Color(hue: 0.6,  saturation: 0.7, brightness: 0.75)),
-        ("bubble.left.and.bubble.right.fill",   "Buddy chat — talk through urges 24/7",   Color(hue: 0.9,  saturation: 0.65, brightness: 0.75)),
-        ("shield.fill",                         "Safe, private web browsing",             Color(hue: 0.38, saturation: 0.65, brightness: 0.5)),
-        ("gear",                                "Fully customizable block list",          Color(hue: 0.08, saturation: 0.8,  brightness: 0.9)),
-        ("textformat.abc",                      "Custom keywords & websites",             Color(hue: 0.7,  saturation: 0.65, brightness: 0.8)),
-        ("arrow.triangle.2.circlepath",         "Automatic database updates",             Color(hue: 0.0,  saturation: 0.7,  brightness: 0.65)),
+    /// Paid features only — streaks are free, so they are not sold here.
+    private let features: [(art: FeatureArtKind, text: LocalizedStringKey)] = [
+        (.safariBlocking, "Block millions of porn sites in Safari"),
+        (.safeBrowser,    "Safe, private web browsing"),
+        (.buddyChat,      "Buddy chat — talk through urges 24/7"),
+        (.customList,     "Custom keywords & websites"),
     ]
 
     /// The plan that will be purchased — the user's pick, defaulting to yearly.
@@ -31,35 +36,33 @@ struct PaywallScreen: View {
         selectedProduct ?? subManager.yearlyProduct ?? subManager.products.first
     }
 
+    /// Trial text for the active plan, only if this Apple ID can take it.
+    private var activeTrial: String? { subManager.trialText(for: activeProduct) }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 headerSection
 
-                featuresSection
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-
-                planSelector
-                    .padding(.horizontal, 24)
-                    .padding(.top, 14)
-
-                ctaSection
-                    .padding(.horizontal, 24)
-                    .padding(.top, 14)
-
-                legalSection
-                    .padding(.horizontal, 24)
-                    .padding(.top, 12)
-                    .padding(.bottom, 24)
+                VStack(spacing: 18) {
+                    featuresSection
+                    planSelector
+                    ctaSection
+                    legalSection
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 14)
+                .padding(.bottom, 24)
             }
         }
+        .background(PaywallBackground().ignoresSafeArea())
+        .environment(\.colorScheme, .dark)
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        // The toolbar sits over the dark header gradient. Without declaring
-        // the color scheme, iOS 26's glass toolbar buttons pick a dark label
-        // that's illegible here — `.foregroundColor(.white)` alone is ignored.
+        // The toolbar sits over the dark header. Without declaring the color
+        // scheme, iOS 26's glass toolbar buttons pick a dark label that's
+        // illegible here — `.foregroundColor(.white)` alone is ignored.
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -88,178 +91,160 @@ struct PaywallScreen: View {
                 Task { await subManager.loadProducts() }
             }
             withAnimation(.easeOut(duration: 0.5)) { featuresAppeared = true }
+            // The CTA breathes — the one moving thing on the screen, so the
+            // eye returns to it while the reader weighs the plans.
+            withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) {
+                ctaPulse = true
+            }
         }
     }
 
     // MARK: - Header
 
     private var headerSection: some View {
-        ZStack(alignment: .bottom) {
-            LinearGradient(
-                colors: [
-                    Color(hue: 0.6, saturation: 0.75, brightness: 0.45),
-                    Color(hue: 0.38, saturation: 0.65, brightness: 0.35)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .frame(height: 170)
-
+        VStack(spacing: 8) {
             ZStack {
                 Circle()
-                    .fill(Color.white.opacity(0.07))
-                    .frame(width: 180, height: 180)
-                    .offset(x: -100, y: 30)
-                Circle()
-                    .fill(Color.white.opacity(0.05))
-                    .frame(width: 130, height: 130)
-                    .offset(x: 120, y: -20)
+                    .fill(RadialGradient(colors: [ArtColor.shieldBottom.opacity(0.4), .clear],
+                                         center: .center, startRadius: 0, endRadius: 70))
+                    .frame(width: 140, height: 140)
+                SparkShape().fill(ArtColor.pink).frame(width: 13, height: 13).offset(x: -52, y: -26)
+                SparkShape().fill(ArtColor.lavender).frame(width: 16, height: 16).offset(x: 50, y: -30)
+                SparkShape().fill(ArtColor.pink).frame(width: 10, height: 10).offset(x: 56, y: 22)
+                BrandShield(size: 58)
             }
+            .frame(height: 96)
+            .accessibilityHidden(true)
 
-            VStack(spacing: 6) {
-                Image(systemName: "checkmark.shield.fill")
-                    .font(.system(size: 36))
-                    .foregroundColor(.white)
-                    .shadow(color: .black.opacity(0.15), radius: 8)
+            Text("Adult Blocker Premium")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
 
-                Text("Porn Blocker Premium")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-
-                Text("Block adult content everywhere")
-                    .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.85))
-            }
-            .padding(.bottom, 16)
+            Text("Block adult content everywhere")
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.75))
         }
+        .frame(maxWidth: .infinity)
+        // Clears the toolbar: "Later" / "Restore" sit on this band, and the
+        // German "Wiederherstellen" reaches well past the sparks otherwise.
+        .padding(.top, 100)
     }
 
     // MARK: - Features
 
     private var featuresSection: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
                 HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(feature.color.opacity(0.12))
-                            .frame(width: 30, height: 30)
-                        Image(systemName: feature.icon)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(feature.color)
-                    }
-
+                    FeatureEmblem(kind: feature.art, size: 28)
                     Text(feature.text)
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundColor(.primary)
-
-                    Spacer()
-
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.9))
+                    Spacer(minLength: 0)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
-                )
                 .opacity(featuresAppeared ? 1 : 0)
                 .offset(x: featuresAppeared ? 0 : -20)
                 .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.07), value: featuresAppeared)
             }
         }
+        .padding(.horizontal, 4)
     }
 
     // MARK: - Plan Selector
 
+    @ViewBuilder
     private var planSelector: some View {
-        VStack(spacing: 10) {
-            if subManager.hasLoadedProducts {
+        if subManager.hasLoadedProducts {
+            HStack(spacing: 10) {
                 ForEach(subManager.products) { product in
                     planCard(product)
                 }
-            } else if subManager.isLoading {
-                HStack(spacing: 8) {
-                    ProgressView().scaleEffect(0.85)
-                    Text("Loading plans…")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 24)
-            } else {
-                Text("Pricing unavailable. Please check your connection and try again.")
+            }
+            .padding(.top, 8)
+        } else if subManager.isLoading {
+            HStack(spacing: 8) {
+                ProgressView().scaleEffect(0.85)
+                Text("Loading plans…")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.vertical, 16)
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+        } else {
+            Text("Pricing unavailable. Please check your connection and try again.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.vertical, 16)
         }
     }
 
+    /// Side-by-side plan card. The billed price is the headline — the most
+    /// prominent pricing element (3.1.2(c)); the savings ribbon and the trial
+    /// line are smaller and subordinate, and the trial stays muted.
     private func planCard(_ product: Product) -> some View {
         let isSelected = activeProduct?.id == product.id
         let isYearly = product.id == subManager.yearlyProduct?.id
 
         return Button {
-            selectedProduct = product
+            UISelectionFeedbackGenerator().selectionChanged()
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+                selectedProduct = product
+            }
         } label: {
-            HStack(spacing: 14) {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
-                    .foregroundColor(isSelected ? accent : Color(.systemGray3))
+            VStack(spacing: 4) {
+                Text(product.planName)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(isSelected ? accent : .secondary)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text(product.planName)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.primary)
-                        if isYearly, let savings = subManager.yearlySavingsPercent {
-                            Text("SAVE \(savings)%")
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Capsule().fill(accent))
-                        }
-                    }
-                    if let trial = product.freeTrialText {
-                        Text("Includes \(trial)", comment: "Plan card caption, e.g. \"Includes 3-day free trial\"")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                }
+                Text(product.displayPrice)
+                    .font(.title2)
+                    .fontWeight(.heavy)
+                    .foregroundColor(.primary)
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
 
-                Spacer()
+                Text("per \(product.periodUnitText)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
 
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(product.displayPrice)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                    Text("per \(product.periodUnitText)")
+                if let trial = subManager.trialText(for: product) {
+                    Text("Includes \(trial)", comment: "Plan card caption, e.g. \"Includes 3-day free trial\"")
                         .font(.caption2)
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
             }
-            .padding(.horizontal, 16)
+            // minHeight keeps the pair matched: the trial line exists on one
+            // card only, and unequal cards read as a mistake, not a choice.
+            .frame(maxWidth: .infinity, minHeight: 104)
             .padding(.vertical, 14)
+            .padding(.horizontal, 8)
             .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(Color(.systemBackground))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(isSelected ? accent : Color(.systemGray4),
-                                    lineWidth: isSelected ? 2 : 1)
-                    )
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(isSelected ? accent.opacity(0.16) : Color.white.opacity(0.06))
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(isSelected ? accent : Color.white.opacity(0.14),
+                                  lineWidth: isSelected ? 2 : 1)
+            )
+            .overlay(alignment: .top) {
+                if isYearly, let savings = subManager.yearlySavingsPercent {
+                    Text("SAVE \(savings)%")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(accent))
+                        .offset(y: -10)
+                }
+            }
         }
         .buttonStyle(.plain)
     }
@@ -279,33 +264,30 @@ struct PaywallScreen: View {
                                 .font(.headline)
                         }
                     } else {
-                        VStack(spacing: 3) {
-                            Text(ctaPrimaryTitle)
-                                .font(.headline)
-                            if let secondary = ctaSecondaryTitle {
-                                Text(secondary)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                            }
-                        }
+                        Text(ctaPrimaryTitle)
+                            .font(.headline)
                     }
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 56)
-                .padding(.vertical, 8)
                 .background(
                     LinearGradient(
-                        colors: [Color(hue: 0.6, saturation: 0.75, brightness: 0.65), accent],
+                        colors: [Color(hue: 0.6, saturation: 0.7, brightness: 0.75),
+                                 Color(hue: 0.38, saturation: 0.65, brightness: 0.5)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
                 .cornerRadius(18)
-                .shadow(color: accent.opacity(0.35), radius: 12, x: 0, y: 6)
             }
             .disabled(subManager.isLoading || activeProduct == nil)
             .opacity((subManager.isLoading || activeProduct == nil) ? 0.6 : 1.0)
+            // Breathing, not bouncing: a slow swell with the shadow rising and
+            // falling. Scale, never frame (CLAUDE.md "Pulse animations").
+            .scaleEffect(ctaPulse ? 1.025 : 1.0)
+            .shadow(color: accent.opacity(ctaPulse ? 0.5 : 0.25),
+                    radius: ctaPulse ? 16 : 8, x: 0, y: 6)
 
             if let product = activeProduct {
                 billingDisclosure(for: product)
@@ -313,34 +295,33 @@ struct PaywallScreen: View {
         }
     }
 
-    /// CTA button title. When a free trial is available, the button must make
-    /// clear that an auto-renewing subscription follows — Apple guideline
-    /// 3.1.2(c). The post-trial price is rendered as a secondary line on the
-    /// button itself so it's no less prominent than the trial mention.
+    /// CTA button title — one line, as on Cairn: "Start Free Trial" when this
+    /// Apple ID can take the trial, else "Subscribe Now". The paid,
+    /// auto-renewing subscription that follows is stated directly under the
+    /// button (`billingDisclosure`: bold billed price, then the full terms).
+    /// Owner's call 2026-09-27, knowing the first submission was rejected
+    /// under 3.1.2(c) with the terms off the button — if App Review objects
+    /// again, restore the second line on the button ("Then $X per year,
+    /// auto-renews"; see git history).
     private var ctaPrimaryTitle: String {
-        guard let product = activeProduct else { return String(localized: "Subscribe Now") }
-        if product.freeTrialText != nil {
-            return String(localized: "Start Free Trial & Subscribe")
+        if activeTrial != nil {
+            return String(localized: "Start Free Trial")
         }
         return String(localized: "Subscribe Now")
-    }
-
-    private var ctaSecondaryTitle: String? {
-        guard let product = activeProduct, product.freeTrialText != nil else { return nil }
-        return String(localized: "Then \(product.displayPrice) per \(product.periodUnitText), auto-renews", comment: "Second line on the trial CTA button (App Store 3.1.2(c)): must say a paid, auto-renewing subscription follows the trial")
     }
 
     /// Below-button disclosure. The total billed amount is the largest, boldest
     /// element; trial duration and cancellation language are subordinate.
     @ViewBuilder
     private func billingDisclosure(for product: Product) -> some View {
+        let trial = subManager.trialText(for: product)
         VStack(spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(product.displayPrice)
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
-                if let trial = product.freeTrialText {
+                if let trial {
                     Text("per \(product.periodUnitText) after \(trial)")
                         .font(.footnote)
                         .foregroundColor(.secondary)
@@ -351,7 +332,7 @@ struct PaywallScreen: View {
                 }
             }
 
-            Text(product.freeTrialText != nil
+            Text(trial != nil
                  ? String(localized: "Your subscription begins automatically when the free trial ends. Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.", comment: "Legal billing disclosure (App Store 3.1.2(c)) — translate every clause faithfully")
                  : String(localized: "Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.", comment: "Legal billing disclosure (App Store 3.1.2(c)) — translate every clause faithfully"))
                 .font(.caption2)
@@ -378,12 +359,36 @@ struct PaywallScreen: View {
     // MARK: - Legal
 
     private var legalSection: some View {
-        HStack {
-            Link("Privacy Policy", destination: privacyPolicyURL)
-            Spacer()
+        HStack(spacing: 14) {
             Link("Terms of Use", destination: termsOfUseURL)
+            Text("·").foregroundColor(.secondary)
+            Link("Privacy Policy", destination: privacyPolicyURL)
         }
-        .font(.caption)
-        .foregroundColor(.secondary)
+        .font(.caption.weight(.semibold))
+        .foregroundColor(.white.opacity(0.7))
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// The onboarding field: deep navy with a faint blue and green glow.
+private struct PaywallBackground: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color(hue: 0.6, saturation: 0.5, brightness: 0.15),
+                         Color(hue: 0.6, saturation: 0.6, brightness: 0.08)],
+                startPoint: .top, endPoint: .bottom
+            )
+            Circle()
+                .fill(Color(hue: 0.6, saturation: 0.6, brightness: 0.4).opacity(0.15))
+                .frame(width: 320)
+                .blur(radius: 60)
+                .offset(x: -140, y: -260)
+            Circle()
+                .fill(Color(hue: 0.38, saturation: 0.6, brightness: 0.4).opacity(0.12))
+                .frame(width: 300)
+                .blur(radius: 60)
+                .offset(x: 150, y: 260)
+        }
     }
 }

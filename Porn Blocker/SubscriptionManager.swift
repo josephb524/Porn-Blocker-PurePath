@@ -21,6 +21,10 @@ final class SubscriptionManager: ObservableObject {
     @Published private(set) var hasResolvedStatus = false
     /// Available subscription products, cheapest first.
     @Published private(set) var products: [Product] = []
+    /// Products whose free trial *this Apple ID* can still take. An intro
+    /// offer existing is not the user being eligible: someone who already
+    /// used the trial would read "Start Free Trial" and be charged at once.
+    @Published private(set) var trialEligibleProductIDs: Set<String> = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String? = nil
 
@@ -129,6 +133,13 @@ final class SubscriptionManager: ObservableObject {
         do {
             let loaded = try await Product.products(for: Self.productIDs)
             products = loaded.sorted { $0.price < $1.price }
+            var eligible = Set<String>()
+            for product in products where product.freeTrialText != nil {
+                if await product.subscription?.isEligibleForIntroOffer == true {
+                    eligible.insert(product.id)
+                }
+            }
+            trialEligibleProductIDs = eligible
             if products.isEmpty {
                 errorMessage = String(localized: "Subscription products not found")
                 Log.debug("❌ No subscription products loaded")
@@ -386,6 +397,13 @@ final class SubscriptionManager: ObservableObject {
     var monthlyProduct: Product? { products.first { $0.id == Self.monthlyProductID } }
     var yearlyProduct: Product? { products.first { $0.id == Self.yearlyProductID } }
     var hasLoadedProducts: Bool { !products.isEmpty }
+
+    /// The trial text for `product`, but only when this Apple ID can still
+    /// take the trial. Every trial mention in the UI goes through this.
+    func trialText(for product: Product?) -> String? {
+        guard let product, trialEligibleProductIDs.contains(product.id) else { return nil }
+        return product.freeTrialText
+    }
 
     /// Percentage saved by the yearly plan versus paying monthly for a year.
     var yearlySavingsPercent: Int? {

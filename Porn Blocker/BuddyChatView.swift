@@ -27,7 +27,7 @@ private struct BuddyLockedView: View {
     /// if the default plan (yearly) has a free-trial offer, mention it;
     /// otherwise just say "Cancel anytime".
     private var trialTeaserText: String {
-        if let trial = subManager.yearlyProduct?.freeTrialText {
+        if let trial = subManager.trialText(for: subManager.yearlyProduct) {
             return String(localized: "\(trial) · Cancel anytime")
         }
         return String(localized: "Cancel anytime")
