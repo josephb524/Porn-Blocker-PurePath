@@ -2190,6 +2190,28 @@
         }
       }
     },
+    "Add chat support to your Lifetime plan" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Füge deinem lebenslangen Zugang Chat-Unterstützung hinzu"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añade apoyo por chat a tu plan de por vida"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicione apoio por chat ao seu plano vitalício"
+          }
+        }
+      }
+    },
     "Add habit" : {
       "localizations" : {
         "de" : {
@@ -2261,7 +2283,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Porno-Blocker"
+            "value" : "Adult Blocker"
           }
         },
         "es" : {
@@ -2283,7 +2305,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Porno-Blocker Premium"
+            "value" : "Adult Blocker Premium"
           }
         },
         "es" : {
@@ -2939,6 +2961,28 @@
         }
       }
     },
+    "Buddy Chat" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buddy-Chat"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat con tu compañero"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat com o parceiro"
+          }
+        }
+      }
+    },
     "Buddy chat for tough moments" : {
       "localizations" : {
         "de" : {
@@ -3049,12 +3093,34 @@
         }
       }
     },
+    "Buy Lifetime Access" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lebenslangen Zugang kaufen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar acceso de por vida"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar acesso vitalício"
+          }
+        }
+      }
+    },
     "By downloading, installing, or using Adult Blocker (the “App”), you agree to these Terms of Use (“Terms”). If you do not agree, do not use the App. These Terms supplement and incorporate Apple’s Licensed Application End User License Agreement (“Apple Standard EULA”). Where a conflict exists, these Terms control to the extent permitted by law." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Durch das Herunterladen, Installieren oder Verwenden von Porno-Blocker (die „App“) stimmst du diesen Nutzungsbedingungen („Bedingungen“) zu. Wenn du nicht zustimmst, verwende die App nicht. Diese Bedingungen ergänzen den Endbenutzer-Lizenzvertrag für lizenzierte Anwendungen von Apple („Apple-Standard-EULA“) und schließen ihn ein. Bei Widersprüchen gelten diese Bedingungen, soweit gesetzlich zulässig."
+            "value" : "Durch das Herunterladen, Installieren oder Verwenden von Adult Blocker (die „App“) stimmst du diesen Nutzungsbedingungen („Bedingungen“) zu. Wenn du nicht zustimmst, verwende die App nicht. Diese Bedingungen ergänzen den Endbenutzer-Lizenzvertrag für lizenzierte Anwendungen von Apple („Apple-Standard-EULA“) und schließen ihn ein. Bei Widersprüchen gelten diese Bedingungen, soweit gesetzlich zulässig."
           }
         },
         "es" : {
@@ -3076,7 +3142,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mit der Nutzung von Porno-Blocker bestätigst du, dass du diese Bedingungen, die Apple-Standard-EULA und unsere Datenschutzerklärung gelesen hast und ihnen zustimmst."
+            "value" : "Mit der Nutzung von Adult Blocker bestätigst du, dass du diese Bedingungen, die Apple-Standard-EULA und unsere Datenschutzerklärung gelesen hast und ihnen zustimmst."
           }
         },
         "es" : {
@@ -3406,7 +3472,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Porno-Blocker wählen"
+            "value" : "Adult Blocker wählen"
           }
         },
         "es" : {
@@ -4528,7 +4594,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gefällt dir Porno-Blocker?"
+            "value" : "Gefällt dir Adult Blocker?"
           }
         },
         "es" : {
@@ -4651,6 +4717,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cada recomeço faz parte da jornada. Seu histórico continua — só a sequência atual é reiniciada."
+          }
+        }
+      }
+    },
+    "Everything except Buddy chat" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alles außer dem Buddy-Chat"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo excepto el chat con tu compañero"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tudo, exceto o chat com o parceiro"
           }
         }
       }
@@ -5624,6 +5712,28 @@
         }
       }
     },
+    "Lifetime" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lebenslang"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De por vida"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vitalício"
+          }
+        }
+      }
+    },
     "Light" : {
       "localizations" : {
         "de" : {
@@ -6412,6 +6522,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pais ou responsáveis são responsáveis pelos ajustes do dispositivo, pelas restrições do Tempo de Uso e pela supervisão do uso do dispositivo e da internet por menores."
+          }
+        }
+      }
+    },
+    "Pay once — no subscription, nothing renews. Includes every protection feature; Buddy chat is not included." : {
+      "comment" : "Lifetime billing disclosure — translate every clause faithfully",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einmal bezahlen – kein Abo, nichts verlängert sich. Enthält alle Schutzfunktionen; der Buddy-Chat ist nicht enthalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagas una sola vez: sin suscripción y sin renovaciones. Incluye todas las funciones de protección; el chat con tu compañero no está incluido."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pague uma única vez — sem assinatura, nada é renovado. Inclui todos os recursos de proteção; o chat com o parceiro não está incluído."
           }
         }
       }
@@ -7389,7 +7522,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wähle 'Porno-Blocker' in der Liste."
+            "value" : "Wähle 'Adult Blocker' in der Liste."
           }
         },
         "es" : {
@@ -8369,7 +8502,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tippe in der Liste auf 'Porno-Blocker' (evtl. steht dort Aus)."
+            "value" : "Tippe in der Liste auf 'Adult Blocker' (evtl. steht dort Aus)."
           }
         },
         "es" : {
@@ -8496,6 +8629,29 @@
         }
       }
     },
+    "Tapped by mistake? Undo" : {
+      "comment" : "Streaks card link shown on the day of a reported slip; takes back \"I slipped today\"",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus Versehen getippt? Rückgängig machen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Lo tocaste por error? Deshacer"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocou por engano? Desfazer"
+          }
+        }
+      }
+    },
     "Terms of Use" : {
       "localizations" : {
         "de" : {
@@ -8523,7 +8679,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nutzungsbedingungen (EULA) — Porno-Blocker"
+            "value" : "Nutzungsbedingungen (EULA) — Adult Blocker"
           }
         },
         "es" : {
@@ -8545,7 +8701,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Danke, dass du dich für Porno-Blocker („die App“) entschieden hast. Deine Privatsphäre ist uns sehr wichtig. Diese Datenschutzerklärung erklärt, wie unsere App mit Informationen umgeht."
+            "value" : "Danke, dass du dich für Adult Blocker („die App“) entschieden hast. Deine Privatsphäre ist uns sehr wichtig. Diese Datenschutzerklärung erklärt, wie unsere App mit Informationen umgeht."
           }
         },
         "es" : {
@@ -8787,7 +8943,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Diese Website wurde von Porno-Blocker blockiert, weil sie Inhalte für Erwachsene enthält."
+            "value" : "Diese Website wurde von Adult Blocker blockiert, weil sie Inhalte für Erwachsene enthält."
           }
         },
         "es" : {
@@ -8941,7 +9097,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktiviere die Erweiterung Porno-Blocker in Safari, um Inhalte für Erwachsene zu blockieren."
+            "value" : "Aktiviere die Erweiterung Adult Blocker in Safari, um Inhalte für Erwachsene zu blockieren."
           }
         },
         "es" : {
@@ -9381,7 +9537,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Willkommen bei Porno-Blocker"
+            "value" : "Willkommen bei Adult Blocker"
           }
         },
         "es" : {
@@ -9797,6 +9953,51 @@
         }
       }
     },
+    "one-time" : {
+      "comment" : "Lifetime plan card, under the price",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "einmalig"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pago único"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pagamento único"
+          }
+        }
+      }
+    },
+    "one-time purchase" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einmalkauf"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "compra única"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "compra única"
+          }
+        }
+      }
+    },
     "per %@" : {
       "localizations" : {
         "de" : {
@@ -9926,7 +10127,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "• Porno-Blocker erhebt, speichert und teilt keine personenbezogenen Daten der Nutzer."
+            "value" : "• Adult Blocker erhebt, speichert und teilt keine personenbezogenen Daten der Nutzer."
           }
         },
         "es" : {
@@ -9948,7 +10149,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "• Porno-Blocker ist für Nutzer ab 4 Jahren bestimmt."
+            "value" : "• Adult Blocker ist für Nutzer ab 4 Jahren bestimmt."
           }
         },
         "es" : {
@@ -10237,7 +10438,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "📜 Datenschutzerklärung für Porno-Blocker"
+            "value" : "📜 Datenschutzerklärung für Adult Blocker"
           }
         },
         "es" : {

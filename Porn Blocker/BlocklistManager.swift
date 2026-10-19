@@ -81,6 +81,12 @@ class BlocklistManager: ObservableObject {
 
     /// Pending debounced content blocker rebuild — see `updateContentBlocker()`.
     private var contentBlockerUpdateTask: Task<Void, Never>?
+    /// Launch-time cache load, plus the download if that cache is stale.
+    /// `refreshIfStale()` waits for it: the app's first `didBecomeActive`
+    /// lands before the cached list is in memory, and the still-empty list
+    /// read as "no cache" — so the whole list was re-downloaded on every
+    /// cold launch (twice at once on a fresh install).
+    private var launchLoadTask: Task<Void, Never>?
     private var subscriptionObserver: NSObjectProtocol?
 
     private var sharedContainerURL: URL? {
@@ -112,7 +118,7 @@ class BlocklistManager: ObservableObject {
 
         // Load the cached domain list off the main actor so launch isn't
         // blocked, then download a fresh copy if it's stale.
-        Task { [weak self] in
+        launchLoadTask = Task { [weak self] in
             guard let self else { return }
             let cached = await self.repository.loadCache()
             if !cached.isEmpty {
@@ -159,6 +165,7 @@ class BlocklistManager: ObservableObject {
     /// Refreshes the domain list if the 24h cache window has lapsed. Called on
     /// app foreground so protection doesn't go stale between cold launches.
     func refreshIfStale() async {
+        await launchLoadTask?.value
         guard !isLoading,
               await repository.needsRefresh(haveCachedDomains: !apiBlocklist.isEmpty) else { return }
         await refreshBlocklist()
@@ -303,10 +310,17 @@ class BlocklistManager: ObservableObject {
                 apiDomains: apiBlocklist,
                 strictImageMode: strictImageMode
             )
-            rules = ContentBlockerRuleBuilder.build(input)
+            // ~100k rules — off the main actor, or the UI hitches moments
+            // after every launch for subscribers.
+            rules = await Task.detached(priority: .userInitiated) {
+                ContentBlockerRuleBuilder.build(input)
+            }.value
         } else {
             rules = ContentBlockerRuleBuilder.noopRules()
         }
+
+        // A newer update arrived while this one was building; it writes.
+        guard !Task.isCancelled else { return }
 
         await ContentBlockerRuleBuilder.write(rules, appGroupIdentifier: appGroupIdentifier)
 
@@ -367,7 +381,9 @@ class BlocklistManager: ObservableObject {
     /// file + app-group UserDefaults) for the content blocker extension.
     func saveSubscriptionStatusToSharedStorage() {
         let isSubscribed = SubscriptionManager.shared.isSubscribed
-        let expiryTimestamp = SubscriptionManager.shared.expiryDate?.timeIntervalSince1970
+        // Not `expiryDate`: a Lifetime owner's protection never expires, even
+        // when they also have a subscription that does.
+        let expiryTimestamp = SubscriptionManager.shared.protectionExpiryDate?.timeIntervalSince1970
 
         // At launch this runs before StoreKit has answered. Writing the
         // unresolved `false` would clobber the extension's last-known-good

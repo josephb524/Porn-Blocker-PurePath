@@ -1,13 +1,14 @@
 import SwiftUI
 
-/// The Buddy tab. Shows the chat for subscribers; a marketing/paywall gate
-/// otherwise — same pattern as `SafeBrowserView` so the locked feature feels
-/// consistent across the app.
+/// The Buddy tab. Shows the chat when it's unlocked — Premium or the Buddy
+/// Chat add-on, never Lifetime alone; a marketing/paywall gate otherwise —
+/// same pattern as `SafeBrowserView` so the locked feature feels consistent
+/// across the app.
 struct BuddyChatView: View {
     @StateObject private var subManager = SubscriptionManager.shared
 
     var body: some View {
-        if subManager.isSubscribed {
+        if subManager.hasBuddyAccess {
             BuddyChatContent()
         } else {
             BuddyLockedView()
@@ -23,11 +24,15 @@ private struct BuddyLockedView: View {
 
     private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
 
+    /// Lifetime owners already have protection, so they're sold the chat-only
+    /// add-on instead of Premium.
+    private var offer: PaywallOffer { subManager.ownsLifetime ? .buddyChat : .premium }
+
     /// Caption under the "Unlock Buddy Chat" button. Mirrors the paywall:
-    /// if the default plan (yearly) has a free-trial offer, mention it;
-    /// otherwise just say "Cancel anytime".
+    /// if its default plan has a free-trial offer, mention it; otherwise just
+    /// say "Cancel anytime".
     private var trialTeaserText: String {
-        if let trial = subManager.trialText(for: subManager.yearlyProduct) {
+        if let trial = subManager.trialText(for: offer.defaultPlan(from: subManager)) {
             return String(localized: "\(trial) · Cancel anytime")
         }
         return String(localized: "Cancel anytime")
@@ -57,125 +62,90 @@ private struct BuddyLockedView: View {
                     .blur(radius: 50)
                     .offset(x: 100, y: 200)
 
-                VStack(spacing: 28) {
-                    Spacer()
+                GeometryReader { geo in
+                    // Scrolls only when it must (small phones, large text); with room to
+                    // spare the minHeight frame lets the Spacers spread it out as before.
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 22) {
+                            Spacer()
 
-                    ZStack {
-                        Circle()
-                            .fill(Color.white.opacity(0.08))
-                            .frame(width: 110, height: 110)
-                        Circle()
-                            .fill(Color.white.opacity(0.05))
-                            .frame(width: 80, height: 80)
-                        Image(systemName: "person.fill.questionmark")
-                            .font(.system(size: 42, weight: .medium))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.white, Color(hue: 0.6, saturation: 0.3, brightness: 0.9)],
-                                    startPoint: .top, endPoint: .bottom
-                                )
-                            )
-                    }
+                            BuddyArt()
+                                // Slightly smaller than onboarding: this screen also
+                                // holds a tab bar, three rows and the CTA.
+                                .scaleEffect(0.85)
+                                .frame(height: 162)
 
-                    VStack(spacing: 10) {
-                        Text("Talk to your buddy")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-
-                        Text("A judgment-free chat for your journey to quit porn. Talk through urges, relapses, and wins — anytime.")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                    }
-
-                    VStack(spacing: 10) {
-                        LockedFeatureRow(icon: "heart.text.square.fill", text: "Empathetic, non-judgmental support")
-                        LockedFeatureRow(icon: "clock.fill",             text: "Available whenever an urge hits")
-                        LockedFeatureRow(icon: "lock.fill",              text: "Conversations stay on your device")
-                    }
-                    .padding(.horizontal, 24)
-
-                    Spacer()
-
-                    VStack(spacing: 12) {
-                        Button {
-                            showPaywall = true
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "lock.open.fill")
-                                Text("Unlock Buddy Chat")
+                            VStack(spacing: 10) {
+                                Text("Talk to your buddy")
+                                    .font(.largeTitle)
                                     .fontWeight(.bold)
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(
-                                LinearGradient(
-                                    colors: [
-                                        Color(hue: 0.6, saturation: 0.7, brightness: 0.75),
-                                        accent
-                                    ],
-                                    startPoint: .leading, endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(18)
-                            .shadow(
-                                color: accent.opacity(0.4),
-                                radius: 14, x: 0, y: 6
-                            )
-                        }
-                        .padding(.horizontal, 24)
+                                    .foregroundColor(.white)
 
-                        Text(trialTeaserText)
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.5))
+                                Text("A judgment-free chat for your journey to quit porn. Talk through urges, relapses, and wins — anytime.")
+                                    .font(.body)
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 32)
+                            }
+
+                            VStack(spacing: 10) {
+                                LockedFeaturePill(art: .empathy, text: "Empathetic, non-judgmental support")
+                                LockedFeaturePill(art: .anytime, text: "Available whenever an urge hits")
+                                LockedFeaturePill(art: .onDevice, text: "Conversations stay on your device")
+                            }
+                            .padding(.horizontal, 24)
+
+                            Spacer()
+
+                            VStack(spacing: 12) {
+                                Button {
+                                    showPaywall = true
+                                } label: {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "lock.open.fill")
+                                        Text("Unlock Buddy Chat")
+                                            .fontWeight(.bold)
+                                    }
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 56)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(hue: 0.6, saturation: 0.7, brightness: 0.75),
+                                                accent
+                                            ],
+                                            startPoint: .leading, endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(18)
+                                    .shadow(
+                                        color: accent.opacity(0.4),
+                                        radius: 14, x: 0, y: 6
+                                    )
+                                }
+                                .padding(.horizontal, 24)
+
+                                Text(trialTeaserText)
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+                            .padding(.bottom, 40)
+                        }
+                        .frame(minHeight: geo.size.height)
                     }
-                    .padding(.bottom, 40)
                 }
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showPaywall) {
                 NavigationStack {
-                    PaywallScreen(isPresented: $showPaywall)
+                    PaywallScreen(isPresented: $showPaywall, offer: offer)
                 }
             }
         }
     }
 }
 
-private struct LockedFeatureRow: View {
-    let icon: String
-    let text: LocalizedStringKey
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(Color(hue: 0.6, saturation: 0.4, brightness: 0.85))
-                .frame(width: 24)
-            Text(text)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.white.opacity(0.85))
-            Spacer()
-            Image(systemName: "checkmark")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.4))
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 13)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white.opacity(0.07))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
-        )
-    }
-}
 
 // MARK: - Chat Content (subscribers)
 

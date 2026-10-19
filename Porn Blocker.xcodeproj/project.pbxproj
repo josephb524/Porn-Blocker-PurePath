@@ -64,6 +64,7 @@
 		DD1A00001A00001A00001A00 /* BlocklistLookupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */; };
 		DD1C00001C00001C00001C00 /* SubscriptionCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */; };
 		DD1E00001E00001E00001E00 /* NavigationPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */; };
+		DD2000002000002000002000 /* EntitlementsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2100002100002100002100 /* EntitlementsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -159,6 +160,7 @@
 		DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistLookupTests.swift; sourceTree = "<group>"; };
 		DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionCacheTests.swift; sourceTree = "<group>"; };
 		DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicyTests.swift; sourceTree = "<group>"; };
+		DD2100002100002100002100 /* EntitlementsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitlementsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -296,6 +298,7 @@
 				DD1B00001B00001B00001B00 /* BlocklistLookupTests.swift */,
 				DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */,
 				DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */,
+				DD2100002100002100002100 /* EntitlementsTests.swift */,
 			);
 			path = "Porn BlockerTests";
 			sourceTree = "<group>";
@@ -506,6 +509,7 @@
 				DD1A00001A00001A00001A00 /* BlocklistLookupTests.swift in Sources */,
 				DD1C00001C00001C00001C00 /* SubscriptionCacheTests.swift in Sources */,
 				DD1E00001E00001E00001E00 /* NavigationPolicyTests.swift in Sources */,
+				DD2000002000002000002000 /* EntitlementsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

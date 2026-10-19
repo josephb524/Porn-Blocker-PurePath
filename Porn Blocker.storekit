@@ -4,7 +4,21 @@
 
   ],
   "products" : [
-
+    {
+      "displayPrice" : "59.99",
+      "familyShareable" : false,
+      "internalID" : "6749251524",
+      "localizations" : [
+        {
+          "description" : "Lifetime protection — everything except Buddy chat.",
+          "displayName" : "Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "lifetimePornBlocker",
+      "referenceName" : "Lifetime",
+      "type" : "NonConsumable"
+    }
   ],
   "settings" : {
     "_failTransactionsEnabled" : false,
@@ -75,6 +89,70 @@
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Monthly",
           "subscriptionGroupID" : "21482483",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    },
+    {
+      "id" : "21482484",
+      "localizations" : [
+
+      ],
+      "name" : "Buddy Chat",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6749251525",
+          "introductoryOffer" : {
+            "internalID" : "6749251527",
+            "numberOfPeriods" : 1,
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Buddy chat for Lifetime members, billed yearly.",
+              "displayName" : "Buddy Chat Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "buddyChatYearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Buddy Chat Yearly",
+          "subscriptionGroupID" : "21482484",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6749251526",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Buddy chat for Lifetime members, billed monthly.",
+              "displayName" : "Buddy Chat Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "buddyChatMonthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Buddy Chat Monthly",
+          "subscriptionGroupID" : "21482484",
           "type" : "RecurringSubscription"
         }
       ]

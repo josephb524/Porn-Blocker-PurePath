@@ -27,12 +27,13 @@ struct DashboardView: View {
     @State private var contentBlockerEnabled = true
     @State private var statusCheckTimer: Timer?
 
-    /// StoreKit hasn't answered yet and we had no cached status to seed from
-    /// (fresh install, or a reinstall before the first entitlement check). Renders
-    /// a neutral "checking" card rather than the red alarm — a paying user should
-    /// never be told their protection is off just because the check is in flight.
+    /// StoreKit hasn't answered yet and the cache can't vouch for the status
+    /// (fresh install, or a cached subscription past its cached expiry — see
+    /// `SubscriptionManager.protectionStatusUnknown`). Renders a neutral
+    /// "checking" card rather than the red alarm — a paying user should never be
+    /// told their protection is off just because the check is in flight.
     private var statusUnknown: Bool {
-        !subManager.isSubscribed && !subManager.hasResolvedStatus
+        subManager.protectionStatusUnknown
     }
 
     /// Cumulative whole days protection has actually been active — banked time plus

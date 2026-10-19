@@ -34,9 +34,11 @@ The non-secret vars live in [`wrangler.toml`](wrangler.toml). The defaults:
 | `APPLE_BUNDLE_ID` | `com.jose.pimentel.Porn-Blocker` | Must match the iOS app's bundle ID exactly. |
 | `FIREWORKS_MODEL` | `accounts/fireworks/models/deepseek-v4-flash-0731` | See <https://fireworks.ai/models>. Reasoning model — `src/fireworks.ts` sends `thinking: { type: 'disabled' }` so the chain-of-thought doesn't stall the reply. Swapping to a non-DeepSeek model means re-verifying or removing that param. |
 
-Allowed product IDs are hardcoded in `src/verify.ts`:
-`pornBlocker`, `pornBlockerMonthly`. If you rename them in App Store Connect,
-update that file too.
+Allowed product IDs are hardcoded in `src/verify.ts`: Premium
+(`pornBlocker`, `monthlyPornBlocker`) and the Buddy Chat add-on
+(`buddyChatYearly`, `buddyChatMonthly`). The one-time `lifetimePornBlocker`
+is deliberately not allowed — Lifetime doesn't include chat. If you rename
+them in App Store Connect, update that file too.
 
 ## Deploy
 

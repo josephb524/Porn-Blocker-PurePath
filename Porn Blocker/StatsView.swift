@@ -61,6 +61,9 @@ struct StatsView: View {
             .onChange(of: pornFreeHabit?.currentStreak) { newStreak in
                 celebrateIfMilestoneCrossed(newStreak: newStreak)
             }
+            .onChange(of: selectedEditHabit == nil) { editSheetClosed in
+                if editSheetClosed { celebrateIfMilestoneCrossed(newStreak: pornFreeHabit?.currentStreak) }
+            }
             .sheet(isPresented: $showAddHabit) { AddHabitView() }
             .sheet(item: $selectedEditHabit) { habit in
                 EditHabitView(habit: habit)
@@ -91,13 +94,17 @@ struct StatsView: View {
     /// (crossing semantics — an existing 19-day streak must never
     /// retro-celebrate "1 Week" on tab open or on its next check-in).
     private func celebrateIfMilestoneCrossed(newStreak: Int?) {
+        // A backfill from the edit sheet's start-date sheet saves at once;
+        // celebrated then, the overlay played unseen under the edit sheet and
+        // used the milestone up. Held until the sheet closes instead.
+        guard selectedEditHabit == nil else { return }
         guard let newStreak else { return }
         let old = lastSeenStreak
         lastSeenStreak = newStreak
         guard let old, newStreak > old,
               let habit = pornFreeHabit,
               let crossed = allMilestones.last(where: { old < $0.days && $0.days <= newStreak }),
-              crossed.days > habit.lastCelebratedMilestone else { return }
+              crossed.days > habit.milestoneCelebratedThisRun else { return }
         habitManager.markMilestoneCelebrated(days: crossed.days, habitID: habit.id)
         withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
             celebrationMilestone = crossed
@@ -212,6 +219,16 @@ struct StatsView: View {
                     if habit.currentStreak > 0 {
                         Button(action: { showRelapseConfirm = true }) {
                             Text("I slipped today")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.55))
+                                .underline()
+                        }
+                        .buttonStyle(.plain)
+                    } else if habit.slippedToday {
+                        // "Been clean for a while?" read oddly right after a
+                        // slip — and was the only way to take a mis-tap back.
+                        Button(action: { habitManager.undoRelapse(habitID: habit.id) }) {
+                            Text("Tapped by mistake? Undo")
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.55))
                                 .underline()
@@ -474,6 +491,8 @@ struct HabitCard: View {
                             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: habit.isCheckedInToday)
                     }
                     .buttonStyle(.plain)
+                    // VoiceOver otherwise reads the symbol name ("circle").
+                    .accessibilityLabel(habit.isCheckedInToday ? "Checked in today" : "Check In Today")
 
                     Image(systemName: "chevron.right")
                         .font(.caption)
@@ -709,6 +728,21 @@ struct EditHabitView: View {
         Color(hue: selectedHue, saturation: 0.65, brightness: 0.55)
     }
 
+    /// The latest stored copy. The start-date sheet opened from here saves
+    /// straight to the store, so `habit` (the snapshot this sheet opened
+    /// with) goes stale — saving it put the old start date back.
+    private var storedHabit: TrackedHabit {
+        habitManager.habits.first(where: { $0.id == habit.id }) ?? habit
+    }
+
+    /// The habit with the unsaved check-in edits, so the header's streak
+    /// follows the history grid like the name and emoji do.
+    private var previewHabit: TrackedHabit {
+        var preview = storedHabit
+        preview.checkIns = localCheckIns
+        return preview
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -726,7 +760,7 @@ struct EditHabitView: View {
                             Text(name.isEmpty ? String(localized: "Habit Name") : name)
                                 .font(.headline)
                                 .foregroundColor(name.isEmpty ? .secondary : .primary)
-                            Text("\(habit.currentStreak) day streak · Best: \(habit.longestStreak)")
+                            Text("\(previewHabit.currentStreak) day streak · Best: \(previewHabit.longestStreak)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -840,7 +874,7 @@ struct EditHabitView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                        var updated = habit
+                        var updated = storedHabit
                         let trimmed = name.trimmingCharacters(in: .whitespaces)
                         // Unrenamed built-in keeps its stored English default so
                         // `displayName` keeps following the device language.
@@ -868,7 +902,7 @@ struct EditHabitView: View {
                 Text("This will permanently delete the habit and all its check-in history.")
             }
             .sheet(isPresented: $showStartDateSheet) {
-                PornFreeStartDateSheet(habit: habit)
+                PornFreeStartDateSheet(habit: storedHabit)
             }
             .onChange(of: showStartDateSheet) { isShowing in
                 // Re-sync after a backfill — Save writes localCheckIns wholesale,
@@ -889,14 +923,23 @@ struct HabitHistoryGrid: View {
 
     private let weeksToShow = 8
     private let calendar = Calendar.current
-    private let dayLabels = ["S", "M", "T", "W", "T", "F", "S"]
+
+    /// Weekday initials in the user's language, from their locale's first
+    /// weekday (Monday in Germany and Spain, Sunday in the US and Brazil).
+    /// These were hardcoded English, Sunday first, in every language.
+    private var dayLabels: [String] {
+        let symbols = calendar.veryShortStandaloneWeekdaySymbols   // Sunday first
+        let first = calendar.firstWeekday - 1
+        return Array(symbols[first...] + symbols[..<first])
+    }
 
     /// All dates laid out as [week][dayOfWeek], oldest first
     private var grid: [[Date]] {
         let today = calendar.startOfDay(for: Date())
-        // Start of the oldest displayed week (Sunday)
+        // Start of the current week, on the locale's first weekday
         let weekday = calendar.component(.weekday, from: today) // 1=Sun
-        let startOfCurrentWeek = calendar.date(byAdding: .day, value: -(weekday - 1), to: today)!
+        let daysIntoWeek = (weekday - calendar.firstWeekday + 7) % 7
+        let startOfCurrentWeek = calendar.date(byAdding: .day, value: -daysIntoWeek, to: today)!
         let gridStart = calendar.date(byAdding: .weekOfYear, value: -(weeksToShow - 1), to: startOfCurrentWeek)!
 
         return (0..<weeksToShow).map { week in
@@ -969,6 +1012,10 @@ struct HabitHistoryGrid: View {
                         }
                         .buttonStyle(.plain)
                         .disabled(isFuture)
+                        // VoiceOver otherwise hears only "button" — no date.
+                        .accessibilityLabel(Text(date, format: .dateTime.weekday(.wide).day().month(.wide)))
+                        .accessibilityValue(Text(isChecked ? "Completed" : "Missed"))
+                        .accessibilityHidden(isFuture)
                     }
                 }
             }

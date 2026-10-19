@@ -56,84 +56,79 @@ struct SafeBrowserView: View {
                     .blur(radius: 50)
                     .offset(x: 100, y: 200)
 
-                VStack(spacing: 28) {
-                    Spacer()
+                GeometryReader { geo in
+                    // Scrolls only when it must (small phones, large text); with room to
+                    // spare the minHeight frame lets the Spacers spread it out as before.
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 22) {
+                            Spacer()
 
-                    // Icon
-                    ZStack {
-                        Circle()
-                            .fill(Color.white.opacity(0.08))
-                            .frame(width: 110, height: 110)
-                        Circle()
-                            .fill(Color.white.opacity(0.05))
-                            .frame(width: 80, height: 80)
-                        Image(systemName: "safari.fill")
-                            .font(.system(size: 42, weight: .medium))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.white, Color(hue: 0.6, saturation: 0.3, brightness: 0.9)],
-                                    startPoint: .top, endPoint: .bottom
-                                )
-                            )
-                    }
+                            SafeBrowseArt()
+                                // Slightly smaller than onboarding: this screen also
+                                // holds a tab bar, three rows and the CTA.
+                                .scaleEffect(0.85)
+                                .frame(height: 162)
 
-                    // Text
-                    VStack(spacing: 10) {
-                        Text("Safe Browser")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-
-                        Text("Browse with confidence — the Safe Browser actively blocks adult sites, blurs inappropriate images, and filters harmful content in real time.")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                    }
-
-                    // Feature pills
-                    VStack(spacing: 10) {
-                        LockedFeaturePill(icon: "shield.fill",      text: "Real-time domain blocking")
-                        LockedFeaturePill(icon: "eye.slash.fill",   text: "Automatic image blurring")
-                        LockedFeaturePill(icon: "bolt.shield.fill", text: "Dynamic content filtering")
-                    }
-                    .padding(.horizontal, 24)
-
-                    Spacer()
-
-                    // CTA
-                    VStack(spacing: 12) {
-                        Button(action: { showPaywall = true }) {
-                            HStack(spacing: 10) {
-                                Image(systemName: "lock.open.fill")
-                                Text("Unlock Safe Browser")
+                            // Text
+                            VStack(spacing: 10) {
+                                Text("Safe Browser")
+                                    .font(.largeTitle)
                                     .fontWeight(.bold)
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(
-                                LinearGradient(
-                                    colors: [
-                                        Color(hue: 0.6, saturation: 0.7, brightness: 0.75),
-                                        Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
-                                    ],
-                                    startPoint: .leading, endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(18)
-                            .shadow(
-                                color: Color(hue: 0.6, saturation: 0.5, brightness: 0.5).opacity(0.4),
-                                radius: 14, x: 0, y: 6
-                            )
-                        }
-                        .padding(.horizontal, 24)
+                                    .foregroundColor(.white)
 
-                        Text(trialTeaserText)
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.5))
+                                Text("Browse with confidence — the Safe Browser actively blocks adult sites, blurs inappropriate images, and filters harmful content in real time.")
+                                    .font(.body)
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 32)
+                            }
+
+                            // Feature pills
+                            VStack(spacing: 10) {
+                                LockedFeaturePill(art: .domainBlocking, text: "Real-time domain blocking")
+                                LockedFeaturePill(art: .imageBlur, text: "Automatic image blurring")
+                                LockedFeaturePill(art: .contentFilter, text: "Dynamic content filtering")
+                            }
+                            .padding(.horizontal, 24)
+
+                            Spacer()
+
+                            // CTA
+                            VStack(spacing: 12) {
+                                Button(action: { showPaywall = true }) {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "lock.open.fill")
+                                        Text("Unlock Safe Browser")
+                                            .fontWeight(.bold)
+                                    }
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 56)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(hue: 0.6, saturation: 0.7, brightness: 0.75),
+                                                Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
+                                            ],
+                                            startPoint: .leading, endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(18)
+                                    .shadow(
+                                        color: Color(hue: 0.6, saturation: 0.5, brightness: 0.5).opacity(0.4),
+                                        radius: 14, x: 0, y: 6
+                                    )
+                                }
+                                .padding(.horizontal, 24)
+
+                                Text(trialTeaserText)
+                                    .font(.caption)
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+                            .padding(.bottom, 40)
+                        }
+                        .frame(minHeight: geo.size.height)
                     }
-                    .padding(.bottom, 40)
                 }
             }
             .navigationBarHidden(true)
@@ -806,6 +801,8 @@ struct LockedFeaturePill: View {
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .foregroundColor(.white.opacity(0.85))
+                // Wrap rather than truncate ("Empathetic, non-judgmental…").
+                .fixedSize(horizontal: false, vertical: true)
             Spacer()
             Image(systemName: "checkmark")
                 .font(.caption)

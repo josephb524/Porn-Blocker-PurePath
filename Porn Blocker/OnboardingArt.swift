@@ -224,6 +224,10 @@ private struct HeroBackdrop: View {
 
 enum FeatureArtKind {
     case safariBlocking, safeBrowser, buddyChat, streaks, customList
+    // Safe Browse locked screen
+    case domainBlocking, imageBlur, contentFilter
+    // Buddy locked screen
+    case empathy, anytime, onDevice
 }
 
 /// The drawing for a feature, white on its tile.
@@ -240,6 +244,12 @@ struct FeatureGlyph: View {
                 case .buddyChat:      chat(s)
                 case .streaks:        flame(s)
                 case .customList:     list(s)
+                case .domainBlocking: globe(s)
+                case .imageBlur:      blurredPicture(s)
+                case .contentFilter:  funnel(s)
+                case .empathy:        heart(s)
+                case .anytime:        clock(s)
+                case .onDevice:       phoneLock(s)
                 }
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
@@ -342,6 +352,106 @@ struct FeatureGlyph: View {
         }
     }
 
+    /// A globe with a shield guarding it.
+    private func globe(_ s: CGFloat) -> some View {
+        ZStack {
+            ZStack {
+                Circle().stroke(Color.white, lineWidth: s * 0.07)
+                Ellipse().stroke(Color.white, lineWidth: s * 0.06).frame(width: s * 0.34)
+                Rectangle().fill(Color.white).frame(height: s * 0.06)
+            }
+            .frame(width: s * 0.7, height: s * 0.7)
+            .offset(x: -s * 0.08, y: -s * 0.08)
+            ShieldShape().fill(Color.white)
+                .frame(width: s * 0.36, height: s * 0.42)
+                .offset(x: s * 0.26, y: s * 0.22)
+            CheckShape()
+                .stroke(ArtColor.shieldBottom, style: StrokeStyle(lineWidth: s * 0.06, lineCap: .round, lineJoin: .round))
+                .frame(width: s * 0.15, height: s * 0.1)
+                .offset(x: s * 0.26, y: s * 0.21)
+        }
+    }
+
+    /// A picture whose middle is frosted over.
+    private func blurredPicture(_ s: CGFloat) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: s * 0.12, style: .continuous)
+                .stroke(Color.white, lineWidth: s * 0.08)
+                .frame(width: s * 0.84, height: s * 0.68)
+            Circle().fill(Color.white).frame(width: s * 0.14).offset(x: s * 0.2, y: -s * 0.14)
+            Path { p in
+                p.move(to: CGPoint(x: s * 0.16, y: s * 0.76))
+                p.addLine(to: CGPoint(x: s * 0.4, y: s * 0.46))
+                p.addLine(to: CGPoint(x: s * 0.58, y: s * 0.66))
+                p.addLine(to: CGPoint(x: s * 0.68, y: s * 0.56))
+                p.addLine(to: CGPoint(x: s * 0.84, y: s * 0.76))
+                p.closeSubpath()
+            }
+            .fill(Color.white)
+            RoundedRectangle(cornerRadius: s * 0.06)
+                .fill(Color.white.opacity(0.55))
+                .frame(width: s * 0.84, height: s * 0.2)
+                .blur(radius: s * 0.02)
+        }
+    }
+
+    /// A funnel letting only clean drops through.
+    private func funnel(_ s: CGFloat) -> some View {
+        ZStack {
+            Path { p in
+                p.move(to: CGPoint(x: s * 0.12, y: s * 0.16))
+                p.addLine(to: CGPoint(x: s * 0.88, y: s * 0.16))
+                p.addLine(to: CGPoint(x: s * 0.58, y: s * 0.52))
+                p.addLine(to: CGPoint(x: s * 0.58, y: s * 0.78))
+                p.addLine(to: CGPoint(x: s * 0.42, y: s * 0.88))
+                p.addLine(to: CGPoint(x: s * 0.42, y: s * 0.52))
+                p.closeSubpath()
+            }
+            .fill(Color.white)
+            ForEach(0..<3, id: \.self) { i in
+                Circle().fill(Color.white.opacity(0.6))
+                    .frame(width: s * 0.09)
+                    .offset(x: s * (CGFloat(i) - 1) * 0.18, y: -s * 0.42)
+            }
+        }
+    }
+
+    /// A heart with a small spark: care without judgment.
+    private func heart(_ s: CGFloat) -> some View {
+        ZStack {
+            HeartShape().fill(Color.white).frame(width: s * 0.72, height: s * 0.64).offset(y: s * 0.04)
+            SparkShape().fill(Color.white).frame(width: s * 0.24, height: s * 0.24).offset(x: s * 0.34, y: -s * 0.3)
+        }
+    }
+
+    /// A clock face: there at any hour.
+    private func clock(_ s: CGFloat) -> some View {
+        ZStack {
+            Circle().stroke(Color.white, lineWidth: s * 0.08).frame(width: s * 0.78)
+            Capsule().fill(Color.white).frame(width: s * 0.08, height: s * 0.26).offset(y: -s * 0.11)
+            Capsule().fill(Color.white).frame(width: s * 0.2, height: s * 0.08).offset(x: s * 0.08)
+            Circle().fill(Color.white).frame(width: s * 0.1)
+        }
+    }
+
+    /// A phone with a lock on its screen: chats stay on the device.
+    private func phoneLock(_ s: CGFloat) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: s * 0.12, style: .continuous)
+                .stroke(Color.white, lineWidth: s * 0.08)
+                .frame(width: s * 0.5, height: s * 0.84)
+            Capsule().fill(Color.white).frame(width: s * 0.14, height: s * 0.05).offset(y: -s * 0.3)
+            VStack(spacing: -s * 0.02) {
+                Circle().trim(from: 0.5, to: 1)
+                    .stroke(Color.white, style: StrokeStyle(lineWidth: s * 0.06, lineCap: .round))
+                    .frame(width: s * 0.2, height: s * 0.2)
+                    .offset(y: s * 0.05)
+                RoundedRectangle(cornerRadius: s * 0.04).fill(Color.white).frame(width: s * 0.28, height: s * 0.2)
+            }
+            .offset(y: s * 0.06)
+        }
+    }
+
     /// A flame with a brighter core.
     private func flame(_ s: CGFloat) -> some View {
         ZStack {
@@ -363,6 +473,12 @@ struct FeatureEmblem: View {
         case .buddyChat:      return [Color(red: 0.76, green: 0.56, blue: 1.0), Color(red: 0.5, green: 0.3, blue: 0.9)]
         case .streaks:        return [ArtColor.amberTop, ArtColor.amberBottom]
         case .customList:     return [Color(red: 0.3, green: 0.85, blue: 0.68), Color(red: 0.1, green: 0.58, blue: 0.48)]
+        case .domainBlocking: return [ArtColor.shieldTop, ArtColor.shieldBottom]
+        case .imageBlur:      return [Color(red: 0.36, green: 0.66, blue: 1.0), Color(red: 0.18, green: 0.38, blue: 0.92)]
+        case .contentFilter:  return [Color(red: 0.3, green: 0.85, blue: 0.68), Color(red: 0.1, green: 0.58, blue: 0.48)]
+        case .empathy:        return [Color(red: 1.0, green: 0.55, blue: 0.66), Color(red: 0.9, green: 0.3, blue: 0.5)]
+        case .anytime:        return [ArtColor.amberTop, ArtColor.amberBottom]
+        case .onDevice:       return [Color(red: 0.76, green: 0.56, blue: 1.0), Color(red: 0.5, green: 0.3, blue: 0.9)]
         }
     }
 
@@ -462,12 +578,144 @@ struct ReminderArt: View {
     }
 }
 
+/// Safe Browse locked screen: a browser window the shield guards — a site
+/// struck through, a picture frosted over.
+struct SafeBrowseArt: View {
+    var body: some View {
+        ZStack {
+            HeroBackdrop(size: 210, glow: Color(red: 0.2, green: 0.45, blue: 0.95))
+            // The browser window.
+            VStack(spacing: 0) {
+                HStack(spacing: 5) {
+                    ForEach([ArtColor.shieldTop, ArtColor.amberTop, Color(red: 0.3, green: 0.85, blue: 0.68)], id: \.self) { c in
+                        Circle().fill(c).frame(width: 7)
+                    }
+                    Capsule().fill(Color.white.opacity(0.18)).frame(height: 10).padding(.leading, 6)
+                }
+                .padding(.horizontal, 12)
+                .frame(height: 26)
+                .background(Color.white.opacity(0.1))
+                VStack(alignment: .leading, spacing: 8) {
+                    // A blocked result: struck through, in red.
+                    HStack(spacing: 6) {
+                        Circle().stroke(ArtColor.shieldTop, lineWidth: 2).frame(width: 12)
+                            .overlay(Rectangle().fill(ArtColor.shieldTop).frame(width: 12, height: 2).rotationEffect(.degrees(-45)))
+                        Capsule().fill(ArtColor.shieldTop.opacity(0.55)).frame(width: 70, height: 7)
+                    }
+                    Capsule().fill(Color.white.opacity(0.35)).frame(width: 96, height: 7)
+                    Capsule().fill(Color.white.opacity(0.22)).frame(width: 74, height: 7)
+                    // A picture, frosted over.
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(LinearGradient(colors: [Color(red: 0.36, green: 0.66, blue: 1.0).opacity(0.7), ArtColor.lavender.opacity(0.5)],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 100, height: 40)
+                        .blur(radius: 5)
+                        .overlay(
+                            Image(systemName: "eye.slash.fill")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.9))
+                        )
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(width: 150, height: 132)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(hue: 0.62, saturation: 0.45, brightness: 0.22))
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.white.opacity(0.16), lineWidth: 1))
+            .shadow(color: .black.opacity(0.35), radius: 14, y: 8)
+            .offset(x: -14, y: -4)
+            BrandShield(size: 54).offset(x: 62, y: 44)
+            Spark(size: 15, color: ArtColor.pink).offset(x: -86, y: -66).floating(3, phase: 0.6)
+            Spark(size: 18, color: ArtColor.lavender).offset(x: 80, y: -70).floating(3, phase: 2.0)
+            Spark(size: 11, color: ArtColor.pink).offset(x: -92, y: 58).floating(2, phase: 3.1)
+        }
+        .frame(width: 220, height: 190)
+        .accessibilityHidden(true)
+    }
+}
+
+/// Buddy locked screen: a conversation — your message, the buddy's warm
+/// reply with a heart, the next reply already typing.
+struct BuddyArt: View {
+    private let purpleTop = Color(red: 0.76, green: 0.56, blue: 1.0)
+    private let purpleBottom = Color(red: 0.5, green: 0.3, blue: 0.9)
+
+    var body: some View {
+        ZStack {
+            HeroBackdrop(size: 210, glow: purpleBottom)
+            // The user's message, right.
+            bubble(width: 104, height: 40, fill: AnyShapeStyle(Color.white.opacity(0.16)), tailRight: true) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Capsule().fill(Color.white.opacity(0.7)).frame(width: 64, height: 6)
+                    Capsule().fill(Color.white.opacity(0.45)).frame(width: 44, height: 6)
+                }
+            }
+            .offset(x: 34, y: -52)
+            .floating(3, phase: 0.3)
+            // The buddy's reply, left, with a heart.
+            bubble(width: 128, height: 50,
+                   fill: AnyShapeStyle(LinearGradient(colors: [purpleTop, purpleBottom], startPoint: .topLeading, endPoint: .bottomTrailing)),
+                   tailRight: false) {
+                HStack(spacing: 8) {
+                    HeartShape().fill(Color.white).frame(width: 18, height: 16)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Capsule().fill(Color.white).frame(width: 66, height: 6)
+                        Capsule().fill(Color.white.opacity(0.75)).frame(width: 48, height: 6)
+                    }
+                }
+            }
+            .shadow(color: purpleBottom.opacity(0.5), radius: 12, y: 6)
+            .offset(x: -24, y: 6)
+            .floating(3, phase: 1.6)
+            // Typing.
+            HStack(spacing: 5) {
+                ForEach(0..<3, id: \.self) { i in
+                    Circle().fill(Color.white.opacity(0.85 - Double(i) * 0.2)).frame(width: 7)
+                }
+            }
+            .padding(.horizontal, 12).padding(.vertical, 9)
+            .background(Capsule().fill(Color.white.opacity(0.14)))
+            .offset(x: -52, y: 60)
+            .floating(2, phase: 2.8)
+            BrandShield(size: 34).offset(x: 66, y: 44)
+            Spark(size: 16, color: ArtColor.pink).offset(x: -82, y: -60).floating(3, phase: 0.9)
+            Spark(size: 12, color: ArtColor.lavender).offset(x: 88, y: -8).floating(2, phase: 2.4)
+        }
+        .frame(width: 220, height: 190)
+        .accessibilityHidden(true)
+    }
+
+    private func bubble<Content: View>(width: CGFloat, height: CGFloat, fill: AnyShapeStyle, tailRight: Bool,
+                                       @ViewBuilder content: () -> Content) -> some View {
+        ZStack(alignment: tailRight ? .bottomTrailing : .bottomLeading) {
+            RoundedRectangle(cornerRadius: 16, style: .continuous).fill(fill)
+                .frame(width: width, height: height)
+            Path { p in
+                p.move(to: CGPoint(x: 0, y: 0))
+                p.addLine(to: CGPoint(x: 12, y: 0))
+                p.addLine(to: CGPoint(x: tailRight ? 14 : -2, y: 9))
+                p.closeSubpath()
+            }
+            .fill(fill)
+            .frame(width: 12, height: 9)
+            .offset(x: tailRight ? -8 : 8, y: 7)
+            content().frame(width: width, height: height)
+        }
+    }
+}
+
 #Preview {
     ScrollView {
         VStack(spacing: 40) {
             WelcomeArt()
             HowItWorksArt()
             ReminderArt()
+            SafeBrowseArt()
+            BuddyArt()
             HStack {
                 FeatureEmblem(kind: .safariBlocking)
                 FeatureEmblem(kind: .safeBrowser)

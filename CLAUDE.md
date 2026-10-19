@@ -23,13 +23,14 @@ Five tabs in `MainTabView`, in this order:
 | Tag | Tab | View |
 |---|---|---|
 | 0 | Protection | `DashboardView` |
-| 1 | Safe Browse | `SafeBrowserView` (subscription-gated) |
-| 2 | Buddy | `BuddyChatView` (subscription-gated) |
+| 1 | Safe Browse | `SafeBrowserView` (gated on `isSubscribed`: Premium or Lifetime) |
+| 2 | Buddy | `BuddyChatView` (gated on `hasBuddyAccess`: Premium or the Buddy Chat add-on — **not** Lifetime) |
 | 3 | Streaks | `StatsView` |
 | 4 | Settings | `SettingsView` |
 
-The Safe Browse and Buddy tabs both show a locked marketing view for
-non-subscribers that opens the paywall. The other tabs are free.
+The Safe Browse and Buddy tabs both show a locked marketing view that opens
+the paywall — on the Buddy tab, Lifetime owners get the Buddy Chat add-on
+paywall instead of Premium. The other tabs are free.
 
 ## Build & Run
 
@@ -51,6 +52,11 @@ in `project.pbxproj`.
 - **`BlocklistManager`** — `@MainActor` `ObservableObject` facade. Owns the
   `@Published` lists the UI binds to and orchestrates updates. Delegates the
   real work to the types below. Accessed as `BlocklistManager.shared`.
+  `refreshIfStale()` (run on every `didBecomeActive`) first awaits
+  `launchLoadTask`, the launch-time cache load: the first activation lands
+  before the cached list is in memory, and the still-empty list read as "no
+  cache" — a full re-download on every cold launch, two at once on a fresh
+  install (fixed 2026-10-19). Keep the await.
 - **`BlocklistRepository`** — an `actor` that owns the downloaded domain
   blocklist: the StevenBlack hosts-file download, parsing, and on-disk cache.
   All its I/O runs off the main actor.
@@ -191,16 +197,46 @@ second row = back/forward + ellipsis menu (Reload/Stop, Close Tab).
 ### Subscription
 
 - **`SubscriptionManager`** — StoreKit 2 wrapper, `@MainActor` singleton.
-  Loads the monthly + yearly products, exposes `isSubscribed`,
-  `signedTransactionJWS` (Apple-signed JWS sent to the chat Worker as
-  `signedTransaction`), and `originalTransactionID`. Listens to
-  `Transaction.updates`; hourly expiration check timer.
-- **`PaywallScreen`** — laid out after Cairn's house paywall, in the
+  Loads all five products (see "Subscription products"), exposes the
+  entitlement flags below, `signedTransactionJWS` (Apple-signed JWS sent to
+  the chat Worker as `signedTransaction`), and `originalTransactionID`.
+  Listens to `Transaction.updates`; hourly expiration check timer.
+- **Entitlement model (2026-10-18).** Three things can be owned: a
+  **Premium** subscription (everything), the one-time **Lifetime** purchase
+  (protection, **no** Buddy chat — the chat is the one per-message-cost
+  feature), and the **Buddy Chat add-on** subscription (chat only, sold to
+  Lifetime owners so they needn't buy Premium again). They're reduced to the
+  pure `Entitlements` struct (unit-tested in `EntitlementsTests`), published
+  as the single `@Published entitlements`; every flag derives from it:
+  - `isSubscribed` = Premium **or** Lifetime — the name predates Lifetime;
+    read it as "protection unlocked". The ~50 existing gates (Safari
+    ruleset, Safe Browser, custom lists, whitelist, Dashboard, onboarding)
+    all use it, so Lifetime unlocks them without per-site changes.
+  - `hasBuddyAccess` = Premium **or** the add-on. Gates only the Buddy tab.
+  - `ownsLifetime`; `expiryDate` (Premium's expiry);
+    `protectionExpiryDate` (`nil` for Lifetime owners — see the mirror
+    paragraph below).
+  - `signedTransactionJWS` comes from whichever subscription includes chat
+    (Premium, else the add-on) — **never** the Lifetime transaction, which
+    the Worker rejects. `purchase(_:)` therefore re-derives everything via
+    `checkSubscriptionStatus()` (Apple's SKDemo pattern) instead of trusting
+    the purchased transaction.
+- **`PaywallScreen(isPresented:offer:)`** — `offer` is `.premium` (default,
+  every existing call site) or `.buddyChat` (the add-on, opened by
+  `BuddyLockedView` for Lifetime owners: `FeatureEmblem(.buddyChat)` hero,
+  the locked screen's three chat features, the add-on's plans; it closes on
+  `hasBuddyAccess`, not `isSubscribed`). `PaywallOffer` maps each offer to
+  its plans / default plan. Laid out after Cairn's house paywall, in the
   onboarding artwork's style (2026-09-27): dark navy field, `BrandShield`
   hero, four paid features as `FeatureEmblem` rows (streaks are free, so
   not sold here), **two side-by-side plan cards** (monthly + yearly, yearly
-  selected by default, "SAVE X%" ribbon), a breathing CTA (scaleEffect),
-  billing disclosure, Terms · Privacy. Later / Restore stay in the toolbar;
+  selected by default, "SAVE X%" ribbon), then — Premium offer only,
+  hidden once owned — a **full-width Lifetime card** ("Everything except
+  Buddy chat", price, "one-time"; approved from a mockup 2026-10-18), a
+  breathing CTA (scaleEffect), billing disclosure, Terms · Privacy. With
+  Lifetime selected, the buddy-chat feature row is dimmed and struck
+  through, the CTA reads "Buy Lifetime Access", and `lifetimeDisclosure`
+  replaces the subscription terms. Later / Restore stay in the toolbar;
   the hero's top padding clears them (German "Wiederherstellen" is long).
   **Trial copy is eligibility-gated**: every trial mention goes through
   `SubscriptionManager.trialText(for:)`, backed by `trialEligibleProductIDs`
@@ -217,7 +253,11 @@ blocker. `SubscriptionManager` has **no** reference back to `BlocklistManager`
 
 The app mirrors subscription status into the shared container as both a JSON
 file and app-group `UserDefaults`; the extension reads the file and falls back
-to `UserDefaults` if it is missing.
+to `UserDefaults` if it is missing. The mirrored expiry is
+`protectionExpiryDate`, **not** `expiryDate`: it's `nil` for Lifetime owners,
+so a Premium subscription a Lifetime owner also holds can't lapse while the
+app is closed and make the extension serve the no-op ruleset. (The extension
+already reads a `nil` expiry with `isSubscribed: true` as not expired.)
 
 #### Launch-time status resolution
 
@@ -229,26 +269,36 @@ the Safari ruleset as `noopRules()`, genuinely disarming the blocker. Three
 pieces prevent that; keep all three:
 
 - **Seed from cache.** `SubscriptionManager` persists the last *resolved*
-  status to `UserDefaults.standard` (`cachedSubscriptionActive` /
-  `cachedSubscriptionExpiry`, written only by `markStatusResolved()`) and
-  `seedFromCache()` restores it synchronously in `init()`. The seed is gated by
+  entitlements to `UserDefaults.standard` (`cachedSubscriptionActive` /
+  `cachedSubscriptionExpiry` — Premium's, named before the other products
+  existed — plus `cachedLifetimeOwned` and `cachedBuddySubscriptionActive` /
+  `cachedBuddySubscriptionExpiry`, all written only by
+  `markStatusResolved()`) and `seedFromCache()` restores them synchronously
+  in `init()`. Each subscription seed is gated by
   `cachedStatusIsActive(flag:expiry:now:)` — a `nonisolated static` pure
   function requiring a **present, future** expiry, so an optimistic `true`
-  can't outlive the subscription it came from. These keys are deliberately
+  can't outlive the subscription it came from. The Lifetime flag has no
+  expiry to gate on and needs none: it never expires, and a refund is
+  corrected by the launch check moments later. These keys are deliberately
   **not** the app-group keys `BlocklistManager` mirrors; those get written
   before StoreKit resolves and would seed a stale value. `signedTransactionJWS`
   is never seeded — it must stay a real Apple-signed value.
 - **`hasResolvedStatus`.** `false` until StoreKit has actually been asked.
   `markStatusResolved()` sets it and writes the cache together (called from
-  both `updateSubscriptionStatus(from:)` and `setSubscriptionExpired()`,
-  always *before* they post `.subscriptionStatusChanged`, so observers see a
-  resolved status). `DashboardView.statusUnknown` uses it to show a neutral
-  "Checking Protection…" card instead of the red alarm on a cache miss
-  (fresh install / reinstall), and `BlocklistManager` guards **both** downgrade
-  paths on it — `saveSubscriptionStatusToSharedStorage()` and
+  `checkSubscriptionStatus()` after it publishes the new entitlements and
+  always *before* it posts `.subscriptionStatusChanged`, so observers see a
+  resolved status). `DashboardView.statusUnknown` shows a neutral "Checking
+  Protection…" card instead of the red alarm only while
+  `SubscriptionManager.protectionStatusUnknown`: unresolved **and** the cache
+  can't vouch (`cacheIsConclusive` — nothing ever resolved on this install, or
+  a cached Premium subscription past its cached expiry, which has most likely
+  renewed). A cached "no" shows at once; reading it as unknown too gave every
+  non-subscriber the grey card on every launch (fixed 2026-10-19).
+  `BlocklistManager` guards **both** downgrade paths on `hasResolvedStatus`
+  itself — `saveSubscriptionStatusToSharedStorage()` and
   `rebuildContentBlocker()` return early rather than writing `false` / the
-  no-op ruleset. Safe because the check posts `.subscriptionStatusChanged` on
-  *both* branches, so the real write always follows.
+  no-op ruleset. Safe because the check posts `.subscriptionStatusChanged`
+  whatever it finds, so the real write always follows.
 - **`init()` runs the two startup tasks separately.** `checkSubscriptionStatus()`
   reads on-device entitlements; `loadProducts()` is a network round-trip only
   the paywall needs. They used to be `await`ed in sequence, which queued the
@@ -256,22 +306,38 @@ pieces prevent that; keep all three:
 
 #### Subscription products
 
-Product IDs must match in **four** places: `SubscriptionManager.swift`,
-`worker/src/verify.ts` (`VALID_PRODUCT_IDS`), App Store Connect, **and**
-`Porn Blocker.storekit` (the local StoreKit test config — see below).
+Product IDs must match in `SubscriptionManager.swift`, App Store Connect,
+`Porn Blocker.storekit` (the local StoreKit test config — see below) **and**,
+for every product that includes chat, `worker/src/verify.ts`
+(`VALID_PRODUCT_IDS`):
 
-- `pornBlocker` — yearly
-- `monthlyPornBlocker` — monthly
+| ID | Product | Type / group | In `VALID_PRODUCT_IDS` |
+|---|---|---|---|
+| `pornBlocker` | Premium yearly | auto-renew, Premium group | yes |
+| `monthlyPornBlocker` | Premium monthly | auto-renew, Premium group | yes |
+| `lifetimePornBlocker` | Lifetime | non-consumable, Family Sharing off | **no — deliberately** |
+| `buddyChatYearly` | Buddy Chat add-on yearly | auto-renew, **Buddy Chat group** | yes |
+| `buddyChatMonthly` | Buddy Chat add-on monthly | auto-renew, **Buddy Chat group** | yes |
 
-Both declared in `SubscriptionManager` as `nonisolated static let` so the
+The add-on has its own subscription group so it never appears as a cheaper
+switch from Premium in Settings → Subscriptions (switching would silently
+drop protection), and so its intro-offer eligibility is independent of
+Premium's. Prices for the add-on are still open (2026-10-18); the
+`.storekit` values are placeholders. A Lifetime owner who later wants chat
+buys the add-on; a Premium subscriber who buys Lifetime must cancel Premium
+themselves — Apple doesn't do it.
+
+All declared in `SubscriptionManager` as `nonisolated static let` so the
 detached transaction listener can reference them without Swift 6 isolation
 warnings.
 
 #### Simulator subscription testing (`Porn Blocker.storekit`)
 
-`Porn Blocker.storekit` defines both products locally so subscription-gated
-features (Safe Browser, Buddy chat, whitelist, the full Safari ruleset) can
-be exercised in the simulator without sandbox accounts.
+`Porn Blocker.storekit` defines all five products locally so paid features
+(Safe Browser, Buddy chat, whitelist, the full Safari ruleset) and the
+Lifetime / add-on combinations can be exercised in the simulator without
+sandbox accounts. Refund a purchase from Xcode → Debug → StoreKit → Manage
+Transactions to test revocation.
 
 It is deliberately **not** referenced by the shared scheme, so normal runs
 use real StoreKit. To enable it: Product → Scheme → Edit Scheme → Run →
@@ -318,6 +384,14 @@ re-reading the rejection notice:
   3-day free trial", `.caption2`, secondary color). Don't restyle it in
   accent color or larger fonts — that's what got the original layout
   rejected.
+- **The Lifetime card follows the same hierarchy**: its `displayPrice` is
+  `.title2.heavy`, the "one-time" and "Everything except Buddy chat"
+  captions are smaller and secondary, and `lifetimeDisclosure` repeats the
+  price in `.title3.bold` with "one-time purchase", then states that
+  nothing renews and Buddy chat isn't included. The card costs ~70pt of
+  height; on an iPhone 16 the disclosure still fits above the fold (the
+  Terms · Privacy links fall just below). The Buddy Chat offer uses the
+  unchanged subscription disclosure.
 
 ### Buddy Chat (paid feature)
 
@@ -327,7 +401,7 @@ re-reading the rejection notice:
 | `ConversationStore.swift` | `@MainActor` singleton. Persists `Documents/buddy_chat_conversations.json`. Auto-saves on each turn. |
 | `BuddyChatService.swift` | Networking namespace. POSTs to the Worker `/chat` with `signedTransaction + messages` and yields text deltas from the SSE stream. **The hardcoded `endpoint` URL must be updated after every Worker deploy.** |
 | `BuddyChatViewModel.swift` | `@MainActor` ObservableObject. Owns the active conversation, draft, streaming state. Two inits — `init()` for the common case (resolves singletons inside the body, avoids Swift 6 actor-isolated default-arg warning) and `init(conversation:store:subManager:)` for tests. Batches SSE deltas and flushes to the UI at ~10Hz — per-token `@Published` updates froze the UI on longer replies. A `streamGeneration` counter guards the stream task's completion so a stale (cancelled) stream can't clobber a newer one (stop-then-immediately-resend race that stuck `isStreaming`). A still-empty assistant placeholder is dropped on completion/cancel; history sent to the worker is capped at the last 20 messages (worker rejects >`MAX_MESSAGES` = 40). |
-| `BuddyChatView.swift` | Tab entry point. If subscribed: `BuddyChatContent` (NavigationStack, toolbar [history/new chat], empty state with 4 suggested prompts that **auto-send on tap**, message bubbles with action bar [copy / read aloud / 👍 / 👎], composer). If not: `BuddyLockedView` — marketing gate styled like Safe Browser's, with the same dynamic trial caption, opening the existing paywall. |
+| `BuddyChatView.swift` | Tab entry point. If `hasBuddyAccess` (Premium or the add-on — Lifetime alone doesn't count): `BuddyChatContent` (NavigationStack, toolbar [history/new chat], empty state with 4 suggested prompts that **auto-send on tap**, message bubbles with action bar [copy / read aloud / 👍 / 👎], composer). If not: `BuddyLockedView` — marketing gate styled like Safe Browser's, with the same dynamic trial caption, opening the existing paywall. |
 | `ConversationListView.swift` | History sheet with swipe-to-delete and relative timestamps. |
 | `ChatRichText.swift` | Lightweight markdown renderer for assistant messages — paragraphs, blockquotes, bullets, inline bold/italic via `AttributedString`. Flattens headings, tables, HTML to plain text. Includes `TypingIndicator`. |
 | `SpeechController.swift` | `AVSpeechSynthesizer` wrapper. `toggle(messageID:text:)`. Strips markdown before speaking. Default voice `en-US`. |
@@ -365,8 +439,10 @@ reminder → paywall. Non-obvious rules:
   next launch; that's intentional and safe because the side effects are
   idempotent.
 - **Artwork is drawn, not SF Symbols** (`OnboardingArt.swift`): the page
-  heroes (`WelcomeArt`, `HowItWorksArt`, `ReminderArt`) and the feature-row
-  emblems (`FeatureEmblem`, used via `LockedFeaturePill(art:)`) are SwiftUI
+  heroes (`WelcomeArt`, `HowItWorksArt`, `ReminderArt`, plus `SafeBrowseArt`
+  / `BuddyArt` on the two locked tabs, which scroll only when the screen is
+  too short) and the feature-row emblems (`FeatureEmblem`, used via
+  `LockedFeaturePill(art:)` everywhere, paywall included) are SwiftUI
   shapes in the icon's language — red `BrandShield` with a white check,
   four-point sparks, soft bubbles. No assets, no text, so nothing to localize.
 - Cold-launch notification taps survive onboarding:
@@ -415,24 +491,44 @@ Non-obvious bits:
 `HabitManager` / `TrackedHabit` (in `HabitManager.swift`) own the streak
 data and check-in history. A few non-obvious behaviors live here:
 
-- **One-day grace on the current streak.** `consecutiveStreak(endingOn:)`
+- **A new day re-publishes.** Streak values and `isCheckedInToday` are
+  computed from the clock, so midnight changes them without touching
+  `habits`. `HabitManager` observes `.NSCalendarDayChanged` (posted at
+  midnight, or on wake if the day changed while suspended) and sends
+  `objectWillChange` — without it the tab still read "Checked in today"
+  the next morning — then re-queues reminders (`clockChanged()`, shared
+  with the time-zone observer). Foundation's notification rather than UIKit's
+  significant-time-change, so `HabitManager.swift` still compiles for the
+  macOS harness below.
+- **One-day grace on the current streak.** `consecutiveRun(endingOn:)`
   starts from yesterday if today isn't checked in yet, so the displayed
   count persists through the day. The streak only drops to 0 once today
   ends without a check-in. `isCheckedInToday` still strictly checks
   today's key, so the check-in button correctly empties at midnight —
   giving the user a visual nudge without zeroing the count.
-- **Relapse removes today + yesterday, nothing else.** `recordRelapse`
-  (triggered by the hero card's "I slipped today" link → confirmation
-  dialog) deletes exactly those two day keys — the minimum that defeats
-  the grace day so the streak reads 0 immediately. All older check-ins
-  stay (history grid, "days logged"). Removing only today would NOT
-  reset anything: the grace day would keep counting from yesterday.
-- **`bestStreakRecord` preserves Longest Streak across relapses.**
+- **A slip removes today's check-in only, and records a slip day.**
+  `recordRelapse` (hero card "I slipped today" → confirmation dialog)
+  deletes today's key and adds today to `TrackedHabit.relapseDays`. A slip
+  day starts a new run: an unchecked slip day gets **no** grace day (the
+  streak reads 0 at once), and a run that reaches a slip day counts it —
+  checked in after the slip, it's day 1, like the start-date sheet's
+  convention — but never the day before (`consecutiveRun`,
+  `longestCheckInStreak`). Until 2026-10-19 it deleted yesterday's key too
+  to defeat the grace day, losing a clean day from the history the dialog
+  promises to keep; slips from then are not in `relapseDays` (their keys
+  are already gone), so old data needs no migration. On the slip day the
+  card's start-date link is replaced by "Tapped by mistake? Undo"
+  (`undoRelapse`: drops the slip day and today's `relapseHistory` entry,
+  marks the restored run's reached milestones celebrated so the undo
+  doesn't replay them; a check-in the slip removed isn't restored).
+  `setStartDate` clears slips **after** the chosen day ("clean since"),
+  which also takes back a mistaken slip on a later day.
+- **`bestStreakRecord` preserves Longest Streak across history edits.**
   `longestStreak` for check-in habits is
   `max(longestCheckInStreak(), bestStreakRecord)`; `recordRelapse`
-  freezes the current best into `bestStreakRecord` *before* removing
-  keys, because the removal can shorten the final run and would
-  otherwise shrink the displayed record by up to 2 days.
+  freezes the best into it *after* removing today's key (today wasn't
+  clean), so it keeps the run that just ended even if days are later
+  unmarked in the grid.
 - **Backdating backfills real check-ins.** `setStartDate` (reached via
   `PornFreeStartDateSheet` — from the hero card's "Set your start date"
   link at streak 0, or the "I've been clean since…" row in Porn Free
@@ -442,7 +538,9 @@ data and check-in history. A few non-obvious behaviors live here:
   `dayCount` preview counts the chosen day as day 1 to match.
   `EditHabitView` re-syncs its `localCheckIns` snapshot when this sheet
   closes (`.onChange(of: showStartDateSheet)`) — without that, the edit
-  sheet's own Save would clobber the backfill with stale data. The hero
+  sheet's own Save would clobber the backfill with stale data. Save also
+  starts from `storedHabit` (the store's copy), not the snapshot the sheet
+  opened with, which put the old `streakStartDate` back. The hero
   card also has a one-tap check-in capsule (toggles
   `checkIn`/`undoCheckIn`, mirroring `HabitCard`).
 - **Milestone celebrations fire on crossings, not thresholds.**
@@ -451,13 +549,37 @@ data and check-in history. A few non-obvious behaviors live here:
   celebrates the *highest* milestone with `old < days <= new` — so an
   existing 19-day streak never retro-celebrates "1 Week" on tab open or
   its next check-in, and a backdate jump celebrates once, not once per
-  badge. `TrackedHabit.lastCelebratedMilestone` makes each milestone
-  fire once per run (blocks undo-then-recheck repeats) and is
-  deliberately reset by `recordRelapse` so rebuilt streaks celebrate
-  again. The overlay (`MilestoneCelebrationView` + `ConfettiBurst`)
-  mounts on the `NavigationStack` in `StatsView.body`.
-- **Persistence is deliberately paranoid.** `dayKeyFormatter` is pinned
-  to `en_US_POSIX` + Gregorian (an unpinned formatter under a
+  badge. Each milestone fires once per **run**:
+  `TrackedHabit.lastCelebratedMilestone` is stored with
+  `celebratedRunStart` (the run's first day key) and read through
+  `milestoneCelebratedThisRun`, which is 0 for any other run. So undoing
+  and redoing today's check-in (same run) can't repeat a celebration,
+  while a streak rebuilt after a missed day — not just after
+  `recordRelapse`, which also resets — celebrates again. (Keyed only on
+  the relapse reset, it stayed silent until it beat the old record.)
+  While the edit sheet is up (`selectedEditHabit != nil`) the check is
+  held and re-run when it closes: the start-date sheet inside it saves
+  at once, and the overlay played unseen underneath, using the
+  milestone up. The overlay (`MilestoneCelebrationView` +
+  `ConfettiBurst`) mounts on the `NavigationStack` in `StatsView.body`.
+- **The history grid follows the user's calendar.** Weekday initials
+  are `Calendar.current.veryShortStandaloneWeekdaySymbols` rotated to
+  `firstWeekday` (Monday-first in de/es), and the rows start on that
+  day. They were hardcoded English, Sunday first, in every language.
+- **Day keys follow the time zone the user is in now.**
+  `TrackedHabit.dayKey(for:)` builds a fresh Gregorian calendar per call,
+  which takes the app's current time zone — the one `Calendar.current`
+  and the pickers use. (`TimeZone.current` is deliberately not used: it
+  doesn't follow `NSTimeZone.default`, so it can disagree with
+  `Calendar.current`, and tests move the zone through
+  `NSTimeZone.default`.) The cached formatter it replaced kept the zone it
+  was created in, so after travel the streak was off by a day until a
+  relaunch. Stepping between days is arithmetic on day numbers
+  (`dayNumber(_:)` / `dayKey(dayNumber:)`, via a UTC formatter — no DST,
+  no skipped midnights). `.NSSystemTimeZoneDidChange` resets Foundation's
+  cached zone, redraws and re-queues reminders.
+- **Persistence is deliberately paranoid.** Day keys are always
+  Gregorian with ASCII digits (an unpinned formatter under a
   Buddhist-calendar or Arabic-numeral locale writes keys that never
   match again, silently zeroing streaks); `sanitizeDayKeys()` runs every
   launch between `load()` and `ensureBuiltInHabit()` to repair/drop
@@ -478,7 +600,9 @@ data and check-in history. A few non-obvious behaviors live here:
   `swiftc -parse-as-library -o harness "Porn Blocker/HabitManager.swift" "Porn Blocker/Log.swift" harness.swift`
   with a scenario-per-process main (the singleton's init runs
   load/sanitize/ensure once, so seed `UserDefaults` first, one scenario
-  per run).
+  per run). Reminder syncs touch `UNUserNotificationCenter`, which a
+  bundle-less macOS tool can't use — they only run when a habit has a
+  reminder on, so harness scenarios should keep reminders off.
 - **The hero ring is absolute progress, not segment progress.**
   `ringProgress(streak:)` in `StatsView.swift` is
   `min(1.0, streak / nextMilestone)` — it counts from **zero** to the next
@@ -490,16 +614,31 @@ data and check-in history. A few non-obvious behaviors live here:
   (`currentStreak >= milestone.days`) both count from zero. Keep all three
   on the absolute framing. At 365+ days `next` falls back to 365 and the
   `min(1.0, …)` clamp keeps the ring full.
-- **Reminder identifier convention.** `HabitNotificationManager.schedule`
-  registers a repeating `UNCalendarNotificationTrigger` with identifier
-  `"habit-<UUID>"` and stamps the same UUID into `userInfo["habitID"]`
-  (so the tap handler doesn't have to parse the identifier).
-- **Permission race — handled.** `schedule(for:)` switches on
-  `authorizationStatus`: on `.notDetermined` it calls `requestAuthorization`
-  and chains the actual `add(request:)` **inside that completion**.
-  Previously the function early-returned after only requesting permission,
-  so a user's first reminder was never queued and silently missed its
-  first day. Don't reintroduce the early return.
+- **Reminders are wall-clock, one notification per day (2026-10-19).**
+  - The time is stored as `reminderHour` / `reminderMinute`; `reminderTime`
+    is a computed `Date` for the pickers. It used to be a stored `Date`
+    (one moment), so a 10 PM New York reminder read — and, on any save,
+    was re-queued — as 9 AM in Bangkok, and stayed 9 AM back home. Old
+    data decodes the legacy instant in the zone the user is in.
+  - `HabitNotificationManager.requests(for:days:now:)` builds one
+    **non-repeating** `UNCalendarNotificationTrigger` per day with
+    year/month/day/hour/minute and **no time zone** (it floats with the
+    traveller), identifier `"habit-<UUID>-<yyyy-MM-dd>"`, the UUID also in
+    `userInfo["habitID"]`. Today is skipped once checked in or on a slip
+    day, and past times are skipped — a repeating trigger can't skip a
+    day, so it used to nag "check in for today!" after a check-in.
+  - The window is `windowDays(remindedHabits:)` (≤ 30 days; iOS keeps only
+    the soonest 64 pending per app). `HabitManager.syncReminders` re-queues
+    on launch, each new day, a time-zone change, check-in / undo / slip /
+    undo slip / backfill, and add / update / delete. Each sync waits for the
+    previous one. `sync` first removes every pending `habit-<UUID>…`
+    request (including the old repeating one). Someone who doesn't open
+    the app for a month stops getting reminders.
+- **Permission is asked only on an explicit "remind me".** `sync` asks on
+  `.notDetermined` only with `askPermission` (`addHabit`, `updateHabit` —
+  the settings sheet and onboarding), then queues in the same call (an
+  early return there once meant a user's first reminder never fired).
+  Launch / day-change / check-in syncs never prompt.
 
 **Tap routing** (notification → Streaks tab, and nothing more):
 
@@ -572,8 +711,10 @@ Italian, Turkish.
   (or build in the Xcode IDE) to extract them, then translate.
 - **App name per language**: `CFBundleDisplayName` is "Adult Blocker"
   (pbxproj, both targets) and `InfoPlist.xcstrings` in **both** `Porn Blocker/`
-  and `ContentBlocker/` gives "Bloqueador Adulto" (es, pt-BR) /
-  "Porno-Blocker" (de). Not "Porn Blocker": Apple blocks App Store searches
+  and `ContentBlocker/` gives "Bloqueador Adulto" (es, pt-BR); German keeps
+  "Adult Blocker" (it was "Porno-Blocker" until 2026-10-04 — German users
+  search "adult blocker", and the German store name now leads with it).
+  Not "Porn Blocker": Apple blocks App Store searches
   containing "porn"/"porno", so the store names are built from searchable
   phrases (see `AppStoreLocalization.md`) and guideline 2.3.8 wants the icon
   name to resemble them. The extension's name is what users look for in
@@ -622,12 +763,15 @@ Italian, Turkish.
 
 ## Tests
 
-`Porn BlockerTests` is an **app-hosted** XCTest unit-test target (~70 tests)
+`Porn BlockerTests` is an **app-hosted** XCTest unit-test target (~100 tests)
 covering the pure-logic invariants: keyword word-boundaries, ruleset
 composition (whitelist-rule-last, 100k cap, keyword exemptions), non-English keywords, safe-search
-enforcement + its idempotency loop guard, streak/relapse/backdate semantics
-and the tolerant habit decoder, tab-session persistence, host matching, and the
-subscription-cache seed rule.
+enforcement + its idempotency loop guard, streak/relapse/backdate semantics,
+slip days, milestone runs, the day-change redraw, time-zone travel, the
+per-day reminder queue and the tolerant habit decoder,
+tab-session persistence, host matching, the subscription-cache seed and
+"Checking Protection…" rules, and entitlement gating (`EntitlementsTests`:
+who gets protection vs. chat across Premium / Lifetime / the add-on).
 
 ```sh
 xcodebuild test -project "Porn Blocker.xcodeproj" -scheme "Porn Blocker" \
@@ -787,9 +931,10 @@ send genuine Apple-signed JWS.
 
 - **Use `Log.debug` / `Log.error` instead of `print`.** `Log.debug` is
   compiled out of release builds.
-- **Heavy I/O off the main actor.** File reads/writes, JSON encoding of
-  large rulesets, and hosts parsing all run in detached tasks or actor
-  methods. Don't put them back on `@MainActor` types.
+- **Heavy I/O off the main actor.** File reads/writes, building and JSON
+  encoding of the ~100k-rule ruleset, and hosts parsing all run in
+  detached tasks or actor methods. Don't put them back on `@MainActor`
+  types.
 - **`updateContentBlocker()` is debounced.** Call it freely; rapid calls
   coalesce into one rebuild.
 - **`NavigationStack`, not `NavigationView`.** New code uses

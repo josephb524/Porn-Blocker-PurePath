@@ -24,11 +24,20 @@ struct TrackedHabit: Identifiable, Codable {
     var streakStartDate: Date
     var checkIns: [String]       // "yyyy-MM-dd" strings
     var relapseHistory: [Date]
+    /// Day keys of slips reported with "I slipped today"; each starts a new run
+    /// (see `consecutiveRun`). Only slips since this field existed — older
+    /// relapses deleted the check-ins around them instead.
+    var relapseDays: [String]
     var isBuiltIn: Bool
     var reminderEnabled: Bool
-    var reminderTime: Date       // only hour & minute are used
-    var bestStreakRecord: Int    // best streak ever seen — survives relapse key removal
-    var lastCelebratedMilestone: Int   // highest milestone celebrated this run; reset on relapse
+    /// The reminder as a wall-clock time — "10 PM wherever I am". It was a
+    /// stored `Date` (one moment), so after flying to Bangkok a 10 PM New York
+    /// reminder read, and was re-queued, as 9 AM.
+    var reminderHour: Int
+    var reminderMinute: Int
+    var bestStreakRecord: Int    // best streak ever seen — survives history edits and old-style relapses
+    var lastCelebratedMilestone: Int   // highest milestone celebrated in the run below; reset on relapse
+    var celebratedRunStart: String?    // day key that run began on — see milestoneCelebratedThisRun
 
     /// Name to show in the UI. The built-in habit is persisted with its
     /// English default ("Porn Free"); that stored value is translated at
@@ -36,6 +45,20 @@ struct TrackedHabit: Identifiable, Codable {
     /// migration. A user-renamed built-in shows exactly what they typed.
     var displayName: String {
         isBuiltIn && name == "Porn Free" ? String(localized: "Porn Free") : name
+    }
+
+    /// The reminder time today, in the current time zone — for the time
+    /// pickers, which bind a `Date`. Setting it keeps just the hour and minute
+    /// the picker showed.
+    var reminderTime: Date {
+        get {
+            Calendar.current.date(bySettingHour: reminderHour, minute: reminderMinute, second: 0, of: Date()) ?? Date()
+        }
+        set {
+            let time = Calendar.current.dateComponents([.hour, .minute], from: newValue)
+            reminderHour = time.hour ?? 21
+            reminderMinute = time.minute ?? 0
+        }
     }
 
     // MARK: Init
@@ -48,11 +71,14 @@ struct TrackedHabit: Identifiable, Codable {
          streakStartDate: Date = Date(),
          checkIns: [String] = [],
          relapseHistory: [Date] = [],
+         relapseDays: [String] = [],
          isBuiltIn: Bool = false,
          reminderEnabled: Bool = false,
          reminderTime: Date = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date(),
          bestStreakRecord: Int = 0,
-         lastCelebratedMilestone: Int = 0) {
+         lastCelebratedMilestone: Int = 0,
+         celebratedRunStart: String? = nil) {
+        let time = Calendar.current.dateComponents([.hour, .minute], from: reminderTime)
         self.id              = id
         self.name            = name
         self.emoji           = emoji
@@ -61,19 +87,28 @@ struct TrackedHabit: Identifiable, Codable {
         self.streakStartDate = streakStartDate
         self.checkIns        = checkIns
         self.relapseHistory  = relapseHistory
+        self.relapseDays     = relapseDays
         self.isBuiltIn       = isBuiltIn
         self.reminderEnabled = reminderEnabled
-        self.reminderTime    = reminderTime
+        self.reminderHour    = time.hour ?? 21
+        self.reminderMinute  = time.minute ?? 0
         self.bestStreakRecord = bestStreakRecord
         self.lastCelebratedMilestone = lastCelebratedMilestone
+        self.celebratedRunStart = celebratedRunStart
     }
 
     // MARK: - Custom Codable (handles missing keys in old data)
 
     enum CodingKeys: String, CodingKey {
         case id, name, emoji, colorHue, isAutoStreak, streakStartDate
-        case checkIns, relapseHistory, isBuiltIn, reminderEnabled, reminderTime
-        case bestStreakRecord, lastCelebratedMilestone
+        case checkIns, relapseHistory, relapseDays, isBuiltIn, reminderEnabled
+        case reminderHour, reminderMinute
+        case bestStreakRecord, lastCelebratedMilestone, celebratedRunStart
+    }
+
+    /// Read from old data, never written.
+    private enum LegacyCodingKeys: String, CodingKey {
+        case reminderTime
     }
 
     init(from decoder: Decoder) throws {
@@ -94,11 +129,23 @@ struct TrackedHabit: Identifiable, Codable {
         streakStartDate = (try? c.decode(Date.self,   forKey: .streakStartDate)) ?? Date()
         checkIns        = (try? c.decode([String].self, forKey: .checkIns)) ?? []
         relapseHistory  = (try? c.decode([Date].self, forKey: .relapseHistory)) ?? []
+        relapseDays     = (try? c.decode([String].self, forKey: .relapseDays)) ?? []
         reminderEnabled = (try? c.decode(Bool.self,   forKey: .reminderEnabled)) ?? false
-        let defaultTime = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date()
-        reminderTime    = (try? c.decode(Date.self,   forKey: .reminderTime)) ?? defaultTime
+        // Saved before reminders were wall-clock: take the old moment's hour
+        // and minute where the user is now — what the time picker showed.
+        let legacy = try? decoder.container(keyedBy: LegacyCodingKeys.self)
+        let legacyTime = (try? legacy?.decode(Date.self, forKey: .reminderTime)).map {
+            Calendar.current.dateComponents([.hour, .minute], from: $0)
+        }
+        let hour   = (try? c.decode(Int.self, forKey: .reminderHour)) ?? legacyTime?.hour
+        let minute = (try? c.decode(Int.self, forKey: .reminderMinute)) ?? legacyTime?.minute
+        reminderHour   = hour.flatMap { (0...23).contains($0) ? $0 : nil } ?? 21
+        reminderMinute = minute.flatMap { (0...59).contains($0) ? $0 : nil } ?? 0
         bestStreakRecord = (try? c.decode(Int.self,  forKey: .bestStreakRecord)) ?? 0
         lastCelebratedMilestone = (try? c.decode(Int.self, forKey: .lastCelebratedMilestone)) ?? 0
+        // Absent in data saved before runs were tracked: the milestone then
+        // counts as celebrated in no run, so the current one can celebrate.
+        celebratedRunStart = try? c.decode(String.self, forKey: .celebratedRunStart)
     }
 
     // MARK: Computed
@@ -112,8 +159,24 @@ struct TrackedHabit: Identifiable, Codable {
             ).day ?? 0
             return max(0, days)
         } else {
-            return consecutiveStreak(endingOn: Date())
+            return consecutiveRun(endingOn: Date()).length
         }
+    }
+
+    /// Day key the current streak began on, or `nil` at 0. Identifies the run
+    /// for `milestoneCelebratedThisRun`.
+    var currentRunStart: String? {
+        if isAutoStreak { return Self.dayKey(for: streakStartDate) }
+        return consecutiveRun(endingOn: Date()).start
+    }
+
+    /// The highest milestone already celebrated in the current run. A run ends
+    /// with a missed day as well as with a recorded relapse; keyed only on the
+    /// relapse, a streak rebuilt after a missed day stayed silent until it beat
+    /// the old record. Keyed on the run's first day, undoing and redoing
+    /// today's check-in still can't celebrate twice.
+    var milestoneCelebratedThisRun: Int {
+        celebratedRunStart == currentRunStart ? lastCelebratedMilestone : 0
     }
 
     var longestStreak: Int {
@@ -129,8 +192,8 @@ struct TrackedHabit: Identifiable, Codable {
             }
             return best
         } else {
-            // bestStreakRecord preserves the best across relapses, which
-            // remove the two keys anchoring the final run.
+            // bestStreakRecord preserves the best across history edits and
+            // old-style relapses, which removed the keys anchoring a run.
             return max(longestCheckInStreak(), bestStreakRecord)
         }
     }
@@ -138,6 +201,11 @@ struct TrackedHabit: Identifiable, Codable {
     var isCheckedInToday: Bool {
         if isAutoStreak { return currentStreak > 0 }
         return checkIns.contains(Self.dayKey(for: Date()))
+    }
+
+    /// The user reported a slip today ("I slipped today").
+    var slippedToday: Bool {
+        relapseDays.contains(Self.dayKey(for: Date()))
     }
 
     var totalDays: Int {
@@ -151,55 +219,92 @@ struct TrackedHabit: Identifiable, Codable {
 
     var swiftColor: Color { Color(hue: colorHue, saturation: 0.65, brightness: 0.55) }
 
-    // MARK: Helpers
+    // MARK: Day keys
+    //
+    // A day key is the "yyyy-MM-dd" date the user is on — always Gregorian with
+    // ASCII digits, regardless of the device locale. A Buddhist-calendar or
+    // Arabic-numeral locale would otherwise write keys that never match again
+    // and zero the streak.
 
-    /// Shared "yyyy-MM-dd" formatter. Building a `DateFormatter` is expensive,
-    /// so it is created once and reused — it is only ever read, never mutated.
-    private static let dayKeyFormatter: DateFormatter = {
+    /// The date `date` falls on in the *current* time zone, read fresh on every
+    /// call. A formatter created once kept the zone it started in, so after
+    /// travel the streak was off by a day until the app relaunched. A new
+    /// calendar takes the app's time zone as of now — the same one
+    /// `Calendar.current` and the time pickers use (`TimeZone.current` can
+    /// differ from it, so it isn't used here).
+    static func dayKey(for date: Date) -> String {
+        let day = Calendar(identifier: .gregorian).dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", day.year ?? 1970, day.month ?? 1, day.day ?? 1)
+    }
+
+    /// Maps keys to whole days and back, so stepping from one date to the next
+    /// is plain arithmetic. UTC has no DST and no skipped midnight, so
+    /// consecutive dates are always exactly one day apart.
+    private static let utcKeyFormatter: DateFormatter = {
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = TimeZone(identifier: "UTC")!
         let f = DateFormatter()
-        // Pinned so keys are always Gregorian + ASCII digits regardless of the
-        // device locale — a Buddhist-calendar or Arabic-numeral locale would
-        // otherwise write keys that never match again and zero the streak.
         f.locale = Locale(identifier: "en_US_POSIX")
-        f.calendar = Calendar(identifier: .gregorian)
+        f.calendar = gregorian
+        f.timeZone = gregorian.timeZone
         f.dateFormat = "yyyy-MM-dd"
         return f
     }()
 
-    static func dayKey(for date: Date) -> String {
-        dayKeyFormatter.string(from: date)
+    /// Days since 1970-01-01 for a day key; `nil` if it isn't one.
+    static func dayNumber(_ key: String) -> Int? {
+        guard let date = utcKeyFormatter.date(from: key) else { return nil }
+        return Int((date.timeIntervalSince1970 / 86_400).rounded())
     }
 
-    private func consecutiveStreak(endingOn date: Date) -> Int {
+    static func dayKey(dayNumber: Int) -> String {
+        utcKeyFormatter.string(from: Date(timeIntervalSince1970: Double(dayNumber) * 86_400))
+    }
+
+    // MARK: Helpers
+
+    /// The streak ending on `date` (or the day before — see the grace day
+    /// below): its length, and the day key it began on.
+    private func consecutiveRun(endingOn date: Date) -> (length: Int, start: String?) {
         let set = Set(checkIns)
-        let f = Self.dayKeyFormatter
-        var cursor = Calendar.current.startOfDay(for: date)
+        let slips = Set(relapseDays)
+        var key = Self.dayKey(for: date)
+        guard var day = Self.dayNumber(key) else { return (0, nil) }
 
         // Grace day: if today isn't checked in yet, start counting from
         // yesterday so the streak number persists through the current day.
         // It only drops to 0 once today ends without a check-in (i.e. at
-        // midnight, when "yesterday" itself becomes the missed day).
-        if !set.contains(f.string(from: cursor)) {
-            cursor = Calendar.current.date(byAdding: .day, value: -1, to: cursor)!
+        // midnight, when "yesterday" itself becomes the missed day) — or at
+        // once, on a day the user reported a slip.
+        if !set.contains(key) {
+            if slips.contains(key) { return (0, nil) }
+            day -= 1
+            key = Self.dayKey(dayNumber: day)
         }
 
         var streak = 0
-        while set.contains(f.string(from: cursor)) {
+        var start: String?
+        while set.contains(key) {
             streak += 1
-            cursor = Calendar.current.date(byAdding: .day, value: -1, to: cursor)!
+            start = key
+            // A slip starts a new run: the slip day counts (checked in after
+            // the slip, it's day 1), the day before it never does.
+            if slips.contains(key) { break }
+            day -= 1
+            key = Self.dayKey(dayNumber: day)
         }
-        return streak
+        return (streak, start)
     }
 
     private func longestCheckInStreak() -> Int {
-        let f = Self.dayKeyFormatter
-        let sorted = checkIns.compactMap { f.date(from: $0) }.sorted()
-        guard !sorted.isEmpty else { return 0 }
+        let days = checkIns.compactMap(Self.dayNumber).sorted()
+        guard !days.isEmpty else { return 0 }
+        let slips = Set(relapseDays.compactMap(Self.dayNumber))
         var longest = 1, current = 1
-        for i in 1..<sorted.count {
-            let diff = Calendar.current.dateComponents([.day], from: sorted[i-1], to: sorted[i]).day ?? 0
-            if diff == 1 { current += 1; longest = max(longest, current) }
-            else if diff > 1 { current = 1 }
+        for i in 1..<days.count {
+            let diff = days[i] - days[i - 1]
+            if diff == 1 && !slips.contains(days[i]) { current += 1; longest = max(longest, current) }
+            else if diff >= 1 { current = 1 }   // a gap, or a slip starting a new run
         }
         return longest
     }
@@ -228,65 +333,94 @@ let allMilestones: [Milestone] = [
 /// parses this back out to learn which habit the tap belongs to.
 private let habitNotificationPrefix = "habit-"
 
+/// Habit reminders: one notification per upcoming day, identified
+/// `habit-<UUID>-<yyyy-MM-dd>`. It used to be a single repeating trigger,
+/// which can't skip a day — it told the user to "check in for today!" after
+/// they already had. `HabitManager.syncReminders` rebuilds the queue whenever
+/// a check-in, a slip, the settings, the day or the time zone changes.
 struct HabitNotificationManager {
 
-    static func schedule(for habit: TrackedHabit) {
-        let center = UNUserNotificationCenter.current()
-        let identifier = "\(habitNotificationPrefix)\(habit.id.uuidString)"
-        center.removePendingNotificationRequests(withIdentifiers: [identifier])
-        guard habit.reminderEnabled else { return }
+    /// Days of reminders kept queued per habit. iOS keeps only the soonest 64
+    /// pending notifications per app, so the window is shared between habits.
+    static func windowDays(remindedHabits: Int) -> Int {
+        max(7, min(30, 60 / max(1, remindedHabits)))
+    }
 
-        center.getNotificationSettings { settings in
-            switch settings.authorizationStatus {
-            case .notDetermined:
-                // First-time enable: ask, then schedule on the same call
-                // chain. Previously this branch only asked and returned,
-                // so the user's first reminder was never actually queued
-                // and didn't fire that day.
-                center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
-                    guard granted else { return }
-                    addRequest(for: habit, on: center, identifier: identifier)
-                }
-            case .authorized, .provisional, .ephemeral:
-                addRequest(for: habit, on: center, identifier: identifier)
-            case .denied:
-                // User opted out — leave it; they can re-enable in Settings.
-                break
-            @unknown default:
-                break
-            }
+    /// The reminders `habit` should have queued as of `now`: one a day at its
+    /// wall-clock time, minus today once it's checked in or a slip was
+    /// reported, minus any time already past.
+    static func requests(for habit: TrackedHabit, days: Int, now: Date = Date()) -> [UNNotificationRequest] {
+        guard habit.reminderEnabled else { return [] }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: now)
+        let todayDone = habit.isCheckedInToday || habit.slippedToday
+
+        return (0..<days).compactMap { offset in
+            guard !(offset == 0 && todayDone),
+                  let day = calendar.date(byAdding: .day, value: offset, to: today) else { return nil }
+            var when = calendar.dateComponents([.year, .month, .day], from: day)
+            when.hour = habit.reminderHour
+            when.minute = habit.reminderMinute
+            // No time zone: the trigger floats, firing at this wall-clock time
+            // wherever the user is that day.
+            guard let fireDate = calendar.date(from: when), fireDate > now else { return nil }
+
+            let content = UNMutableNotificationContent()
+            content.title  = "\(habit.emoji) \(habit.displayName)"
+            content.body   = String(localized: "Don't break your streak — check in for today! 🔥")
+            content.sound  = .default
+            // Round-trip the habit ID in userInfo too, so the tap handler
+            // doesn't have to rely solely on parsing the identifier.
+            content.userInfo = ["habitID": habit.id.uuidString]
+            return UNNotificationRequest(
+                identifier: "\(habitNotificationPrefix)\(habit.id.uuidString)-\(TrackedHabit.dayKey(for: day))",
+                content: content,
+                trigger: UNCalendarNotificationTrigger(dateMatching: when, repeats: false)
+            )
         }
     }
 
-    static func cancel(for habitID: UUID) {
-        let identifier = "\(habitNotificationPrefix)\(habitID.uuidString)"
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    /// Replaces whatever is queued for `habits` with `requests(for:)`. Asks for
+    /// notification permission only when `askPermission` — the user turning a
+    /// reminder on — never on a refresh.
+    static func sync(_ habits: [TrackedHabit], days: Int, askPermission: Bool) async {
+        let center = UNUserNotificationCenter.current()
+        // Everything queued for these habits: the per-day requests, plus the
+        // repeating "habit-<UUID>" one older versions queued.
+        let prefixes = habits.map { "\(habitNotificationPrefix)\($0.id.uuidString)" }
+        let queued = await center.pendingNotificationRequests().map(\.identifier)
+        center.removePendingNotificationRequests(withIdentifiers: queued.filter { identifier in
+            prefixes.contains { identifier.hasPrefix($0) }
+        })
+
+        let wanted = habits.flatMap { requests(for: $0, days: days) }
+        guard !wanted.isEmpty, await isAuthorized(center, askPermission: askPermission) else { return }
+        for request in wanted {
+            do {
+                try await center.add(request)
+            } catch {
+                Log.error("Failed to schedule habit reminder: \(error.localizedDescription)")
+            }
+        }
+        let next = wanted.compactMap { ($0.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() }.min()
+        Log.debug("Queued \(wanted.count) habit reminders — next fires at \(next?.description ?? "never")")
     }
 
-    /// Builds and submits the actual repeating request. Pulled out so both
-    /// the already-authorized branch and the `.notDetermined`-then-granted
-    /// branch above share the same code path.
-    private static func addRequest(for habit: TrackedHabit,
-                                   on center: UNUserNotificationCenter,
-                                   identifier: String) {
-        let content = UNMutableNotificationContent()
-        content.title  = "\(habit.emoji) \(habit.displayName)"
-        content.body   = String(localized: "Don't break your streak — check in for today! 🔥")
-        content.sound  = .default
-        // Round-trip the habit ID in userInfo too, so the tap handler
-        // doesn't have to rely solely on parsing the identifier.
-        content.userInfo = ["habitID": habit.id.uuidString]
-
-        var comps = Calendar.current.dateComponents([.hour, .minute], from: habit.reminderTime)
-        comps.second = 0
-        let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
-        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-        center.add(request) { error in
-            if let error {
-                Log.error("Failed to schedule habit reminder: \(error.localizedDescription)")
-            } else if let next = trigger.nextTriggerDate() {
-                Log.debug("Scheduled habit reminder for \(habit.name) — next fires at \(next)")
-            }
+    /// Whether reminders may be queued. On `.notDetermined` it asks (when
+    /// allowed) and the caller queues straight after a grant — an early return
+    /// there once meant a user's first reminder never fired.
+    private static func isAuthorized(_ center: UNUserNotificationCenter, askPermission: Bool) async -> Bool {
+        switch await center.notificationSettings().authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            return true
+        case .notDetermined:
+            guard askPermission else { return false }
+            return (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+        case .denied:
+            // User opted out — leave it; they can re-enable in Settings.
+            return false
+        @unknown default:
+            return false
         }
     }
 }
@@ -344,7 +478,8 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             }
             let identifier = response.notification.request.identifier
             guard identifier.hasPrefix(habitNotificationPrefix) else { return nil }
-            return UUID(uuidString: String(identifier.dropFirst(habitNotificationPrefix.count)))
+            // "habit-<UUID>", or per day "habit-<UUID>-<yyyy-MM-dd>".
+            return UUID(uuidString: String(identifier.dropFirst(habitNotificationPrefix.count).prefix(36)))
         }()
 
         guard let habitID = id else { return }
@@ -367,10 +502,79 @@ class HabitManager: ObservableObject {
 
     static let pornFreeID = TrackedHabit.builtInID
 
+    private var dayChangeObserver: NSObjectProtocol?
+    private var timeZoneObserver: NSObjectProtocol?
+    /// The reminder sync in flight. Each new one waits for it, so a quick
+    /// check-in and undo can't interleave their remove and add steps.
+    private var reminderSync: Task<Void, Never>?
+
     private init() {
         load()
         sanitizeDayKeys()
         ensureBuiltInHabit()
+
+        // Streaks and "checked in today" are computed from the clock, so a new
+        // day changes them without touching `habits` — and nothing redrew.
+        // Opened the next morning, the Streaks tab still read "Checked in
+        // today" from the night before, inviting the user to skip the
+        // check-in that keeps the streak alive. Posted at midnight, or on wake
+        // if the day changed while the app was suspended.
+        dayChangeObserver = NotificationCenter.default.addObserver(
+            forName: .NSCalendarDayChanged, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.clockChanged() }
+        }
+        // A new time zone can change today's date too. Day keys read the zone
+        // fresh on every call — reset Foundation's cached copy so it is fresh.
+        timeZoneObserver = NotificationCenter.default.addObserver(
+            forName: .NSSystemTimeZoneDidChange, object: nil, queue: .main
+        ) { [weak self] _ in
+            NSTimeZone.resetSystemTimeZone()
+            Task { @MainActor in self?.clockChanged() }
+        }
+
+        // Re-queue from the stored settings: tops up the rolling window, moves
+        // installs off the old repeating reminder, and re-times any reminder an
+        // older version queued at a time-zone-shifted hour.
+        syncReminders()
+    }
+
+    /// A new day or time zone: redraw, and re-queue so today's reminder is
+    /// right for the day it now is.
+    private func clockChanged() {
+        objectWillChange.send()
+        syncReminders()
+    }
+
+    // MARK: - Reminders
+
+    /// Re-queues the reminders of `targets` — by default every habit with a
+    /// reminder on. Touches the notification center only when there's a habit
+    /// to sync, which keeps the macOS logic harness clear of it.
+    private func syncReminders(_ targets: [TrackedHabit]? = nil, askPermission: Bool = false) {
+        let targets = targets ?? habits.filter(\.reminderEnabled)
+        guard !targets.isEmpty else { return }
+        let days = HabitNotificationManager.windowDays(remindedHabits: habits.filter(\.reminderEnabled).count)
+        let previous = reminderSync
+        reminderSync = Task {
+            await previous?.value
+            await HabitNotificationManager.sync(targets, days: days, askPermission: askPermission)
+        }
+    }
+
+    /// After a check-in, undo, slip or backfill: today's reminder may now be
+    /// unwanted, or wanted again.
+    private func syncReminders(at idx: Int) {
+        if habits[idx].reminderEnabled { syncReminders([habits[idx]]) }
+    }
+
+    /// Drops everything queued for habits being deleted.
+    private func clearReminders(_ gone: [TrackedHabit]) {
+        syncReminders(gone.map { habit in
+            var off = habit
+            off.reminderEnabled = false
+            return off
+        })
     }
 
     // MARK: - Check-in / Reset
@@ -381,6 +585,7 @@ class HabitManager: ObservableObject {
         if !habits[idx].checkIns.contains(today) {
             habits[idx].checkIns.append(today)
             save()
+            syncReminders(at: idx)
         }
     }
 
@@ -389,68 +594,95 @@ class HabitManager: ObservableObject {
         let today = TrackedHabit.dayKey(for: Date())
         habits[idx].checkIns.removeAll { $0 == today }
         save()
+        syncReminders(at: idx)
     }
 
     func recordRelapse(habitID: UUID) {
         guard let idx = habits.firstIndex(where: { $0.id == habitID }) else { return }
-        // Removing today's AND yesterday's keys breaks the chain at the
-        // grace-day anchor, so the streak reads 0 immediately — removing only
-        // today would leave consecutiveStreak counting from yesterday. Older
-        // checked days stay: the history grid, "days logged" and longestStreak
-        // are preserved.
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let yesterday = cal.date(byAdding: .day, value: -1, to: today)!
-        let remove: Set<String> = [TrackedHabit.dayKey(for: today), TrackedHabit.dayKey(for: yesterday)]
-        // Freeze the best before removing keys — the removal can shorten the
-        // final run and would otherwise shrink the displayed Longest Streak.
+        // A slip today: today isn't a clean day, and the run ends here. The
+        // recorded slip day is what stops the grace day carrying the old
+        // streak on — this used to delete yesterday's check-in too, losing a
+        // clean day from the history the dialog promises to keep.
+        let today = TrackedHabit.dayKey(for: Date())
+        habits[idx].checkIns.removeAll { $0 == today }
+        if !habits[idx].relapseDays.contains(today) {
+            habits[idx].relapseDays.append(today)
+        }
+        // The run that just ended (through yesterday) can set the record.
         habits[idx].bestStreakRecord = max(habits[idx].bestStreakRecord, habits[idx].longestStreak)
-        habits[idx].checkIns.removeAll { remove.contains($0) }
         habits[idx].relapseHistory.append(Date())
         habits[idx].streakStartDate = Date()
         // New run — milestones celebrate again as the user rebuilds.
         habits[idx].lastCelebratedMilestone = 0
+        habits[idx].celebratedRunStart = nil
         save()
+        // No "don't break your streak" reminder tonight.
+        syncReminders(at: idx)
         Log.debug("Relapse recorded for \(habits[idx].name)")
+    }
+
+    /// Takes back today's "I slipped today" — offered on the slip day for a
+    /// mis-tap. The old streak returns through the grace day; a check-in the
+    /// slip removed isn't restored, the user checks in again.
+    func undoRelapse(habitID: UUID) {
+        guard let idx = habits.firstIndex(where: { $0.id == habitID }) else { return }
+        let today = TrackedHabit.dayKey(for: Date())
+        guard habits[idx].relapseDays.contains(today) else { return }
+        habits[idx].relapseDays.removeAll { $0 == today }
+        if let last = habits[idx].relapseHistory.last, TrackedHabit.dayKey(for: last) == today {
+            habits[idx].relapseHistory.removeLast()
+        }
+        // The restored run already reached its milestones — an undo mustn't
+        // celebrate them again.
+        let restored = habits[idx]
+        habits[idx].lastCelebratedMilestone = allMilestones.last { $0.days <= restored.currentStreak }?.days ?? 0
+        habits[idx].celebratedRunStart = restored.currentRunStart
+        save()
+        syncReminders(at: idx)
+        Log.debug("Relapse undone for \(habits[idx].name)")
     }
 
     func markMilestoneCelebrated(days: Int, habitID: UUID) {
         guard let idx = habits.firstIndex(where: { $0.id == habitID }) else { return }
-        habits[idx].lastCelebratedMilestone = max(habits[idx].lastCelebratedMilestone, days)
+        habits[idx].lastCelebratedMilestone = max(habits[idx].milestoneCelebratedThisRun, days)
+        habits[idx].celebratedRunStart = habits[idx].currentRunStart
         save()
     }
 
     func setStartDate(_ date: Date, habitID: UUID) {
         guard let idx = habits.firstIndex(where: { $0.id == habitID }) else { return }
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let start = cal.startOfDay(for: min(date, Date()))
-        habits[idx].streakStartDate = start
+        let now = Date()
+        let startKey = TrackedHabit.dayKey(for: min(date, now))
+        habits[idx].streakStartDate = Calendar.current.startOfDay(for: min(date, now))
         // Backfill day keys start...today inclusive (today too, or the streak
         // would silently collapse at midnight unless the user checks in),
         // merged with whatever is already logged.
         var keys = Set(habits[idx].checkIns)
-        var cursor = start
-        while cursor <= today {
-            keys.insert(TrackedHabit.dayKey(for: cursor))
-            cursor = cal.date(byAdding: .day, value: 1, to: cursor)!
+        if let first = TrackedHabit.dayNumber(startKey),
+           let last = TrackedHabit.dayNumber(TrackedHabit.dayKey(for: now)), first <= last {
+            for day in first...last { keys.insert(TrackedHabit.dayKey(dayNumber: day)) }
         }
         habits[idx].checkIns = keys.sorted()
+        // "Clean since" that day: slips reported after it no longer stand —
+        // which is also how a mistaken slip is taken back on a later day.
+        habits[idx].relapseDays.removeAll { $0 > startKey }
         save()
-        Log.debug("Backfilled streak from \(start) — \(habits[idx].checkIns.count) days logged")
+        syncReminders(at: idx)
+        Log.debug("Backfilled streak from \(startKey) — \(habits[idx].checkIns.count) days logged")
     }
 
     // MARK: - CRUD
 
     func addHabit(_ habit: TrackedHabit) {
         habits.append(habit)
-        HabitNotificationManager.schedule(for: habit)
         save()
+        // The user just set this reminder up, so this may ask permission.
+        syncReminders([habit], askPermission: true)
     }
 
     func removeHabits(at offsets: IndexSet) {
         let toRemove = offsets.filter { !habits[$0].isBuiltIn }
-        for idx in toRemove { HabitNotificationManager.cancel(for: habits[idx].id) }
+        clearReminders(toRemove.map { habits[$0] })
         habits.remove(atOffsets: IndexSet(toRemove))
         save()
     }
@@ -458,7 +690,7 @@ class HabitManager: ObservableObject {
     func deleteHabit(id: UUID) {
         guard let idx = habits.firstIndex(where: { $0.id == id }),
               !habits[idx].isBuiltIn else { return }
-        HabitNotificationManager.cancel(for: id)
+        clearReminders([habits[idx]])
         habits.remove(at: idx)
         save()
     }
@@ -466,8 +698,10 @@ class HabitManager: ObservableObject {
     func updateHabit(_ updated: TrackedHabit) {
         guard let idx = habits.firstIndex(where: { $0.id == updated.id }) else { return }
         habits[idx] = updated
-        HabitNotificationManager.schedule(for: updated)
         save()
+        // Saved from the settings sheet or onboarding — turning the reminder
+        // on there may ask permission.
+        syncReminders([updated], askPermission: true)
     }
 
     // MARK: - Persistence

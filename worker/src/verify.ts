@@ -1,8 +1,16 @@
 import type { Env, TransactionPayload } from './types';
 
-/// Product IDs allowed to use the buddy-chat endpoint. Keep this in sync
-/// with `SubscriptionManager.swift` and App Store Connect.
-const VALID_PRODUCT_IDS = new Set<string>(['pornBlocker', 'monthlyPornBlocker']);
+/// Product IDs allowed to use the buddy-chat endpoint: Premium (yearly,
+/// monthly) and the Buddy Chat add-on (yearly, monthly). The one-time
+/// `lifetimePornBlocker` is deliberately absent — Lifetime doesn't include
+/// chat. Keep this in sync with `SubscriptionManager.swift` and App Store
+/// Connect.
+const VALID_PRODUCT_IDS = new Set<string>([
+  'pornBlocker',
+  'monthlyPornBlocker',
+  'buddyChatYearly',
+  'buddyChatMonthly',
+]);
 
 export type VerifyResult =
   | { ok: true; payload: TransactionPayload }

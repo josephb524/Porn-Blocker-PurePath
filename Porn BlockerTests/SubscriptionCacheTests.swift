@@ -58,4 +58,27 @@ final class SubscriptionCacheTests: XCTestCase {
             )
         )
     }
+
+    // MARK: - When the Dashboard shows "Checking Protection…"
+
+    /// Nothing was ever resolved on this install (fresh install, reinstall).
+    func testNoCachedStatusIsInconclusive() {
+        XCTAssertFalse(SubscriptionManager.cacheIsConclusive(premiumFlag: nil, premiumSeeded: false))
+    }
+
+    /// The last check found no subscription: show that at once rather than a
+    /// "checking" card on every launch.
+    func testCachedNoIsConclusive() {
+        XCTAssertTrue(SubscriptionManager.cacheIsConclusive(premiumFlag: false, premiumSeeded: false))
+    }
+
+    /// Past its cached expiry a subscription has most likely renewed, so
+    /// "inactive" would be a guess.
+    func testSubscriptionPastCachedExpiryIsInconclusive() {
+        XCTAssertFalse(SubscriptionManager.cacheIsConclusive(premiumFlag: true, premiumSeeded: false))
+    }
+
+    func testTrustedSubscriptionIsConclusive() {
+        XCTAssertTrue(SubscriptionManager.cacheIsConclusive(premiumFlag: true, premiumSeeded: true))
+    }
 }

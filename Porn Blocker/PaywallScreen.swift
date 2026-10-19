@@ -1,15 +1,56 @@
 import SwiftUI
 import StoreKit
 
+/// Which purchase a paywall sells.
+enum PaywallOffer {
+    /// Premium (monthly / yearly) plus the one-time Lifetime purchase.
+    case premium
+    /// The Buddy Chat add-on, for Lifetime owners — whose purchase doesn't
+    /// include chat. Opened from the locked Buddy tab.
+    case buddyChat
+
+    /// The offer's auto-renewing plans, cheapest first.
+    @MainActor func plans(from subManager: SubscriptionManager) -> [Product] {
+        switch self {
+        case .premium:   return subManager.premiumPlans
+        case .buddyChat: return subManager.buddyPlans
+        }
+    }
+
+    @MainActor func monthlyPlan(from subManager: SubscriptionManager) -> Product? {
+        switch self {
+        case .premium:   return subManager.monthlyProduct
+        case .buddyChat: return subManager.buddyMonthlyProduct
+        }
+    }
+
+    @MainActor func yearlyPlan(from subManager: SubscriptionManager) -> Product? {
+        switch self {
+        case .premium:   return subManager.yearlyProduct
+        case .buddyChat: return subManager.buddyYearlyProduct
+        }
+    }
+
+    /// The plan selected when the paywall opens: yearly, else the cheapest.
+    @MainActor func defaultPlan(from subManager: SubscriptionManager) -> Product? {
+        yearlyPlan(from: subManager) ?? plans(from: subManager).first
+    }
+}
+
 /// The paywall, in the onboarding artwork's style (dark field, the brand
 /// shield) and laid out after Cairn's house paywall: hero, emblem feature
 /// rows, two side-by-side plan cards, a breathing CTA, billing disclosure,
-/// legal links. Every 3.1.2(c) rule in CLAUDE.md still holds — see
+/// legal links. The Premium offer adds a full-width Lifetime card under the
+/// pair. Every 3.1.2(c) rule in CLAUDE.md still holds — see
 /// "Paywall layout (App Store 3.1.2(c))" before changing anything here.
 struct PaywallScreen: View {
     @StateObject private var subManager = SubscriptionManager.shared
     @Binding var isPresented: Bool
+    var offer: PaywallOffer = .premium
     @State private var showingError = false
+    /// Overrides the manager's error in the alert — set when a restore finds
+    /// purchases, but not the one this paywall sells.
+    @State private var restoreMessage: String?
     @State private var featuresAppeared = false
     @State private var selectedProduct: Product?
     @State private var ctaPulse = false
@@ -24,20 +65,65 @@ struct PaywallScreen: View {
     private let termsOfUseURL    = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 
     /// Paid features only — streaks are free, so they are not sold here.
-    private let features: [(art: FeatureArtKind, text: LocalizedStringKey)] = [
-        (.safariBlocking, "Block millions of porn sites in Safari"),
-        (.safeBrowser,    "Safe, private web browsing"),
-        (.buddyChat,      "Buddy chat — talk through urges 24/7"),
-        (.customList,     "Custom keywords & websites"),
-    ]
+    private var features: [(art: FeatureArtKind, text: LocalizedStringKey)] {
+        switch offer {
+        case .premium:
+            return [
+                (.safariBlocking, "Block millions of porn sites in Safari"),
+                (.safeBrowser,    "Safe, private web browsing"),
+                (.buddyChat,      "Buddy chat — talk through urges 24/7"),
+                (.customList,     "Custom keywords & websites"),
+            ]
+        case .buddyChat:
+            return [
+                (.empathy,  "Empathetic, non-judgmental support"),
+                (.anytime,  "Available whenever an urge hits"),
+                (.onDevice, "Conversations stay on your device"),
+            ]
+        }
+    }
+
+    private var title: LocalizedStringKey {
+        switch offer {
+        case .premium:   return "Adult Blocker Premium"
+        case .buddyChat: return "Buddy Chat"
+        }
+    }
+
+    private var subtitle: LocalizedStringKey {
+        switch offer {
+        case .premium:   return "Block adult content everywhere"
+        case .buddyChat: return "Add chat support to your Lifetime plan"
+        }
+    }
+
+    private var plans: [Product] { offer.plans(from: subManager) }
 
     /// The plan that will be purchased — the user's pick, defaulting to yearly.
     private var activeProduct: Product? {
-        selectedProduct ?? subManager.yearlyProduct ?? subManager.products.first
+        selectedProduct ?? offer.defaultPlan(from: subManager)
     }
 
     /// Trial text for the active plan, only if this Apple ID can take it.
     private var activeTrial: String? { subManager.trialText(for: activeProduct) }
+
+    private var lifetimeSelected: Bool { activeProduct?.isLifetime == true }
+
+    /// The Lifetime card's product — Premium offer only, and hidden once
+    /// owned: an owner who reaches a paywall is here for something else.
+    private var lifetimeOffer: Product? {
+        guard offer == .premium, !subManager.ownsLifetime else { return nil }
+        return subManager.lifetimeProduct
+    }
+
+    /// Whether what this paywall sells is now unlocked — closes it after a
+    /// purchase or restore.
+    private var offerUnlocked: Bool {
+        switch offer {
+        case .premium:   return subManager.isSubscribed
+        case .buddyChat: return subManager.hasBuddyAccess
+        }
+    }
 
     var body: some View {
         ScrollView {
@@ -72,9 +158,18 @@ struct PaywallScreen: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Restore") {
                     Task {
+                        restoreMessage = nil
                         await subManager.restore()
-                        if subManager.isSubscribed { isPresented = false }
-                        else if subManager.errorMessage != nil { showingError = true }
+                        if offerUnlocked {
+                            isPresented = false
+                        } else if subManager.errorMessage != nil {
+                            showingError = true
+                        } else {
+                            // Restored something, but not what this paywall
+                            // sells (e.g. Lifetime, on the Buddy Chat offer).
+                            restoreMessage = String(localized: "No active subscription found")
+                            showingError = true
+                        }
                     }
                 }
                 .foregroundColor(.white)
@@ -84,7 +179,7 @@ struct PaywallScreen: View {
         .alert("Error", isPresented: $showingError) {
             Button("OK") { }
         } message: {
-            Text(subManager.errorMessage ?? String(localized: "An unexpected error occurred. Please try again."))
+            Text(restoreMessage ?? subManager.errorMessage ?? String(localized: "An unexpected error occurred. Please try again."))
         }
         .onAppear {
             if !subManager.hasLoadedProducts && !subManager.isLoading {
@@ -105,25 +200,26 @@ struct PaywallScreen: View {
         VStack(spacing: 8) {
             ZStack {
                 Circle()
-                    .fill(RadialGradient(colors: [ArtColor.shieldBottom.opacity(0.4), .clear],
+                    .fill(RadialGradient(colors: [heroGlow.opacity(0.4), .clear],
                                          center: .center, startRadius: 0, endRadius: 70))
                     .frame(width: 140, height: 140)
                 SparkShape().fill(ArtColor.pink).frame(width: 13, height: 13).offset(x: -52, y: -26)
                 SparkShape().fill(ArtColor.lavender).frame(width: 16, height: 16).offset(x: 50, y: -30)
                 SparkShape().fill(ArtColor.pink).frame(width: 10, height: 10).offset(x: 56, y: 22)
-                BrandShield(size: 58)
+                heroArt
             }
             .frame(height: 96)
             .accessibilityHidden(true)
 
-            Text("Adult Blocker Premium")
+            Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
 
-            Text("Block adult content everywhere")
+            Text(subtitle)
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.75))
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         // Clears the toolbar: "Later" / "Restore" sit on this band, and the
@@ -131,20 +227,39 @@ struct PaywallScreen: View {
         .padding(.top, 100)
     }
 
+    @ViewBuilder
+    private var heroArt: some View {
+        switch offer {
+        case .premium:   BrandShield(size: 58)
+        case .buddyChat: FeatureEmblem(kind: .buddyChat, size: 58)
+        }
+    }
+
+    private var heroGlow: Color {
+        switch offer {
+        case .premium:   return ArtColor.shieldBottom
+        case .buddyChat: return Color(red: 0.5, green: 0.3, blue: 0.9)
+        }
+    }
+
     // MARK: - Features
 
     private var featuresSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
+                // Lifetime leaves out the chat, so with it selected the chat
+                // row is crossed out rather than silently still on offer.
+                let excluded = lifetimeSelected && feature.art == .buddyChat
                 HStack(spacing: 12) {
                     FeatureEmblem(kind: feature.art, size: 28)
                     Text(feature.text)
                         .font(.subheadline)
                         .fontWeight(.medium)
+                        .strikethrough(excluded)
                         .foregroundColor(.white.opacity(0.9))
                     Spacer(minLength: 0)
                 }
-                .opacity(featuresAppeared ? 1 : 0)
+                .opacity(featuresAppeared ? (excluded ? 0.4 : 1) : 0)
                 .offset(x: featuresAppeared ? 0 : -20)
                 .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.07), value: featuresAppeared)
             }
@@ -156,10 +271,15 @@ struct PaywallScreen: View {
 
     @ViewBuilder
     private var planSelector: some View {
-        if subManager.hasLoadedProducts {
-            HStack(spacing: 10) {
-                ForEach(subManager.products) { product in
-                    planCard(product)
+        if !plans.isEmpty || lifetimeOffer != nil {
+            VStack(spacing: 10) {
+                HStack(spacing: 10) {
+                    ForEach(plans) { product in
+                        planCard(product)
+                    }
+                }
+                if let lifetime = lifetimeOffer {
+                    lifetimeCard(lifetime)
                 }
             }
             .padding(.top, 8)
@@ -186,13 +306,10 @@ struct PaywallScreen: View {
     /// line are smaller and subordinate, and the trial stays muted.
     private func planCard(_ product: Product) -> some View {
         let isSelected = activeProduct?.id == product.id
-        let isYearly = product.id == subManager.yearlyProduct?.id
+        let isYearly = product.id == offer.yearlyPlan(from: subManager)?.id
 
         return Button {
-            UISelectionFeedbackGenerator().selectionChanged()
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
-                selectedProduct = product
-            }
+            select(product)
         } label: {
             VStack(spacing: 4) {
                 Text(product.planName)
@@ -224,17 +341,12 @@ struct PaywallScreen: View {
             .frame(maxWidth: .infinity, minHeight: 104)
             .padding(.vertical, 14)
             .padding(.horizontal, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(isSelected ? accent.opacity(0.16) : Color.white.opacity(0.06))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(isSelected ? accent : Color.white.opacity(0.14),
-                                  lineWidth: isSelected ? 2 : 1)
-            )
+            .background(planCardChrome(isSelected: isSelected))
             .overlay(alignment: .top) {
-                if isYearly, let savings = subManager.yearlySavingsPercent {
+                if isYearly, let savings = subManager.yearlySavingsPercent(
+                    monthly: offer.monthlyPlan(from: subManager),
+                    yearly: offer.yearlyPlan(from: subManager)
+                ) {
                     Text("SAVE \(savings)%")
                         .font(.caption2)
                         .fontWeight(.bold)
@@ -247,6 +359,66 @@ struct PaywallScreen: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    /// Full-width card under the subscription pair. As on the plan cards, the
+    /// one-time price is the headline; what Lifetime leaves out is stated on
+    /// the card itself, not left to the crossed-out feature row.
+    private func lifetimeCard(_ product: Product) -> some View {
+        let isSelected = activeProduct?.id == product.id
+
+        return Button {
+            select(product)
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Lifetime")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(isSelected ? accent : .secondary)
+                    Text("Everything except Buddy chat")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(product.displayPrice)
+                        .font(.title2)
+                        .fontWeight(.heavy)
+                        .foregroundColor(.primary)
+                        .monospacedDigit()
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                    Text("one-time", comment: "Lifetime plan card, under the price")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(planCardChrome(isSelected: isSelected))
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// The selection chrome every plan card shares.
+    private func planCardChrome(isSelected: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(isSelected ? accent.opacity(0.16) : Color.white.opacity(0.06))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(isSelected ? accent : Color.white.opacity(0.14),
+                                  lineWidth: isSelected ? 2 : 1)
+            )
+    }
+
+    private func select(_ product: Product) {
+        UISelectionFeedbackGenerator().selectionChanged()
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+            selectedProduct = product
+        }
     }
 
     // MARK: - CTA
@@ -295,7 +467,8 @@ struct PaywallScreen: View {
         }
     }
 
-    /// CTA button title — one line, as on Cairn: "Start Free Trial" when this
+    /// CTA button title — one line, as on Cairn: "Buy Lifetime Access" for the
+    /// one-time purchase; for a subscription, "Start Free Trial" when this
     /// Apple ID can take the trial, else "Subscribe Now". The paid,
     /// auto-renewing subscription that follows is stated directly under the
     /// button (`billingDisclosure`: bold billed price, then the full terms).
@@ -304,6 +477,9 @@ struct PaywallScreen: View {
     /// again, restore the second line on the button ("Then $X per year,
     /// auto-renews"; see git history).
     private var ctaPrimaryTitle: String {
+        if lifetimeSelected {
+            return String(localized: "Buy Lifetime Access")
+        }
         if activeTrial != nil {
             return String(localized: "Start Free Trial")
         }
@@ -314,27 +490,53 @@ struct PaywallScreen: View {
     /// element; trial duration and cancellation language are subordinate.
     @ViewBuilder
     private func billingDisclosure(for product: Product) -> some View {
-        let trial = subManager.trialText(for: product)
+        if product.isLifetime {
+            lifetimeDisclosure(for: product)
+        } else {
+            let trial = subManager.trialText(for: product)
+            VStack(spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(product.displayPrice)
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    if let trial {
+                        Text("per \(product.periodUnitText) after \(trial)")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("per \(product.periodUnitText)")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Text(trial != nil
+                     ? String(localized: "Your subscription begins automatically when the free trial ends. Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.", comment: "Legal billing disclosure (App Store 3.1.2(c)) — translate every clause faithfully")
+                     : String(localized: "Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.", comment: "Legal billing disclosure (App Store 3.1.2(c)) — translate every clause faithfully"))
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// The Lifetime counterpart, in the same hierarchy (billed price largest):
+    /// it says plainly that nothing renews and that Buddy chat isn't included.
+    private func lifetimeDisclosure(for product: Product) -> some View {
         VStack(spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(product.displayPrice)
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
-                if let trial {
-                    Text("per \(product.periodUnitText) after \(trial)")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text("per \(product.periodUnitText)")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                }
+                Text("one-time purchase")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
             }
 
-            Text(trial != nil
-                 ? String(localized: "Your subscription begins automatically when the free trial ends. Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.", comment: "Legal billing disclosure (App Store 3.1.2(c)) — translate every clause faithfully")
-                 : String(localized: "Auto-renews until cancelled — cancel anytime in Settings at least 24 hours before the renewal date.", comment: "Legal billing disclosure (App Store 3.1.2(c)) — translate every clause faithfully"))
+            Text("Pay once — no subscription, nothing renews. Includes every protection feature; Buddy chat is not included.", comment: "Lifetime billing disclosure — translate every clause faithfully")
                 .font(.caption2)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -347,10 +549,11 @@ struct PaywallScreen: View {
         Task {
             do {
                 try await subManager.purchase(product)
-                if subManager.isSubscribed { isPresented = false }
+                if offerUnlocked { isPresented = false }
             } catch SubscriptionError.userCancelled {
                 return
             } catch {
+                restoreMessage = nil
                 showingError = true
             }
         }
