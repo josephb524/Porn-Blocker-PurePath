@@ -32,6 +32,14 @@ The Safe Browse and Buddy tabs both show a locked marketing view that opens
 the paywall — on the Buddy tab, Lifetime owners get the Buddy Chat add-on
 paywall instead of Premium. The other tabs are free.
 
+Buying (or restoring) Lifetime from the Buddy tab's paywall lands on the
+Protection tab (2026-10-20): Lifetime leaves chat locked, so the tab would
+otherwise just offer the add-on. `BuddyLockedView` fixes the sheet's offer
+when it opens (`presentedOffer`; the live `offer` follows `ownsLifetime` and
+swapped the open sheet to the add-on paywall mid-purchase) and calls
+`onBoughtLifetime` from the sheet's `onDismiss`; `MainTabView` sets
+`selectedTab = 0`.
+
 ## Build & Run
 
 ```sh
@@ -322,8 +330,13 @@ for every product that includes chat, `worker/src/verify.ts`
 The add-on has its own subscription group so it never appears as a cheaper
 switch from Premium in Settings → Subscriptions (switching would silently
 drop protection), and so its intro-offer eligibility is independent of
-Premium's. Prices for the add-on are still open (2026-10-18); the
-`.storekit` values are placeholders. A Lifetime owner who later wants chat
+Premium's. All three were created in App Store Connect on 2026-10-19 (IDs
+in `AppStoreLocalization.md`): Lifetime **$99.99** — deliberately above
+Premium yearly's $69.99, so it can't undercut the yearly plan — and the
+add-on at **$2.99/month or $19.99/year**, the yearly with a 3-day free
+trial like Premium's. Other territories copy Premium yearly's regional
+discount (its price ÷ Apple's equalized price, per territory) onto each
+product's equalized price; `.storekit` mirrors the US prices. A Lifetime owner who later wants chat
 buys the add-on; a Premium subscriber who buys Lifetime must cancel Premium
 themselves — Apple doesn't do it.
 
@@ -363,6 +376,21 @@ re-reading the rejection notice:
 - **The layout is deliberately compact** (170pt header, tight feature
   rows) so both plan prices, the CTA, and the full disclosure sit above
   the fold with no scrolling — which *helps* 3.1.2(c). Don't re-inflate.
+- **Short containers get a compact layout** (2026-10-19). Below
+  `compactBelowHeight` (840 pt — the paywall's container, bars included,
+  read from a `GeometryReader`) the hero art and subtitle go, the title
+  sits just under the toolbar (the scroll view stops ignoring the top safe
+  area), and feature rows, plan cards and section gaps tighten. Fonts and
+  the pricing hierarchy don't change. That covers the iPhone SE, the 12/13
+  mini, the iPhone Duo's outer display, and the Safe Browse / Buddy
+  **sheets** on 6.1–6.3-inch phones — a sheet is ~60 pt shorter than the
+  screen, and with the Lifetime card the full layout cut off the
+  disclosure's last line there (iPhone 16e). Full-screen paywalls on
+  6.1-inch and larger phones are pixel-identical to before. Verified in en,
+  de and es (German and Spanish wrap feature rows and run the disclosure to
+  four lines; the Duo's sheet is the tightest fit). Still open: when pushed
+  from the Dashboard, the tab bar stays up and covers the disclosure's
+  small print, on every phone.
 - **`.toolbarColorScheme(.dark, for: .navigationBar)` is load-bearing** —
   iOS 26's glass toolbar buttons ignore `.foregroundColor(.white)` and
   render dark labels over the header gradient without it.
@@ -445,6 +473,12 @@ reminder → paywall. Non-obvious rules:
   `LockedFeaturePill(art:)` everywhere, paywall included) are SwiftUI
   shapes in the icon's language — red `BrandShield` with a white check,
   four-point sparks, soft bubbles. No assets, no text, so nothing to localize.
+- **Pages must fit short screens.** The start-date and reminder pages are
+  `ScrollView`s; How It Works scrolls with Continue pinned below it
+  (2026-10-19). It was a fixed stack between spacers: on the iPhone Duo's
+  outer display and the iPhone SE it pushed the back button and dots off
+  the top (and, on the SE, Continue half off the bottom), and it truncated
+  the subtitle even on an iPhone 18 Pro. Keep new pages scrollable.
 - Cold-launch notification taps survive onboarding:
   `HabitNotificationRouter.pendingHabitID` persists until `MainTabView`
   finally mounts and consumes it in `.onAppear`.
@@ -847,6 +881,21 @@ time to rediscover:
 - **`simctl io recordVideo` needs SIGINT** to write the mp4's moov atom.
   Killing it (SIGKILL) leaves a truncated file *and* a stuck host-recording
   session that blocks later recordings until the device is restarted.
+- **iPhone Duo** (the foldable; iOS 27.1 runtime). Build with Xcode 27.1
+  (point `DEVELOPER_DIR` at it if it isn't the selected Xcode): an iOS 27.0
+  SDK build runs windowed on the outer display beside a black strip. The
+  simulator boots folded. Screenshot each display with
+  `simctl io <udid> screenshot --display=primary` (outer, 466×678 pt) or
+  `--display=primary-1` (inner, black while folded). `simctl` has no fold
+  control — poses are in Xcode 27.1's DeviceHub app. On the outer display
+  the status bar, tab bar and toolbar items sit in a vertical strip on the
+  trailing side (the tab bar was automatic, nothing to adopt). The system
+  hides a navigation bar while a scroll view running *under* it is
+  scrolled — the paywall's full layout did; its compact layout (always
+  used there) starts below the bar and keeps Later / Restore up. The App
+  Store Duo set (`APP_IPHONE_DUO`) is drawn by
+  `marketing/appstore/screens.html?d=duo` and mirrors this layout (see that
+  folder's README); keep the two in step.
 
 ## Buddy Chat backend (`worker/`)
 

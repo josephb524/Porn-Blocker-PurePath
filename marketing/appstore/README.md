@@ -1,24 +1,64 @@
 # App Store screenshots
 
-Two sets, both generated from `screens.html`:
+Three sets, all generated from `screens.html`:
 
 - **iPhone 6.9"** — `s01.png` … `s06.png`, 1290×2796
 - **iPad 13"** — `ipad01.png` … `ipad06.png`, 2064×2752
+- **iPhone Duo** — `duo01.png` … `duo06.png`, 1398×2034 (the outer display)
 
-Apple auto-scales each to the smaller device classes in its family, so these
-two sets cover every required size.
+Apple auto-scales the first two to the smaller device classes in their
+family, so they cover every required size. The Duo set is its own display
+type — see "iPhone Duo set" below.
 
-| Panel | iPhone | iPad |
-|---|---|---|
-| Blocked before you see it — Protection Center | `s01.png` | `ipad01.png` |
-| Build a streak you're proud of — Insights / milestones | `s02.png` | `ipad02.png` |
-| A browser that can't wander — Safe Browse tabs | `s03.png` | `ipad03.png` |
-| Someone in your corner at 2am — Buddy chat | `s04.png` | `ipad04.png` |
-| A blocklist that keeps up — proof + Blocklist screen | `s05.png` | `ipad05.png` |
-| Protected in under a minute — setup steps + Settings | `s06.png` | `ipad06.png` |
+| Panel | iPhone | iPad | iPhone Duo |
+|---|---|---|---|
+| Blocked before you see it — Protection Center | `s01.png` | `ipad01.png` | `duo01.png` |
+| Build a streak you're proud of — Insights / milestones | `s02.png` | `ipad02.png` | `duo02.png` |
+| A browser that can't wander — Safe Browse tabs | `s03.png` | `ipad03.png` | `duo03.png` |
+| Someone in your corner at 2am — Buddy chat | `s04.png` | `ipad04.png` | `duo04.png` |
+| A blocklist that keeps up — proof + Blocklist screen | `s05.png` | `ipad05.png` | `duo05.png` |
+| Protected in under a minute — setup steps + Settings | `s06.png` | `ipad06.png` | `duo06.png` |
 
-`_contactsheet.png` and `_contactsheet-ipad.png` are review-only strips.
-Don't upload them.
+`_contactsheet.png`, `_contactsheet-ipad.png` and `_contactsheet-duo.png`
+are review-only strips. Don't upload them.
+
+## iPhone Duo set
+
+`?d=duo` renders the panels at 1398×2034, the Duo's outer display, folded.
+App Store Connect takes one Duo set, display type `APP_IPHONE_DUO`, at
+either the outer screen's size or the inner screen's (2007×2853). It's
+optional until April 2027, required after that for apps built with the
+iOS 27.1 SDK, and it earns the "optimized for iPhone Duo" badge. **Upload it
+only to a version whose build was archived with Xcode 27.1 or later.** An
+iOS 27.0-SDK build runs windowed on the outer display beside a black strip,
+so it wouldn't match these images.
+
+The mock screen mirrors what the app really does there, as captured in the
+simulator on 2026-10-19 (`CLAUDE.md` → "iPhone Duo"):
+
+- The app keeps its iPhone layout in a 466×678pt window. The system puts the
+  status bar (time and wifi only), the tab bar (icons only, the selected
+  one blue on a grey disc, as in the app) and toolbar buttons (Streaks' `+`,
+  the Blocklist back button) in a rail on the trailing edge. That leaves a
+  382pt content column: `.screen` gets `padding-right:84px`, and
+  `statusbar()`, `tabbar()` and `railBtn()` branch on `DUO`.
+- The screens are the same markup, so a screen taller than 678pt is cut at
+  the bottom, as the real one scrolls. The chat composer drops to the bottom
+  inset, since there's no bottom tab bar.
+- The device's leading corners are nearly square and its trailing corners
+  rounded: the hinge is the leading edge (the simulator's display mask).
+- Keep the floating cards off the rail. It's what makes the set read as the
+  Duo, so the right-hand cards sit at the device's bottom corner.
+
+Only the outer screen is drawn. The simulator boots folded, and only Xcode
+27.1's DeviceHub can open it, so the inner screen's layout hasn't been seen.
+
+**Uploaded 2026-10-20** to the 1.6.2 draft as `APP_IPHONE_DUO` in all six
+locales: English files for en-US and en-GB, `es/` for es-MX and es-ES,
+`pt-BR/`, and `de/`. Each set was read back with six screenshots in order,
+checksums matching these files, processed at 1398×2034. The upload went
+through the API one set at a time; `deliver --overwrite_screenshots` would
+have replaced the iPhone and iPad sets too.
 
 ## ⚠️ The iPad set shows an unadapted layout
 
@@ -61,17 +101,21 @@ for i in 1 2 3 4 5 6; do
   "$CHROME" --headless=new --disable-gpu --hide-scrollbars \
     --force-device-scale-factor=1 --window-size=2064,2752 \
     --screenshot="ipad0$i.png" "file://$PWD/screens.html?d=ipad&p=$i"
+  "$CHROME" --headless=new --disable-gpu --hide-scrollbars \
+    --force-device-scale-factor=1 --window-size=1398,2034 \
+    --screenshot="duo0$i.png" "file://$PWD/screens.html?d=duo&p=$i"
 done
 ```
 
-Opening `screens.html` with no `?p` shows a contact sheet (add `?d=ipad` for
-the tablet one).
+Opening `screens.html` with no `?p` shows a contact sheet (add `?d=ipad` or
+`?d=duo` for the other sets; the Duo strip is rendered at 2142×526).
 
-Both sets share every `screen*()` function — the iPad versions are the same
+All sets share every `screen*()` function — the iPad versions are the same
 markup in a 1032×1376 container, which is exactly why they reproduce the
 stretch faithfully. Per-mode values (card positions, device scale, type sizes)
-go through the `M(phone, ipad)` helper or a `body.ipad` CSS rule; don't fork
-the screen builders.
+go through the `M(phone, ipad, duo)` helper (the Duo falls back to the phone
+value) or a `body.ipad` / `body.duo` CSS rule; don't fork the screen
+builders.
 
 Rendering **must** happen on macOS with Chrome — the device mockups use
 `system-ui` and `ui-rounded`, which resolve to SF Pro and SF Pro Rounded there.
@@ -92,6 +136,9 @@ for L in es pt-BR de; do mkdir -p $L; for i in 1 2 3 4 5 6; do
   "$CHROME" --headless=new --disable-gpu --hide-scrollbars \
     --force-device-scale-factor=1 --window-size=2064,2752 \
     --screenshot="$L/ipad0$i.png" "file://$PWD/screens.html?d=ipad&p=$i&l=$L"
+  "$CHROME" --headless=new --disable-gpu --hide-scrollbars \
+    --force-device-scale-factor=1 --window-size=1398,2034 \
+    --screenshot="$L/duo0$i.png" "file://$PWD/screens.html?d=duo&p=$i&l=$L"
 done; done
 ```
 

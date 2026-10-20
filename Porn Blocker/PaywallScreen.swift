@@ -57,6 +57,18 @@ struct PaywallScreen: View {
 
     private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.62)
 
+    /// Below this height (the paywall's container, bars included) it goes
+    /// compact: no hero art or subtitle, the title just under the toolbar, and
+    /// slightly tighter rows, cards and gaps — so the CTA and the whole billing
+    /// disclosure still sit above the fold (3.1.2(c)). The full layout needs
+    /// about this much. Compact: everywhere on the iPhone SE, the 12/13 mini
+    /// and the iPhone Duo's outer display, plus the Safe Browse / Buddy sheets
+    /// on 6.1–6.3-inch phones, where a sheet's ~60pt shortfall cut off the
+    /// disclosure's last line (seen on an iPhone 16e). Full-screen paywalls
+    /// on those phones keep the full layout. Fonts and the pricing hierarchy
+    /// are the same in both.
+    private static let compactBelowHeight: CGFloat = 840
+
     // Legal links open externally (Safari) rather than as in-app sheets,
     // so the App Store reviewer and users see canonical hosted documents.
     // Terms uses Apple's Standard EULA, which the in-app TermsView also
@@ -126,24 +138,33 @@ struct PaywallScreen: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                headerSection
+        GeometryReader { proxy in
+            // The whole container — the window, or the sheet: the reader sits
+            // inside the safe area, whose insets cover the navigation bar,
+            // home indicator and any tab bar.
+            let compact = proxy.size.height + proxy.safeAreaInsets.top + proxy.safeAreaInsets.bottom
+                < Self.compactBelowHeight
+            ScrollView {
+                VStack(spacing: 0) {
+                    headerSection(compact: compact)
 
-                VStack(spacing: 18) {
-                    featuresSection
-                    planSelector
-                    ctaSection
-                    legalSection
+                    VStack(spacing: compact ? 14 : 18) {
+                        featuresSection(compact: compact)
+                        planSelector(compact: compact)
+                        ctaSection
+                        legalSection
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 14)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 14)
-                .padding(.bottom, 24)
             }
+            // Full layout: the art runs up under the toolbar. Compact: content
+            // starts below it.
+            .ignoresSafeArea(edges: compact ? [] : .top)
         }
         .background(PaywallBackground().ignoresSafeArea())
         .environment(\.colorScheme, .dark)
-        .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         // The toolbar sits over the dark header. Without declaring the color
@@ -196,35 +217,41 @@ struct PaywallScreen: View {
 
     // MARK: - Header
 
-    private var headerSection: some View {
+    private func headerSection(compact: Bool) -> some View {
         VStack(spacing: 8) {
-            ZStack {
-                Circle()
-                    .fill(RadialGradient(colors: [heroGlow.opacity(0.4), .clear],
-                                         center: .center, startRadius: 0, endRadius: 70))
-                    .frame(width: 140, height: 140)
-                SparkShape().fill(ArtColor.pink).frame(width: 13, height: 13).offset(x: -52, y: -26)
-                SparkShape().fill(ArtColor.lavender).frame(width: 16, height: 16).offset(x: 50, y: -30)
-                SparkShape().fill(ArtColor.pink).frame(width: 10, height: 10).offset(x: 56, y: 22)
-                heroArt
+            if !compact {
+                ZStack {
+                    Circle()
+                        .fill(RadialGradient(colors: [heroGlow.opacity(0.4), .clear],
+                                             center: .center, startRadius: 0, endRadius: 70))
+                        .frame(width: 140, height: 140)
+                    SparkShape().fill(ArtColor.pink).frame(width: 13, height: 13).offset(x: -52, y: -26)
+                    SparkShape().fill(ArtColor.lavender).frame(width: 16, height: 16).offset(x: 50, y: -30)
+                    SparkShape().fill(ArtColor.pink).frame(width: 10, height: 10).offset(x: 56, y: 22)
+                    heroArt
+                }
+                .frame(height: 96)
+                .accessibilityHidden(true)
             }
-            .frame(height: 96)
-            .accessibilityHidden(true)
 
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
 
-            Text(subtitle)
-                .font(.subheadline)
-                .foregroundColor(.white.opacity(0.75))
-                .multilineTextAlignment(.center)
+            // The feature rows below say the same thing.
+            if !compact {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.75))
+                    .multilineTextAlignment(.center)
+            }
         }
         .frame(maxWidth: .infinity)
         // Clears the toolbar: "Later" / "Restore" sit on this band, and the
         // German "Wiederherstellen" reaches well past the sparks otherwise.
-        .padding(.top, 100)
+        // Compact content already starts below the bar.
+        .padding(.top, compact ? 8 : 100)
     }
 
     @ViewBuilder
@@ -244,14 +271,14 @@ struct PaywallScreen: View {
 
     // MARK: - Features
 
-    private var featuresSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+    private func featuresSection(compact: Bool) -> some View {
+        VStack(alignment: .leading, spacing: compact ? 8 : 10) {
             ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
                 // Lifetime leaves out the chat, so with it selected the chat
                 // row is crossed out rather than silently still on offer.
                 let excluded = lifetimeSelected && feature.art == .buddyChat
                 HStack(spacing: 12) {
-                    FeatureEmblem(kind: feature.art, size: 28)
+                    FeatureEmblem(kind: feature.art, size: compact ? 24 : 28)
                     Text(feature.text)
                         .font(.subheadline)
                         .fontWeight(.medium)
@@ -270,12 +297,12 @@ struct PaywallScreen: View {
     // MARK: - Plan Selector
 
     @ViewBuilder
-    private var planSelector: some View {
+    private func planSelector(compact: Bool) -> some View {
         if !plans.isEmpty || lifetimeOffer != nil {
             VStack(spacing: 10) {
                 HStack(spacing: 10) {
                     ForEach(plans) { product in
-                        planCard(product)
+                        planCard(product, compact: compact)
                     }
                 }
                 if let lifetime = lifetimeOffer {
@@ -304,7 +331,7 @@ struct PaywallScreen: View {
     /// Side-by-side plan card. The billed price is the headline — the most
     /// prominent pricing element (3.1.2(c)); the savings ribbon and the trial
     /// line are smaller and subordinate, and the trial stays muted.
-    private func planCard(_ product: Product) -> some View {
+    private func planCard(_ product: Product, compact: Bool) -> some View {
         let isSelected = activeProduct?.id == product.id
         let isYearly = product.id == offer.yearlyPlan(from: subManager)?.id
 
@@ -338,7 +365,8 @@ struct PaywallScreen: View {
             }
             // minHeight keeps the pair matched: the trial line exists on one
             // card only, and unequal cards read as a mistake, not a choice.
-            .frame(maxWidth: .infinity, minHeight: 104)
+            // 92 still clears the yearly card's four lines (84 at default size).
+            .frame(maxWidth: .infinity, minHeight: compact ? 92 : 104)
             .padding(.vertical, 14)
             .padding(.horizontal, 8)
             .background(planCardChrome(isSelected: isSelected))

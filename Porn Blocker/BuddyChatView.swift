@@ -5,13 +5,17 @@ import SwiftUI
 /// same pattern as `SafeBrowserView` so the locked feature feels consistent
 /// across the app.
 struct BuddyChatView: View {
+    /// Called when Lifetime is bought (or restored) from this tab's paywall;
+    /// `MainTabView` switches to the Protection tab.
+    var onBoughtLifetime: () -> Void = {}
+
     @StateObject private var subManager = SubscriptionManager.shared
 
     var body: some View {
         if subManager.hasBuddyAccess {
             BuddyChatContent()
         } else {
-            BuddyLockedView()
+            BuddyLockedView(onBoughtLifetime: onBoughtLifetime)
         }
     }
 }
@@ -19,8 +23,14 @@ struct BuddyChatView: View {
 // MARK: - Locked Gate (non-subscribers)
 
 private struct BuddyLockedView: View {
+    let onBoughtLifetime: () -> Void
+
     @StateObject private var subManager = SubscriptionManager.shared
     @State private var showPaywall = false
+    /// The offer the open paywall sells, fixed when it opens. `offer` follows
+    /// `ownsLifetime`, so buying Lifetime flipped it to the add-on and swapped
+    /// the sheet to a second paywall before it closed.
+    @State private var presentedOffer: PaywallOffer = .premium
 
     private let accent = Color(hue: 0.38, saturation: 0.65, brightness: 0.5)
 
@@ -99,6 +109,7 @@ private struct BuddyLockedView: View {
 
                             VStack(spacing: 12) {
                                 Button {
+                                    presentedOffer = offer
                                     showPaywall = true
                                 } label: {
                                     HStack(spacing: 10) {
@@ -137,9 +148,15 @@ private struct BuddyLockedView: View {
                 }
             }
             .navigationBarHidden(true)
-            .sheet(isPresented: $showPaywall) {
+            .sheet(isPresented: $showPaywall, onDismiss: {
+                // Lifetime leaves chat locked, so this tab would only offer
+                // the add-on next. Land on Protection, which it just unlocked.
+                if presentedOffer == .premium, subManager.ownsLifetime, !subManager.hasBuddyAccess {
+                    onBoughtLifetime()
+                }
+            }) {
                 NavigationStack {
-                    PaywallScreen(isPresented: $showPaywall, offer: offer)
+                    PaywallScreen(isPresented: $showPaywall, offer: presentedOffer)
                 }
             }
         }

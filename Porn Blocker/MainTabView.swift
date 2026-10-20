@@ -28,7 +28,7 @@ struct MainTabView: View {
                     }
                     .tag(1)
 
-                BuddyChatView()
+                BuddyChatView(onBoughtLifetime: { selectedTab = 0 })
                     .tabItem {
                         Image(systemName: "bubble.left.and.bubble.right.fill")
                         Text("Buddy")

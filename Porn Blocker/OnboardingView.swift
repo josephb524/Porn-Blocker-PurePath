@@ -123,34 +123,46 @@ struct OnboardingView: View {
         }
     }
 
+    /// Scrolls when it doesn't fit, with Continue pinned below. The iPhone Duo's
+    /// outer display (and an iPhone SE) is too short for the art, the text and
+    /// four pills: the stack overflowed, truncated the subtitle and pushed the
+    /// back button and dots off the top. On taller screens the content stays
+    /// centred above the button, as before.
     private var howItWorksPage: some View {
-        VStack(spacing: 28) {
-            Spacer()
+        VStack(spacing: 0) {
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(spacing: 28) {
+                        HowItWorksArt()
 
-            HowItWorksArt()
+                        VStack(spacing: 10) {
+                            Text("How It Works")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
 
-            VStack(spacing: 10) {
-                Text("How It Works")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+                            Text("Four layers of protection and support, working together.")
+                                .font(.body)
+                                .foregroundColor(.white.opacity(0.7))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                        }
 
-                Text("Four layers of protection and support, working together.")
-                    .font(.body)
-                    .foregroundColor(.white.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                        VStack(spacing: 10) {
+                            LockedFeaturePill(art: .safariBlocking, text: "Blocks porn sites in Safari")
+                            LockedFeaturePill(art: .safeBrowser, text: "Built-in Safe Browser")
+                            LockedFeaturePill(art: .buddyChat, text: "Buddy chat for tough moments")
+                            LockedFeaturePill(art: .streaks, text: "Streak tracking & milestones")
+                        }
+                        .padding(.horizontal, 24)
+                    }
+                    // Clears the back button and dots.
+                    .padding(.top, 48)
+                    .padding(.bottom, 28)
+                    .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
             }
-
-            VStack(spacing: 10) {
-                LockedFeaturePill(art: .safariBlocking, text: "Blocks porn sites in Safari")
-                LockedFeaturePill(art: .safeBrowser, text: "Built-in Safe Browser")
-                LockedFeaturePill(art: .buddyChat, text: "Buddy chat for tough moments")
-                LockedFeaturePill(art: .streaks, text: "Streak tracking & milestones")
-            }
-            .padding(.horizontal, 24)
-
-            Spacer()
 
             OnboardingCTAButton(title: "Continue", icon: "arrow.right") {
                 advance()

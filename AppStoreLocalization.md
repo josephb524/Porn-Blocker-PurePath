@@ -79,9 +79,9 @@ subtitle (popularity/difficulty below):
   us/gb/mx/es/br/de as of 2026-10-19. Compare ranks and per-territory units
   2–3 weeks after 1.6.2 is live. Authority is the ceiling: 2 US ratings, and
   #113 for "quit lust" while it sat in the subtitle.
-- Pushed: name, subtitle and keywords only. The description's new purchase
-  paragraph (Lifetime + Buddy Chat add-on) is in `appstore-metadata.json` but
-  **not yet in App Store Connect** — push it once those products exist.
+- Pushed: name, subtitle and keywords; then (2026-10-19, once the products
+  existed) the description with the new purchase paragraph (Lifetime +
+  Buddy Chat add-on), all 6 locales, read back verified.
 
 ### Why these names (researched 2026-09-27)
 
@@ -127,16 +127,24 @@ subscription group are localized for es-MX, es-ES, pt-BR, de-DE — entered via
 the API 2026-10-04 and read back verified. Apple caps the description at 55
 characters. The unused `pornBlockerMonthly` (MISSING_METADATA) was left alone.
 
-**New products, not yet created in App Store Connect** (prices still open).
-Lifetime `lifetimePornBlocker` is a non-consumable, Family Sharing off. The
-Buddy Chat add-on (`buddyChatYearly`, `buddyChatMonthly`) is its own
-subscription group, so it never shows as a cheaper switch from Premium in
-Settings → Subscriptions. Drafted names and descriptions:
+**New products — created via the API 2026-10-19, read back verified.**
+Lifetime `lifetimePornBlocker` (id 6824659564) is a non-consumable, Family
+Sharing off, **$99.99** (above Premium yearly's $69.99 so it can't undercut
+it). The Buddy Chat add-on is its own subscription group "Buddy Chat" (id
+22494492), so it never shows as a cheaper switch from Premium in Settings →
+Subscriptions: `buddyChatYearly` (id 6824659646) **$19.99** with a 3-day
+free trial in all 175 territories, `buddyChatMonthly` (id 6824659427)
+**$2.99**, both level 1, Family Sharing off. All three are available in all
+175 territories; 134 of them get Premium yearly's regional discount (e.g.
+Lifetime R$249.90 in Brazil, ₹2,299 in India, €99.99 in Germany). Lifetime
+has its review screenshot (READY_TO_SUBMIT); the two add-on subscriptions
+still need theirs. Localizations as entered (es = es-MX + es-ES, en = en-US +
+en-GB):
 
-- **en** — Adult Blocker Lifetime — "Protection for life. Buddy chat not included." · group "Buddy Chat": Buddy Chat Yearly — "Buddy chat for Lifetime members, billed yearly." · Buddy Chat Monthly — "Buddy chat for Lifetime members, billed monthly."
-- **es** (es-MX + es-ES) — Bloqueador Adulto De por vida — "Protección de por vida. No incluye el chat." · group "Chat con tu compañero": Chat Anual — "Chat de apoyo para el plan de por vida, cobro anual." · Chat Mensual — "Chat de apoyo para el plan de por vida, cobro mensual."
-- **pt-BR** — Bloqueador Adulto Vitalício — "Proteção vitalícia. O chat não está incluído." · group "Chat com o parceiro": Chat Anual — "Chat de apoio do plano vitalício, cobrado anualmente." · Chat Mensal — "Chat de apoio do plano vitalício, cobrado mensalmente."
-- **de** — Adult Blocker Lebenslang — "Schutz auf Lebenszeit. Ohne Buddy-Chat." · group "Buddy-Chat": Buddy-Chat Jährlich — "Buddy-Chat zum Lebenslang-Kauf, jährliche Abrechnung." · Buddy-Chat Monatlich — "Buddy-Chat zum Lebenslang-Kauf, monatliche Abrechnung."
+- **en** — Adult Blocker Lifetime — "Protection for life. Buddy chat not included." · group "Buddy Chat": Buddy Chat Yearly — "Buddy chat for Lifetime owners, yearly." · Buddy Chat Monthly — "Buddy chat for Lifetime owners, monthly."
+- **es** — Bloqueador Adulto De por vida — "Protección de por vida. No incluye el chat." · group "Chat con tu compañero": Chat Anual — "Chat de apoyo del plan de por vida, anual." · Chat Mensual — "Chat de apoyo del plan de por vida, mensual."
+- **pt-BR** — Bloqueador Adulto Vitalício — "Proteção vitalícia. O chat não está incluído." · group "Chat com o parceiro": Chat Anual — "Chat de apoio do plano vitalício, anual." · Chat Mensal — "Chat de apoio do plano vitalício, mensal."
+- **de** — Adult Blocker Lebenslang — "Schutz auf Lebenszeit. Ohne Buddy-Chat." · group "Buddy-Chat": Buddy-Chat Jährlich — "Buddy-Chat zum Lebenslang-Kauf, jährlich." · Buddy-Chat Monatlich — "Buddy-Chat zum Lebenslang-Kauf, monatlich."
 
 ---
 

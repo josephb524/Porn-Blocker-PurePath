@@ -360,12 +360,57 @@
   body.ipad .step .t{font-size:56px;letter-spacing:-1.5px}
   body.ipad .step .d{font-size:38px;margin-top:10px}
 
+  /* ============================================================
+     iPhone Duo mode (1398 x 2034 — the outer display, folded).
+     The app keeps its iPhone layout in a 466x678pt window, and iOS
+     27.1 moves the status bar, tab bar and toolbar buttons into a
+     rail on the trailing edge, leaving a 382pt content column —
+     positions below are read off the simulator. The hinge is the
+     leading edge, so that side's corners are nearly square (the
+     simulator's display mask).
+     ============================================================ */
+  body.duo .panel{width:1398px;height:2034px}
+  body.duo .copy{top:104px;padding:0 110px}
+  body.duo .sub{max-width:1040px}
+  body.duo .stage{perspective-origin:50% 30%}
+  body.duo .device{
+    width:495px;height:704px;margin-left:-247px;top:620px;
+    border-radius:20px 66px 66px 20px;padding:13px 13px 13px 16px;
+  }
+  body.duo .device.tilt{transform:scale(1.7) rotateY(-19deg) rotateX(7deg) rotateZ(-2.2deg)}
+  body.duo .device::after{inset:13px 13px 13px 16px;border-radius:7px 54px 54px 7px}
+  body.duo .screen{border-radius:7px 54px 54px 7px;padding-right:84px}
+  body.duo .shadowpad{top:1890px;width:1100px}
+  body.duo .glow{width:1600px;height:1600px}
+
+  /* the trailing rail: status, toolbar buttons, tabs */
+  body.duo .dside{position:absolute;top:0;right:0;width:84px;padding-top:83px;text-align:center;font-size:15px;font-weight:640;letter-spacing:-.2px}
+  body.duo .dside svg{display:block;width:17px;height:17px;margin:12px auto 0}
+  body.duo .dbtn{
+    position:absolute;right:18px;top:169px;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(255,255,255,.86);box-shadow:0 2px 10px rgba(0,0,0,.10),inset 0 0 0 .5px rgba(0,0,0,.06);
+  }
+  body.duo .dbtn svg{width:22px;height:22px}
+  body.duo .drail{
+    position:absolute;right:18px;top:392px;width:48px;padding:6px 2px;border-radius:24px;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    background:rgba(255,255,255,.86);box-shadow:0 2px 10px rgba(0,0,0,.10),inset 0 0 0 .5px rgba(0,0,0,.06);
+  }
+  body.duo .drail .tb{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#1C1C1E}
+  body.duo .drail .tb.on{color:var(--blue);background:rgba(120,120,128,.16)}
+  body.duo .drail .tb svg{width:24px;height:24px}
+  /* no bottom tab bar: the composer sits on the home-indicator inset */
+  body.duo .msgs{right:84px;top:60px;bottom:78px}
+  body.duo .composer{right:84px;bottom:12px}
+
   /* index preview */
   body.index{display:flex;gap:24px;padding:24px;overflow-x:auto;background:#1b1b1e}
   body.index .panel{flex:none;transform:scale(.235);transform-origin:top left;width:1290px;height:2796px}
   body.index .wrap{width:303px;height:657px;overflow:hidden;border-radius:8px}
   body.index.ipad .panel{width:2064px;height:2752px}
   body.index.ipad .wrap{width:485px;height:647px}
+  body.index.duo .panel{width:1398px;height:2034px}
+  body.index.duo .wrap{width:329px;height:478px}
 </style>
 </head>
 <body>
@@ -375,8 +420,9 @@
 /* ============ mode ============ */
 const q=new URLSearchParams(location.search);
 const IPAD=q.get('d')==='ipad';
-/** pick a value per device mode — keeps one source of truth for both sets */
-const M=(phone,ipad)=>IPAD?ipad:phone;
+const DUO=q.get('d')==='duo';
+/** pick a value per device mode — keeps one source of truth for every set (the Duo falls back to the phone value) */
+const M=(phone,ipad,duo=phone)=>IPAD?ipad:DUO?duo:phone;
 
 /* ============ language (?l=es | pt-BR | de; default en) ============ */
 const L=q.get('l')||'en';
@@ -434,12 +480,21 @@ const svg = (d,cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="current
 const shieldCheck = (bg) => `<svg viewBox="0 0 24 24"><path fill="currentColor" d="${P.shield}"/><path d="${P.check}" fill="none" stroke="${bg}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 /* ============ shared chrome ============ */
-const statusbar = (t='9:41') => `
+const statusbar = (t='9:41') => DUO
+  // iPhone Duo: the status bar is in the trailing rail, so content starts at the top
+  ? `<div class="dside"><div>${t}</div>${svg('wifi')}</div><div style="height:19px"></div>`
+  : `
   <div class="statusbar"><div>${t}</div>
   <div class="sb-r">${svg('wifi')}${svg('batt')}</div></div>`;
 
+/** iPhone Duo: a toolbar button the system moved into the trailing rail */
+const railBtn = (icon,color) => `<div class="dbtn" style="color:${color}">${svg(icon)}</div>`;
+
 const tabbar = (active) => {
   const items=[['shield','Protection'],['safari','Safe Browse'],['bubble','Buddy'],['chart','Streaks'],['gear','Settings']];
+  // iPhone Duo: a vertical rail of icons on the trailing edge, no labels
+  if(DUO) return `<div class="drail">${items.map((it,i)=>
+    `<div class="tb ${i===active?'on':''}">${svg(it[0])}</div>`).join('')}</div>`;
   return `<div class="tabbar">${items.map((it,i)=>
     `<div class="tb ${i===active?'on':''}">${svg(it[0])}<span>${t(it[1])}</span></div>`).join('')}
     </div><div class="homebar"></div>`;
@@ -488,7 +543,7 @@ function screenStreaks(){
   const R=65, C=2*Math.PI*R, prog=18/30;
   const miles=[['sunrise','1 Day','#B29736',1],['star','1 Week','#B2A636',1],['crown','1 Month','#368DB2',0],['shield','3 Months','#36B259',0],['trophy','1 Year','#B29736',0]];
   return `<div class="screen">${statusbar()}
-    <div class="navrow"><div class="navlarge">${t('Insights')}</div><div style="color:#2D8044;width:22px">${svg('plus')}</div></div>
+    <div class="navrow"><div class="navlarge">${t('Insights')}</div>${DUO?railBtn('plus','#2D8044'):`<div style="color:#2D8044;width:22px">${svg('plus')}</div>`}</div>
     <div class="body" style="padding-top:8px">
       <div class="shero">
         <div class="o1"></div><div class="o2"></div>
@@ -618,7 +673,7 @@ function screenBlocklist(){
   const chev=`<div style="width:11px;color:var(--g3)">${svg('chevR')}</div>`;
   return `<div class="screen">${statusbar()}
     <div class="navrow" style="padding-top:6px">
-      <div style="width:11px;color:#007AFF">${svg('chevL')}</div>
+      ${DUO?`${railBtn('chevL','#007AFF')}<div style="width:19px"></div>`:`<div style="width:11px;color:#007AFF">${svg('chevL')}</div>`}
       <div style="font-size:17px;font-weight:650">${t('Blocklist')}</div>
       <div style="width:19px"></div>
     </div>
@@ -703,13 +758,13 @@ function panel1(){
       <div class="sub">${t('Turn it on once. Protection stays on everywhere Safari goes.')}</div>
     </div>
     <div class="stage"><div class="device tilt">${screenDashboard()}</div></div>
-    <div class="fcard" style="${M('left:34px;top:1330px','left:150px;top:1990px')};transform:rotate(-4deg)">
+    <div class="fcard" style="${M('left:34px;top:1330px','left:150px;top:1990px','left:44px;top:1120px')};transform:rotate(-4deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${shieldCheck('#1E7042')}</div>
         <div><div class="fc-val">${nf(SITES)}</div><div class="fc-lab">${t('Sites blocked')}</div></div>
       </div>
     </div>
-    <div class="fcard dark" style="${M('right:30px;top:2130px','right:140px;top:2300px')};transform:rotate(3.5deg)">
+    <div class="fcard dark" style="${M('right:30px;top:2130px','right:140px;top:2300px','right:36px;top:1795px')};transform:rotate(3.5deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#E08A3C,#B4611C);color:#fff">${svg('shieldslash')}</div>
         <div><div class="fc-val">${nf(ATTEMPTS)}</div><div class="fc-lab">${t('Attempts stopped')}</div></div>
@@ -725,7 +780,7 @@ function panel2(){
       <div class="sub">${t('Check in once a day. Watch the days add up — and celebrate every milestone.')}</div>
     </div>
     <div class="stage"><div class="device tilt">${screenStreaks()}</div></div>
-    <div class="fcard" style="${M('right:26px;top:1620px','right:110px;top:1900px')};transform:rotate(3deg);text-align:center">
+    <div class="fcard" style="${M('right:26px;top:1620px','right:110px;top:1900px','right:40px;top:1010px')};transform:rotate(3deg);text-align:center">
       <div style="width:104px;height:104px;border-radius:50%;margin:0 auto 20px;display:grid;place-items:center;background:#B2A62E;box-shadow:0 14px 26px rgba(178,166,46,.42),inset 0 2px 0 rgba(255,255,255,.5);color:#fff">
         <svg viewBox="0 0 24 24" fill="currentColor" style="width:54px;height:54px"><path d="${P.star}"/></svg>
       </div>
@@ -733,7 +788,7 @@ function panel2(){
       <div style="font-size:38px;font-weight:800;letter-spacing:-1.2px;color:#12301F">${t('Milestone!')}</div>
       <div class="fc-lab" style="font-size:25px;margin-top:12px">${t('7 days porn free')}</div>
     </div>
-    <div class="fcard dark" style="${M('left:4px;top:2255px','left:150px;top:2270px')};transform:rotate(-4deg)">
+    <div class="fcard dark" style="${M('left:4px;top:2255px','left:150px;top:2270px','left:36px;top:1660px')};transform:rotate(-4deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('heart')}</div>
         <div><div class="fc-val">${t('23 days')}</div><div class="fc-lab">${t('Longest streak')}</div></div>
@@ -749,13 +804,13 @@ function panel3(){
       <div class="sub">${t('Real tabs, saved sessions, and safe search locked on — every single time.')}</div>
     </div>
     <div class="stage"><div class="device tilt">${screenBrowser()}</div></div>
-    <div class="fcard" style="${M('left:30px;top:1600px;max-width:620px','left:130px;top:2080px;max-width:840px')};transform:rotate(-3.5deg)">
+    <div class="fcard" style="${M('left:30px;top:1600px;max-width:620px','left:130px;top:2080px;max-width:840px','left:40px;top:1130px;max-width:620px')};transform:rotate(-3.5deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('lock')}</div>
         <div><div class="fc-val" style="font-size:44px">${t('Safe search')}</div><div class="fc-lab">${t('Forced on Google, Bing & more')}</div></div>
       </div>
     </div>
-    <div class="fcard dark" style="${M('right:28px;top:2160px','right:120px;top:2380px')};transform:rotate(3deg)">
+    <div class="fcard dark" style="${M('right:28px;top:2160px','right:120px;top:2380px','right:36px;top:1795px')};transform:rotate(3deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3F8FD9,#245FA8);color:#fff">${svg('safari')}</div>
         <div><div class="fc-val" style="font-size:44px">${t('Tabs saved')}</div><div class="fc-lab">${t('Restored when you return')}</div></div>
@@ -771,13 +826,13 @@ function panel4(){
       <div class="sub">${t('Private, judgment-free support the moment an urge hits.')}</div>
     </div>
     <div class="stage"><div class="device tilt">${screenChat()}</div></div>
-    <div class="fcard" style="${M('left:0px;top:1540px;max-width:600px','left:120px;top:1120px;max-width:820px')};transform:rotate(-4deg)">
+    <div class="fcard" style="${M('left:0px;top:1540px;max-width:600px','left:120px;top:1120px;max-width:820px','left:30px;top:1000px;max-width:600px')};transform:rotate(-4deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#3BAE63,#1E7042);color:#fff">${svg('bubble')}</div>
         <div><div class="fc-val" style="font-size:42px">${t('Always awake')}</div><div class="fc-lab">${t('No appointments, no waiting')}</div></div>
       </div>
     </div>
-    <div class="fcard dark" style="${M('right:26px;top:2170px;max-width:640px','right:120px;top:2330px;max-width:860px')};transform:rotate(3.5deg)">
+    <div class="fcard dark" style="${M('right:26px;top:2170px;max-width:640px','right:120px;top:2330px;max-width:860px','right:30px;top:1795px;max-width:640px')};transform:rotate(3.5deg)">
       <div class="fc-row">
         <div class="fc-ico" style="background:linear-gradient(150deg,#4C4C55,#232329);color:#fff">${svg('lock')}</div>
         <div><div class="fc-val" style="font-size:42px">${t('Stays private')}</div><div class="fc-lab">${t('Chats live on your device')}</div></div>
@@ -792,7 +847,7 @@ function panel5(){
       <h1 class="sm">${t('A blocklist that<br>keeps up')}</h1>
       <div class="sub">${t('New sites appear constantly. Yours refreshes automatically.')}</div>
     </div>
-    <div class="proof" style="${M('top:700px','top:790px')}">
+    <div class="proof" style="${M('top:700px','top:790px','top:600px')}">
       <div class="pbig" style="padding:44px 56px">
         <div class="v rnd">${nf(SITES)}</div>
         <div class="l">${t('Adult sites blocked')}</div>
@@ -803,7 +858,7 @@ function panel5(){
       </div>
       <div class="pnote">${svg('checkcircle')}${t('Add your own sites and keywords too')}</div>
     </div>
-    <div class="stage"><div class="device tilt" style="${M('top:1470px','top:1760px')}">${screenBlocklist()}</div></div>`);
+    <div class="stage"><div class="device tilt" style="${M('top:1470px','top:1760px','top:1330px')}">${screenBlocklist()}</div></div>`);
 }
 
 function panel6(){
@@ -813,7 +868,7 @@ function panel6(){
       <h1 class="sm">${t('Protected in<br>under a minute')}</h1>
       <div class="sub">${t('No settings maze. The app walks you through it.')}</div>
     </div>
-    <div class="steps" style="${M('top:672px;gap:26px','top:800px;gap:30px')}">
+    <div class="steps" style="${M('top:672px;gap:26px','top:800px;gap:30px','top:600px;gap:26px')}">
       <div class="step">
         <div class="n rnd">1</div>
         <div><div class="t">${t('Turn on blocking')}</div><div class="d">${t('One switch enables the Safari extension.')}</div></div>
@@ -827,7 +882,7 @@ function panel6(){
         <div><div class="t">${t('Pick a daily reminder')}</div><div class="d">${t('A nudge to check in, at a time you choose.')}</div></div>
       </div>
     </div>
-    <div class="stage"><div class="device tilt" style="${M('top:1520px','top:1640px')}">${screenSettings()}</div></div>`);
+    <div class="stage"><div class="device tilt" style="${M('top:1520px','top:1640px','top:1340px')}">${screenSettings()}</div></div>`);
 }
 
 /* ============ translations (keys = English source; missing -> English) ============ */
@@ -1208,10 +1263,11 @@ const PANELS=[panel1,panel2,panel3,panel4,panel5,panel6];
 const p=q.get('p');
 if(p){
   if(IPAD) document.body.classList.add('ipad');
+  if(DUO) document.body.classList.add('duo');
   if(L!=='en') document.body.classList.add('l10n');
   document.getElementById('root').innerHTML=PANELS[parseInt(p,10)-1]();
 }else{
-  document.body.className='index'+(IPAD?' ipad':'');
+  document.body.className='index'+(IPAD?' ipad':'')+(DUO?' duo':'');
   document.getElementById('root').outerHTML=PANELS.map(f=>`<div class="wrap">${f()}</div>`).join('');
 }
 </script>
