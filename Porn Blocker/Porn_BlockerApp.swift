@@ -26,8 +26,6 @@ struct Porn_BlockerApp: App {
             ContentView()
                 .preferredColorScheme(appearanceMode.preferredColorScheme)
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                    // Prompt only when appropriate
-                    RatingRequestManager.shared.maybePromptForReview()
                     // Keep the domain list fresh — previously it only refreshed
                     // on cold launch. The 24h staleness gate makes this cheap.
                     Task { await BlocklistManager.shared.refreshIfStale() }

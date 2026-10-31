@@ -65,6 +65,7 @@
 		DD1C00001C00001C00001C00 /* SubscriptionCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */; };
 		DD1E00001E00001E00001E00 /* NavigationPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */; };
 		DD2000002000002000002000 /* EntitlementsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2100002100002100002100 /* EntitlementsTests.swift */; };
+		DD2200002200002200002200 /* ReviewPromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2300002300002300002300 /* ReviewPromptTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -161,6 +162,7 @@
 		DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionCacheTests.swift; sourceTree = "<group>"; };
 		DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicyTests.swift; sourceTree = "<group>"; };
 		DD2100002100002100002100 /* EntitlementsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitlementsTests.swift; sourceTree = "<group>"; };
+		DD2300002300002300002300 /* ReviewPromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -299,6 +301,7 @@
 				DD1D00001D00001D00001D00 /* SubscriptionCacheTests.swift */,
 				DD1F00001F00001F00001F00 /* NavigationPolicyTests.swift */,
 				DD2100002100002100002100 /* EntitlementsTests.swift */,
+				DD2300002300002300002300 /* ReviewPromptTests.swift */,
 			);
 			path = "Porn BlockerTests";
 			sourceTree = "<group>";
@@ -510,6 +513,7 @@
 				DD1C00001C00001C00001C00 /* SubscriptionCacheTests.swift in Sources */,
 				DD1E00001E00001E00001E00 /* NavigationPolicyTests.swift in Sources */,
 				DD2000002000002000002000 /* EntitlementsTests.swift in Sources */,
+				DD2200002200002200002200 /* ReviewPromptTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -53,6 +53,32 @@ dropped into `ContentBlocker/` are added to it automatically. The main app
 target uses explicit file references, so new files there must be registered
 in `project.pbxproj`.
 
+### Releasing a build
+
+From 1.6.2, archive with **Xcode 27.1 or later**: the iPhone Duo screenshots
+promise a 27.1-SDK build, and a 27.0 one runs windowed on the Duo's outer
+display. If it isn't the selected Xcode, prefix both steps with
+`DEVELOPER_DIR=<Xcode 27.1>/Contents/Developer`.
+
+1. Set `MARKETING_VERSION` on the app **and** `ContentBlocker` (they must
+   match — the extension sat at 1.2 until 1.6.2) and raise
+   `CURRENT_PROJECT_VERSION` yourself; it must be unique within the version.
+2. `xcodebuild archive -project "Porn Blocker.xcodeproj" -scheme "Porn Blocker"
+   -configuration Release -destination generic/platform=iOS
+   -archivePath <path>.xcarchive -allowProvisioningUpdates`
+3. `xcodebuild -exportArchive -archivePath <path>.xcarchive -exportPath <dir>
+   -exportOptionsPlist <plist> -allowProvisioningUpdates`, with `method`
+   app-store-connect, `destination` upload, `signingStyle` automatic,
+   `teamID` 57R4ZFVKDM and `manageAppVersionAndBuildNumber` **false**
+   (otherwise the upload renumbers the build). Signing goes through the
+   Apple Account signed into Xcode; the vibe-aso API key is an App Manager
+   key and can't cloud-sign.
+4. The app sets no `ITSAppUsesNonExemptEncryption`, so each build waits on
+   the export-compliance question in App Store Connect. Every build so far
+   answered "no non-exempt encryption".
+
+1.6.2 (1) was uploaded this way on 2026-10-20.
+
 ## Architecture
 
 ### Blocking (all in `Porn Blocker/`)
@@ -596,6 +622,7 @@ data and check-in history. A few non-obvious behaviors live here:
   at once, and the overlay played unseen underneath, using the
   milestone up. The overlay (`MilestoneCelebrationView` +
   `ConfettiBurst`) mounts on the `NavigationStack` in `StatsView.body`.
+  Its close, from 1 Week up, is a review moment (see "Rating prompts").
 - **The history grid follows the user's calendar.** Weekday initials
   are `Calendar.current.veryShortStandaloneWeekdaySymbols` rotated to
   `firstWeekday` (Monday-first in de/es), and the rows start on that
@@ -698,29 +725,62 @@ same habit.
 
 ### Rating prompts
 
-`RatingRequestManager` (a `@MainActor` singleton) has two prompts that
-stay mutually exclusive — enforced by `ReviewScheduler.swift`, a pure
-policy file that is byte-identical across the hymnal apps, Interlinear
-Bible Plus, La Fe de Jesús y Doctrinas and this app (edit it in one place
-and copy it to the others):
+`RatingRequestManager` (a `@MainActor` singleton) asks at the app's best
+moments, **never when it opens** (2026-10-31, Cairn's pattern — it asks at
+the Amen). `ReviewScheduler.swift` picks the prompt: a pure policy file
+that is byte-identical across the hymnal apps, Interlinear Bible Plus, La
+Fe de Jesús y Doctrinas, Cairn, Hearken and this app (edit it in one place
+and copy it to the others). It shows **either** Apple's native
+`AppStore.requestReview` sheet (at most every 90 days) **or** the custom
+`ReviewPromptView` card in `MainTabView` (at most every 30 days) — never
+both in one session, at least 14 days after whichever fired last, native
+first when both are due. Each ask waits a second, so the moment is the
+user's first.
 
-- **`maybePromptForReview()`** — called from `Porn_BlockerApp` on
-  `didBecomeActive`. Asks `ReviewScheduler.decide` (≥5 launches, ≥3 days
-  since install) and shows **either** Apple's native `AppStore.requestReview`
-  sheet (at most every 90 days) **or** the custom `ReviewPromptView` overlay
-  in `MainTabView` (at most every 30 days) — never both in one session, and
-  at least 14 days after whichever fired last. The card stops for good after
-  Rate or two "No, thanks". If no foreground scene exists it returns
-  silently — iOS will fire `didBecomeActive` again later.
-- **`openWriteReview()`** — Settings → "Rate the App" and the card's Rate
-  button. Opens the App Store review page directly (no card) and marks
-  `review.didLeaveReview`, which retires the card.
+- **A streak milestone of 1 Week or more** asks when its celebration
+  closes (`StatsView` → `milestoneCelebrationClosed(days:)`, policy
+  `.milestoneMoment`): reaching it is the engagement, so no launch count,
+  but still never in the first 3 days (a start date backdated on install
+  day can cross one). Not 1 Day — it comes with the very first check-in,
+  users who set a start date in onboarding never see it, and every slip
+  starts a new run that celebrates it again, so the ask would land right
+  after a relapse. A daily user gets Apple's sheet at 1 Week, the card at
+  1 Month and 3 Months, Apple's sheet at 1 Year.
+- **Leaving the Protection tab** (`leftProtectionTab()`, policy
+  `.leavingProtection`: ≥3 launches, ≥3 days since install) asks only
+  someone with protection on (subscribed and the Safari blocker enabled,
+  checked live) and **no streak running** — a streak waits for its
+  milestone, so a tab switch never spends the cooldown the milestone is
+  waiting for. `MainTabView` calls it from its `TabView` selection
+  binding's setter, which only a tap reaches: `selectedTab = …` from a
+  reminder tap or the Buddy tab's Lifetime purchase doesn't count. This
+  replaced the ask on every `didBecomeActive` (≥5 launches); `trackLaunch()`
+  in `Porn_BlockerApp.init` now only counts.
+- **Never on the day of a slip** (`slippedToday` on the Porn Free habit).
+- **Rate ends every ask.** The card's Rate and Settings → "Rate the App"
+  open the App Store review page (`openWriteReview()`) and mark
+  `review.didLeaveReview`; `RatingRequestManager.decide` then returns
+  nothing, Apple's sheet included — the shared scheduler alone would still
+  ask natively every 90 days. **"No, thanks" retires the card at once**
+  (`userDismissedReview()`; it took two taps before); Apple's sheet keeps
+  its own cadence. "Maybe later" or a tap outside lets the card come back
+  after 30 days.
+- Apple's sheet stamps its date only when a foreground scene exists;
+  otherwise the next moment tries again.
+
+Checked 2026-10-31 on an iOS 27 simulator, with a throwaway probe standing
+in for protection (the simulator can't hold a subscription outside Xcode):
+nothing at launch where the old code would have shown the card; Apple's
+sheet a second after a 1 Week celebration closed; Apple's sheet on leaving
+Protection with no streak, nothing with a 4-day streak; the card on
+leaving Protection 20 days after Apple's sheet, retired by one "No, thanks".
 
 Keys: `appLaunchCount` plus the namespaced `review.*` keys from
 `ReviewScheduler.swift`; the old `lastRatingPromptDate`, `firstInstallDate`
 and `reviewPromptDismissedPermanently` are migrated once
-(`ReviewStore.migrateIfNeeded`). The scheduling rules are unit-tested in
-the ChantsDEsperance / HarpaCrista repos (`ReviewSchedulerTests`).
+(`ReviewStore.migrateIfNeeded`). This app's rules are covered by
+`ReviewPromptTests`; the scheduler's own by `ReviewSchedulerTests` in the
+ChantsDEsperance / HarpaCrista repos.
 
 **Native sheet caveats** (not a code issue, frequently misdiagnosed):
 `SKStoreReviewController` only fully works on App Store-installed
@@ -797,15 +857,16 @@ Italian, Turkish.
 
 ## Tests
 
-`Porn BlockerTests` is an **app-hosted** XCTest unit-test target (~100 tests)
+`Porn BlockerTests` is an **app-hosted** XCTest unit-test target (~110 tests)
 covering the pure-logic invariants: keyword word-boundaries, ruleset
 composition (whitelist-rule-last, 100k cap, keyword exemptions), non-English keywords, safe-search
 enforcement + its idempotency loop guard, streak/relapse/backdate semantics,
 slip days, milestone runs, the day-change redraw, time-zone travel, the
 per-day reminder queue and the tolerant habit decoder,
 tab-session persistence, host matching, the subscription-cache seed and
-"Checking Protection…" rules, and entitlement gating (`EntitlementsTests`:
-who gets protection vs. chat across Premium / Lifetime / the add-on).
+"Checking Protection…" rules, entitlement gating (`EntitlementsTests`:
+who gets protection vs. chat across Premium / Lifetime / the add-on) and
+when the app asks for a review (`ReviewPromptTests`).
 
 ```sh
 xcodebuild test -project "Porn Blocker.xcodeproj" -scheme "Porn Blocker" \

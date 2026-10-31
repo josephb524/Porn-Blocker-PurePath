@@ -84,6 +84,7 @@ struct StatsView: View {
             if let milestone = celebrationMilestone {
                 MilestoneCelebrationView(milestone: milestone) {
                     withAnimation(.easeOut(duration: 0.25)) { celebrationMilestone = nil }
+                    RatingRequestManager.shared.milestoneCelebrationClosed(days: milestone.days)
                 }
                 .transition(.opacity)
             }

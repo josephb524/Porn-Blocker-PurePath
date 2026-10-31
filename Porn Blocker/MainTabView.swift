@@ -13,7 +13,7 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack {
-            TabView(selection: $selectedTab) {
+            TabView(selection: tabSelection) {
                 DashboardView()
                     .tabItem {
                         Image(systemName: "shield.fill")
@@ -74,6 +74,20 @@ struct MainTabView: View {
         .onChange(of: habitRouter.pendingHabitID) { _ in
             showStreaksForPendingHabit()
         }
+    }
+
+    /// The tab bar's selection. Only a tap goes through the setter —
+    /// `selectedTab = …` from a reminder tap or a purchase doesn't — so leaving
+    /// the Protection tab here is the user's own move: a calm moment for the
+    /// review ask (`RatingRequestManager.leftProtectionTab`).
+    private var tabSelection: Binding<Int> {
+        Binding(
+            get: { selectedTab },
+            set: { newTab in
+                if selectedTab == 0, newTab != 0 { ratingManager.leftProtectionTab() }
+                selectedTab = newTab
+            }
+        )
     }
 
     /// A tapped habit reminder lands the user on the Streaks tab — nothing more.
